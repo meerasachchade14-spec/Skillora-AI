@@ -1,5 +1,4 @@
 import {
-  FaBriefcase,
   FaCalendarAlt,
   FaBuilding,
   FaStar,

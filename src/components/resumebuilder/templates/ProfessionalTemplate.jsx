@@ -362,7 +362,7 @@ function ProfessionalTemplate({ resumeData, theme = "blue", font = "Poppins" }) 
                   className="px-4 py-2 bg-gray-100 rounded-lg"
                 >
 
-                  {lang}
+                  {lang.language || "Language"} ({lang.proficiency})
 
                 </span>
 
@@ -397,8 +397,15 @@ function ProfessionalTemplate({ resumeData, theme = "blue", font = "Poppins" }) 
 
               {achievements.map((item, index) => (
 
-                <li key={index}>
-                  {item}
+                <li key={index} className="mt-2 text-gray-700">
+                  <span className="font-semibold text-slate-800">
+                    {item.title || "Achievement Title"}
+                  </span>
+                  {item.organization && ` at ${item.organization}`}
+                  {item.year && ` (${item.year})`}
+                  {item.description && (
+                    <p className="text-sm text-gray-500 mt-1">{item.description}</p>
+                  )}
                 </li>
 
               ))}

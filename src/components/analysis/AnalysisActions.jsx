@@ -1,5 +1,4 @@
 import {
-  FaDownload,
   FaPrint,
   FaShareAlt,
   FaRedo,

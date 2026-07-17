@@ -218,7 +218,7 @@ function CreativeTemplate({ resumeData, theme = "blue", font = "Poppins" }) {
                     key={index}
                     className="bg-white/20 rounded-lg px-3 py-2 text-sm font-medium"
                   >
-                    {lang}
+                    {lang.language || "Language"} ({lang.proficiency})
                   </div>
 
                 ))}
@@ -444,10 +444,15 @@ function CreativeTemplate({ resumeData, theme = "blue", font = "Poppins" }) {
 
                 {achievements.map((item, index) => (
 
-                  <li key={index}>
-
-                    {item}
-
+                  <li key={index} className="mt-2 text-gray-700">
+                    <span className="font-semibold text-slate-800">
+                      {item.title || "Achievement Title"}
+                    </span>
+                    {item.organization && ` at ${item.organization}`}
+                    {item.year && ` (${item.year})`}
+                    {item.description && (
+                      <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                    )}
                   </li>
 
                 ))}

@@ -1,5 +1,4 @@
 import {
-  FaGraduationCap,
   FaUniversity,
   FaCalendarAlt,
   FaStar,

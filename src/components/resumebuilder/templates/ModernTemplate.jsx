@@ -342,8 +342,15 @@ function ModernTemplate({ resumeData, theme = "blue", font = "Poppins" }) {
             <ul className="list-disc ml-6 mt-3">
 
               {achievements.map((item, index) => (
-                <li key={index}>
-                  {item}
+                <li key={index} className="mt-2 text-gray-700">
+                  <span className="font-semibold text-slate-800">
+                    {item.title || "Achievement Title"}
+                  </span>
+                  {item.organization && ` at ${item.organization}`}
+                  {item.year && ` (${item.year})`}
+                  {item.description && (
+                    <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                  )}
                 </li>
               ))}
 
