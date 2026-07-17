@@ -1,158 +1,319 @@
-import { useState } from "react";
-import { FaPlus, FaTrash } from "react-icons/fa";
+import { FaGraduationCap, FaPlus, FaTrash } from "react-icons/fa";
 
 function EducationForm({ resumeData, setResumeData }) {
-  const [education, setEducation] = useState({
-    degree: "",
-    college: "",
-    year: "",
-    cgpa: "",
-  });
 
-  const handleChange = (e) => {
-    setEducation({
-      ...education,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const education = resumeData.education || [];
 
   const addEducation = () => {
-    if (
-      education.degree === "" ||
-      education.college === "" ||
-      education.year === ""
-    )
-      return;
 
     setResumeData({
+
       ...resumeData,
-      education: [...resumeData.education, education],
+
+      education: [
+
+        ...education,
+
+        {
+
+          degree: "",
+
+          college: "",
+
+          year: "",
+
+          cgpa: "",
+
+        },
+
+      ],
+
     });
 
-    setEducation({
-      degree: "",
-      college: "",
-      year: "",
-      cgpa: "",
-    });
   };
 
-  const deleteEducation = (index) => {
-    const updated = resumeData.education.filter(
+  const handleChange = (index, field, value) => {
+
+    const updatedEducation = [...education];
+
+    updatedEducation[index][field] = value;
+
+    setResumeData({
+
+      ...resumeData,
+
+      education: updatedEducation,
+
+    });
+
+  };
+
+  const removeEducation = (index) => {
+
+    const updatedEducation = education.filter(
+
       (_, i) => i !== index
+
     );
 
     setResumeData({
+
       ...resumeData,
-      education: updated,
+
+      education: updatedEducation,
+
     });
+
   };
 
   return (
+
     <div className="bg-white rounded-3xl shadow-xl p-8">
 
-      <h2 className="text-3xl font-bold mb-8">
-        Education
-      </h2>
+      {/* Header */}
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="flex items-center justify-between mb-8">
 
-        <input
-          type="text"
-          name="degree"
-          placeholder="Degree"
-          value={education.degree}
-          onChange={handleChange}
-          className="border rounded-xl p-4"
-        />
+        <div className="flex items-center gap-3">
 
-        <input
-          type="text"
-          name="college"
-          placeholder="College"
-          value={education.college}
-          onChange={handleChange}
-          className="border rounded-xl p-4"
-        />
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white flex items-center justify-center">
 
-        <input
-          type="text"
-          name="year"
-          placeholder="Passing Year"
-          value={education.year}
-          onChange={handleChange}
-          className="border rounded-xl p-4"
-        />
+            <FaGraduationCap />
 
-        <input
-          type="text"
-          name="cgpa"
-          placeholder="CGPA"
-          value={education.cgpa}
-          onChange={handleChange}
-          className="border rounded-xl p-4"
-        />
+          </div>
 
-      </div>
+          <div>
 
-      <button
-        onClick={addEducation}
-        className="mt-8 flex items-center gap-3 px-8 py-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white rounded-xl"
-      >
-        <FaPlus />
-        Add Education
-      </button>
+            <h2 className="text-3xl font-bold text-slate-800">
 
-      {resumeData.education.length > 0 && (
+              Education
 
-        <div className="mt-10">
+            </h2>
 
-          <h3 className="font-bold text-xl mb-5">
-            Added Education
-          </h3>
+            <p className="text-slate-500">
 
-          <div className="space-y-4">
+              Add your educational qualifications.
 
-            {resumeData.education.map((item, index) => (
-
-              <div
-                key={index}
-                className="border rounded-2xl p-5 flex justify-between items-center"
-              >
-
-                <div>
-
-                  <h4 className="font-bold">
-                    {item.degree}
-                  </h4>
-
-                  <p>{item.college}</p>
-
-                  <p className="text-gray-500">
-                    {item.year} | CGPA : {item.cgpa}
-                  </p>
-
-                </div>
-
-                <button
-                  onClick={() => deleteEducation(index)}
-                  className="text-red-600 text-xl"
-                >
-                  <FaTrash />
-                </button>
-
-              </div>
-
-            ))}
+            </p>
 
           </div>
 
         </div>
 
+        <button
+
+          onClick={addEducation}
+
+          className="flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 text-white px-5 py-3 rounded-xl hover:scale-105 transition"
+
+        >
+
+          <FaPlus />
+
+          Add Education
+
+        </button>
+
+      </div>
+
+      {education.length === 0 && (
+
+        <div className="text-center text-slate-400 py-10 border-2 border-dashed rounded-2xl">
+
+          No Education Added
+
+        </div>
+
       )}
 
+      {education.map((edu, index) => (
+
+        <div
+
+          key={index}
+
+          className="border rounded-2xl p-6 mb-6 bg-slate-50"
+
+        >
+
+          <div className="flex justify-between items-center mb-5">
+
+            <h3 className="font-bold text-xl text-slate-700">
+
+              Education #{index + 1}
+
+            </h3>
+
+            <button
+
+              onClick={() => removeEducation(index)}
+
+              className="text-red-500 hover:text-red-700"
+
+            >
+
+              <FaTrash />
+
+            </button>
+
+          </div>
+
+          <div className="grid grid-cols-2 gap-5">
+
+            <div>
+
+              <label className="font-semibold">
+
+                Degree
+
+              </label>
+
+              <input
+
+                type="text"
+
+                value={edu.degree}
+
+                onChange={(e) =>
+
+                  handleChange(
+
+                    index,
+
+                    "degree",
+
+                    e.target.value
+
+                  )
+
+                }
+
+                placeholder="B.E Computer Engineering"
+
+                className="w-full mt-2 p-4 rounded-xl border focus:ring-2 focus:ring-sky-500 outline-none"
+
+              />
+
+            </div>
+
+            <div>
+
+              <label className="font-semibold">
+
+                College
+
+              </label>
+
+              <input
+
+                type="text"
+
+                value={edu.college}
+
+                onChange={(e) =>
+
+                  handleChange(
+
+                    index,
+
+                    "college",
+
+                    e.target.value
+
+                  )
+
+                }
+
+                placeholder="LDRP Institute"
+
+                className="w-full mt-2 p-4 rounded-xl border focus:ring-2 focus:ring-sky-500 outline-none"
+
+              />
+
+            </div>
+
+            <div>
+
+              <label className="font-semibold">
+
+                Passing Year
+
+              </label>
+
+              <input
+
+                type="text"
+
+                value={edu.year}
+
+                onChange={(e) =>
+
+                  handleChange(
+
+                    index,
+
+                    "year",
+
+                    e.target.value
+
+                  )
+
+                }
+
+                placeholder="2027"
+
+                className="w-full mt-2 p-4 rounded-xl border focus:ring-2 focus:ring-sky-500 outline-none"
+
+              />
+
+            </div>
+
+            <div>
+
+              <label className="font-semibold">
+
+                CGPA / Percentage
+
+              </label>
+
+              <input
+
+                type="text"
+
+                value={edu.cgpa}
+
+                onChange={(e) =>
+
+                  handleChange(
+
+                    index,
+
+                    "cgpa",
+
+                    e.target.value
+
+                  )
+
+                }
+
+                placeholder="8.75 CGPA"
+
+                className="w-full mt-2 p-4 rounded-xl border focus:ring-2 focus:ring-sky-500 outline-none"
+
+              />
+
+            </div>
+
+          </div>
+
+        </div>
+
+      ))}
+
     </div>
+
   );
+
 }
 
 export default EducationForm;

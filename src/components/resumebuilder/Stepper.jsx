@@ -1,96 +1,63 @@
-import {
-  FaUser,
-  FaGraduationCap,
-  FaBriefcase,
-  FaProjectDiagram,
-  FaCode,
-  FaCertificate,
-  FaLanguage,
-  FaTrophy,
-} from "react-icons/fa";
+import React from "react";
+import { Check } from "lucide-react";
 
-const steps = [
-  {
-    id: 1,
-    title: "Personal",
-    icon: <FaUser />,
-  },
-  {
-    id: 2,
-    title: "Education",
-    icon: <FaGraduationCap />,
-  },
-  {
-    id: 3,
-    title: "Experience",
-    icon: <FaBriefcase />,
-  },
-  {
-    id: 4,
-    title: "Projects",
-    icon: <FaProjectDiagram />,
-  },
-  {
-    id: 5,
-    title: "Skills",
-    icon: <FaCode />,
-  },
-  {
-    id: 6,
-    title: "Certificates",
-    icon: <FaCertificate />,
-  },
-  {
-    id: 7,
-    title: "Languages",
-    icon: <FaLanguage />,
-  },
-  {
-    id: 8,
-    title: "Achievements",
-    icon: <FaTrophy />,
-  },
-];
-
-function Stepper({ step, setStep }) {
+const Stepper = ({ steps = [], currentStep = 0 }) => {
   return (
-    <div className="bg-white rounded-3xl shadow-lg p-6 mb-10">
+    <div className="w-full mb-8 overflow-x-auto">
+      <div className="flex items-center justify-between min-w-max">
+        {steps.map((step, index) => {
+          const completed = index < currentStep;
+          const active = index === currentStep;
 
-      <div className="grid grid-cols-4 lg:grid-cols-8 gap-5">
+          return (
+            <React.Fragment key={step}>
+              <div className="flex flex-col items-center min-w-[90px]">
+                {/* Circle */}
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300
+                  ${
+                    completed
+                      ? "bg-green-500 text-white"
+                      : active
+                      ? "bg-blue-600 text-white ring-4 ring-blue-200"
+                      : "bg-gray-200 text-gray-600"
+                  }`}
+                >
+                  {completed ? (
+                    <Check size={18} />
+                  ) : (
+                    index + 1
+                  )}
+                </div>
 
-        {steps.map((item) => (
-
-          <button
-            key={item.id}
-            onClick={() => setStep(item.id)}
-            className={`rounded-2xl p-4 transition-all duration-300
-            ${
-              step === item.id
-                ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-xl scale-105"
-                : "bg-slate-100 hover:bg-sky-100 text-slate-600"
-            }`}
-          >
-
-            <div className="flex flex-col items-center">
-
-              <div className="text-2xl mb-2">
-                {item.icon}
+                {/* Step Name */}
+                <span
+                  className={`mt-2 text-xs text-center font-medium ${
+                    active
+                      ? "text-blue-600"
+                      : completed
+                      ? "text-green-600"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {step}
+                </span>
               </div>
 
-              <span className="text-sm font-semibold">
-                {item.title}
-              </span>
-
-            </div>
-
-          </button>
-
-        ))}
-
+              {/* Connector */}
+              {index !== steps.length - 1 && (
+                <div
+                  className={`flex-1 h-1 mx-2 rounded-full transition-all duration-300 ${
+                    completed ? "bg-green-500" : "bg-gray-300"
+                  }`}
+                />
+              )}
+            </React.Fragment>
+          );
+        })}
       </div>
-
     </div>
   );
-}
+};
 
 export default Stepper;

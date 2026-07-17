@@ -1,172 +1,353 @@
-import { useState } from "react";
-import { FaPlus, FaTrash } from "react-icons/fa";
+import { FaBriefcase, FaPlus, FaTrash } from "react-icons/fa";
 
 function ExperienceForm({ resumeData, setResumeData }) {
-  const [experience, setExperience] = useState({
-    position: "",
-    company: "",
-    startDate: "",
-    endDate: "",
-    description: "",
-  });
 
-  const handleChange = (e) => {
-    setExperience({
-      ...experience,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const experience = resumeData.experience || [];
 
   const addExperience = () => {
-    if (
-      experience.position === "" ||
-      experience.company === ""
-    )
-      return;
 
     setResumeData({
+
       ...resumeData,
-      experience: [...resumeData.experience, experience],
+
+      experience: [
+
+        ...experience,
+
+        {
+
+          company: "",
+
+          position: "",
+
+          startDate: "",
+
+          endDate: "",
+
+          description: "",
+
+        },
+
+      ],
+
     });
 
-    setExperience({
-      position: "",
-      company: "",
-      startDate: "",
-      endDate: "",
-      description: "",
-    });
   };
 
-  const deleteExperience = (index) => {
-    const updated = resumeData.experience.filter(
+  const handleChange = (index, field, value) => {
+
+    const updatedExperience = [...experience];
+
+    updatedExperience[index][field] = value;
+
+    setResumeData({
+
+      ...resumeData,
+
+      experience: updatedExperience,
+
+    });
+
+  };
+
+  const removeExperience = (index) => {
+
+    const updatedExperience = experience.filter(
+
       (_, i) => i !== index
+
     );
 
     setResumeData({
+
       ...resumeData,
-      experience: updated,
+
+      experience: updatedExperience,
+
     });
+
   };
 
   return (
+
     <div className="bg-white rounded-3xl shadow-xl p-8">
 
-      <h2 className="text-3xl font-bold mb-8">
-        Work Experience
-      </h2>
+      {/* Header */}
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="flex items-center justify-between mb-8">
 
-        <input
-          type="text"
-          name="position"
-          placeholder="Job Title"
-          value={experience.position}
-          onChange={handleChange}
-          className="border rounded-xl p-4"
-        />
+        <div className="flex items-center gap-3">
 
-        <input
-          type="text"
-          name="company"
-          placeholder="Company Name"
-          value={experience.company}
-          onChange={handleChange}
-          className="border rounded-xl p-4"
-        />
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white flex items-center justify-center">
 
-        <input
-          type="text"
-          name="startDate"
-          placeholder="Start Date"
-          value={experience.startDate}
-          onChange={handleChange}
-          className="border rounded-xl p-4"
-        />
+            <FaBriefcase />
 
-        <input
-          type="text"
-          name="endDate"
-          placeholder="End Date"
-          value={experience.endDate}
-          onChange={handleChange}
-          className="border rounded-xl p-4"
-        />
+          </div>
 
-      </div>
+          <div>
 
-      <textarea
-        rows="5"
-        name="description"
-        placeholder="Describe your responsibilities..."
-        value={experience.description}
-        onChange={handleChange}
-        className="w-full border rounded-xl p-4 mt-6"
-      />
+            <h2 className="text-3xl font-bold text-slate-800">
 
-      <button
-        onClick={addExperience}
-        className="mt-6 flex items-center gap-3 px-8 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white"
-      >
-        <FaPlus />
-        Add Experience
-      </button>
+              Experience
 
-      {resumeData.experience.length > 0 && (
-        <div className="mt-10">
+            </h2>
 
-          <h3 className="text-xl font-bold mb-5">
-            Added Experience
-          </h3>
+            <p className="text-slate-500">
 
-          <div className="space-y-5">
+              Add your internships and work experience.
 
-            {resumeData.experience.map((item, index) => (
-
-              <div
-                key={index}
-                className="border rounded-2xl p-5 flex justify-between items-start"
-              >
-
-                <div>
-
-                  <h3 className="font-bold text-lg">
-                    {item.position}
-                  </h3>
-
-                  <p className="text-blue-600">
-                    {item.company}
-                  </p>
-
-                  <p className="text-sm text-gray-500">
-                    {item.startDate} - {item.endDate}
-                  </p>
-
-                  <p className="mt-3 text-gray-600">
-                    {item.description}
-                  </p>
-
-                </div>
-
-                <button
-                  onClick={() => deleteExperience(index)}
-                  className="text-red-500 text-xl"
-                >
-                  <FaTrash />
-                </button>
-
-              </div>
-
-            ))}
+            </p>
 
           </div>
 
         </div>
+
+        <button
+
+          onClick={addExperience}
+
+          className="flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 text-white px-5 py-3 rounded-xl hover:scale-105 transition"
+
+        >
+
+          <FaPlus />
+
+          Add Experience
+
+        </button>
+
+      </div>
+
+      {experience.length === 0 && (
+
+        <div className="border-2 border-dashed rounded-2xl py-10 text-center text-slate-400">
+
+          No Experience Added
+
+        </div>
+
       )}
 
+      {experience.map((item, index) => (
+
+        <div
+
+          key={index}
+
+          className="bg-slate-50 rounded-2xl border p-6 mb-6"
+
+        >
+
+          <div className="flex justify-between items-center mb-5">
+
+            <h3 className="font-bold text-xl">
+
+              Experience #{index + 1}
+
+            </h3>
+
+            <button
+
+              onClick={() => removeExperience(index)}
+
+              className="text-red-500 hover:text-red-700"
+
+            >
+
+              <FaTrash />
+
+            </button>
+
+          </div>
+
+          <div className="grid grid-cols-2 gap-5">
+
+            <div>
+
+              <label className="font-semibold">
+
+                Company Name
+
+              </label>
+
+              <input
+
+                type="text"
+
+                value={item.company}
+
+                onChange={(e) =>
+
+                  handleChange(
+
+                    index,
+
+                    "company",
+
+                    e.target.value
+
+                  )
+
+                }
+
+                placeholder="Google"
+
+                className="w-full mt-2 p-4 rounded-xl border focus:ring-2 focus:ring-sky-500 outline-none"
+
+              />
+
+            </div>
+
+            <div>
+
+              <label className="font-semibold">
+
+                Position
+
+              </label>
+
+              <input
+
+                type="text"
+
+                value={item.position}
+
+                onChange={(e) =>
+
+                  handleChange(
+
+                    index,
+
+                    "position",
+
+                    e.target.value
+
+                  )
+
+                }
+
+                placeholder="Frontend Developer Intern"
+
+                className="w-full mt-2 p-4 rounded-xl border focus:ring-2 focus:ring-sky-500 outline-none"
+
+              />
+
+            </div>
+
+            <div>
+
+              <label className="font-semibold">
+
+                Start Date
+
+              </label>
+
+              <input
+
+                type="month"
+
+                value={item.startDate}
+
+                onChange={(e) =>
+
+                  handleChange(
+
+                    index,
+
+                    "startDate",
+
+                    e.target.value
+
+                  )
+
+                }
+
+                className="w-full mt-2 p-4 rounded-xl border focus:ring-2 focus:ring-sky-500 outline-none"
+
+              />
+
+            </div>
+
+            <div>
+
+              <label className="font-semibold">
+
+                End Date
+
+              </label>
+
+              <input
+
+                type="month"
+
+                value={item.endDate}
+
+                onChange={(e) =>
+
+                  handleChange(
+
+                    index,
+
+                    "endDate",
+
+                    e.target.value
+
+                  )
+
+                }
+
+                className="w-full mt-2 p-4 rounded-xl border focus:ring-2 focus:ring-sky-500 outline-none"
+
+              />
+
+            </div>
+
+          </div>
+
+          <div className="mt-6">
+
+            <label className="font-semibold">
+
+              Description
+
+            </label>
+
+            <textarea
+
+              rows="5"
+
+              value={item.description}
+
+              onChange={(e) =>
+
+                handleChange(
+
+                  index,
+
+                  "description",
+
+                  e.target.value
+
+                )
+
+              }
+
+              placeholder="Describe your responsibilities, technologies used, and achievements."
+
+              className="w-full mt-2 p-4 rounded-xl border focus:ring-2 focus:ring-sky-500 outline-none resize-none"
+
+            />
+
+          </div>
+
+        </div>
+
+      ))}
+
     </div>
+
   );
+
 }
 
 export default ExperienceForm;

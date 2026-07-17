@@ -3,7 +3,6 @@ import {
   FaCheckCircle,
   FaUpload,
   FaPenFancy,
-  FaBriefcase,
 } from "react-icons/fa";
 
 function Hero() {
