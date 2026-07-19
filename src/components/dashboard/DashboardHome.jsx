@@ -1,4 +1,3 @@
-import DashboardNavbar from "./DashboardNavbar";
 import StatsCards from "./StatsCards";
 import QuickActions from "./QuickActions";
 import RecentActivity from "./RecentActivity";
@@ -6,40 +5,34 @@ import ProfileCard from "./ProfileCard";
 
 function DashboardHome() {
   return (
-    <div className="flex-1 bg-slate-100 min-h-screen">
+    <div className="space-y-8">
 
-      <DashboardNavbar />
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-slate-900">
+          Welcome Back 👋
+        </h1>
 
-      <div className="p-8">
+        <p className="text-slate-500 mt-2">
+          Here's an overview of your AI career dashboard.
+        </p>
+      </div>
 
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900">
-            Welcome Back 👋
-          </h1>
+      <StatsCards />
 
-          <p className="text-slate-500 mt-2">
-            Here's an overview of your AI career dashboard.
-          </p>
+      <div className="grid lg:grid-cols-3 gap-6">
+
+        <div className="lg:col-span-2">
+          <RecentActivity />
         </div>
 
-        <StatsCards />
-
-        <div className="grid lg:grid-cols-3 gap-6 mt-8">
-
-          <div className="lg:col-span-2">
-            <RecentActivity />
-          </div>
-
-          <div>
-            <QuickActions />
-          </div>
-
+        <div>
+          <QuickActions />
         </div>
 
-        <div className="mt-8">
-          <ProfileCard />
-        </div>
+      </div>
 
+      <div>
+        <ProfileCard />
       </div>
 
     </div>

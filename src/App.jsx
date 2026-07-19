@@ -9,26 +9,23 @@ import Landing from "./pages/Landing/Landing";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 
-/* ---------------- Dashboard ---------------- */
+/* ---------------- Dashboard & Layouts ---------------- */
 
-import Dashboard from "./pages/Dashboard/Dashboard";
+import DashboardHome from "./components/dashboard/DashboardHome";
+import DashboardLayout from "./layouts/DashboardLayout";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
-/* ---------------- Resume Module ---------------- */
+/* ---------------- Resume & Career Modules ---------------- */
 
 import ResumeUpload from "./pages/ResumeUpload/ResumeUpload";
 import ResumeBuilder from "./pages/ResumeBuilder/ResumeBuilder";
 import ResumeAnalysis from "./pages/ResumeAnalysis/ResumeAnalysis";
-
-/* ---------------- Future Modules ---------------- */
-
-// Uncomment these after creating them
-
-// import SkillMatcher from "./pages/SkillMatcher/SkillMatcher";
-// import Courses from "./pages/Courses/Courses";
-// import JobRecommendation from "./pages/JobRecommendation/JobRecommendation";
-// import Profile from "./pages/Profile/Profile";
-// import Settings from "./pages/Settings/Settings";
-// import NotFound from "./pages/NotFound/NotFound";
+import SkillMatcher from "./pages/SkillMatcher/SkillMatcher";
+import JobRecommendation from "./pages/JobRecommendation/JobRecommendation";
+import Profile from "./pages/Profile/Profile";
+import Settings from "./pages/Settings/Settings";
+import Roadmap from "./pages/Roadmap/Roadmap";
+import NotFound from "./pages/NotFound/NotFound";
 
 function App() {
   return (
@@ -53,63 +50,31 @@ function App() {
         element={<Register />}
       />
 
-      {/* Dashboard */}
-
+      {/* Dashboard & Career Modules (Protected under DashboardLayout) */}
       <Route
-        path="/dashboard"
-        element={<Dashboard />}
-      />
+        element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/dashboard" element={<DashboardHome />} />
+        <Route path="/resume-upload" element={<ResumeUpload />} />
+        <Route path="/resume-builder" element={<ResumeBuilder />} />
+        <Route path="/resume-analysis" element={<ResumeAnalysis />} />
+        <Route path="/skill-matcher" element={<SkillMatcher />} />
+        <Route path="/jobs" element={<JobRecommendation />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/roadmap" element={<Roadmap />} />
+      </Route>
 
-      {/* Resume */}
-
-      <Route
-        path="/resume-upload"
-        element={<ResumeUpload />}
-      />
-
-      <Route
-        path="/resume-builder"
-        element={<ResumeBuilder />}
-      />
-
-      <Route
-        path="/resume-analysis"
-        element={<ResumeAnalysis />}
-      />
-
-      {/* Future Modules */}
-
-      {/*
-      <Route
-        path="/skill-matcher"
-        element={<SkillMatcher />}
-      />
-
-      <Route
-        path="/courses"
-        element={<Courses />}
-      />
-
-      <Route
-        path="/jobs"
-        element={<JobRecommendation />}
-      />
-
-      <Route
-        path="/profile"
-        element={<Profile />}
-      />
-
-      <Route
-        path="/settings"
-        element={<Settings />}
-      />
+      {/* 404 Page */}
 
       <Route
         path="*"
         element={<NotFound />}
       />
-      */}
 
     </Routes>
   );

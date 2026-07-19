@@ -62,14 +62,10 @@ function ResumeAnalysis() {
   };
 
   return (
+    <div className="space-y-8">
+      <AnalysisHeader />
 
-    <div className="min-h-screen bg-slate-100 py-10">
-
-      <div className="max-w-7xl mx-auto px-6">
-
-        <AnalysisHeader />
-
-        <div className="grid grid-cols-12 gap-6 mt-8">
+      <div className="grid grid-cols-12 gap-6">
 
           {/* LEFT */}
 
@@ -114,12 +110,8 @@ function ResumeAnalysis() {
 
           </div>
 
-        </div>
-
       </div>
-
     </div>
-
   );
 
 }

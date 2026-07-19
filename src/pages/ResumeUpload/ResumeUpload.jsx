@@ -4,11 +4,11 @@ import UploadedResume from "../../components/upload/UploadedResume";
 
 function ResumeUpload() {
   return (
-    <div className="min-h-screen bg-slate-100 p-8">
+    <div className="space-y-8">
 
       <UploadCard />
 
-      <div className="grid lg:grid-cols-2 gap-8 mt-8">
+      <div className="grid lg:grid-cols-2 gap-8">
 
         <UploadArea />
 

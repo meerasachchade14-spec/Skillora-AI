@@ -1,4 +1,5 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
 import {
   FaRobot,
   FaHome,
@@ -70,6 +71,14 @@ const menuItems = [
 ];
 
 function Sidebar() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
     <aside className="fixed left-0 top-0 h-screen w-72 bg-white border-r border-slate-200 shadow-lg">
 
@@ -122,7 +131,10 @@ function Sidebar() {
       {/* Bottom */}
       <div className="absolute bottom-6 left-0 w-full px-4">
 
-        <button className="w-full flex items-center justify-center gap-3 bg-red-50 hover:bg-red-100 text-red-600 py-4 rounded-2xl font-semibold transition">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-3 bg-red-50 hover:bg-red-100 text-red-600 py-4 rounded-2xl font-semibold transition"
+        >
 
           <FaSignOutAlt />
 

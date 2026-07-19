@@ -1,13 +1,31 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaRobot, FaGoogle, FaGithub } from "react-icons/fa";
+import useAuth from "../../hooks/useAuth";
 
 function Register() {
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleRegister = (e) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
 
-    // Later this will connect to backend
+    // Store user session in context & localstorage
+    login({
+      email,
+      name,
+      token: "mock-jwt-token-12345",
+      role: "user"
+    });
+
     navigate("/dashboard");
   };
 
@@ -64,6 +82,8 @@ function Register() {
               type="text"
               placeholder="Full Name"
               required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               className="w-full border rounded-xl px-4 py-3 outline-none focus:border-blue-500"
             />
 
@@ -71,6 +91,8 @@ function Register() {
               type="email"
               placeholder="Email"
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full border rounded-xl px-4 py-3 outline-none focus:border-blue-500"
             />
 
@@ -78,6 +100,8 @@ function Register() {
               type="password"
               placeholder="Password"
               required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full border rounded-xl px-4 py-3 outline-none focus:border-blue-500"
             />
 
@@ -85,6 +109,8 @@ function Register() {
               type="password"
               placeholder="Confirm Password"
               required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full border rounded-xl px-4 py-3 outline-none focus:border-blue-500"
             />
 

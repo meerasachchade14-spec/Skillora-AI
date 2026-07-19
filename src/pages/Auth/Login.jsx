@@ -1,13 +1,25 @@
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FaRobot, FaGoogle, FaGithub } from "react-icons/fa";
+import useAuth from "../../hooks/useAuth";
 
 function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleLogin = (e) => {
     e.preventDefault();
 
-    // Later this will be replaced with backend authentication
+    // Store user session in context & localstorage
+    login({
+      email,
+      name: email.split("@")[0] || "User",
+      token: "mock-jwt-token-12345",
+      role: "user"
+    });
+
     navigate("/dashboard");
   };
 
@@ -63,6 +75,8 @@ function Login() {
               type="email"
               placeholder="Email"
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full border rounded-xl px-4 py-3 outline-none focus:border-blue-500"
             />
 
@@ -70,6 +84,8 @@ function Login() {
               type="password"
               placeholder="Password"
               required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full border rounded-xl px-4 py-3 outline-none focus:border-blue-500"
             />
 

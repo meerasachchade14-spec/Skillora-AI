@@ -137,8 +137,7 @@ export default function ResumeBuilder() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="grid lg:grid-cols-3 gap-6">
+    <div className="grid lg:grid-cols-3 gap-6">
 
         {/* Left Panel */}
 
@@ -220,7 +219,6 @@ export default function ResumeBuilder() {
 
         </div>
 
-      </div>
     </div>
   );
 }
