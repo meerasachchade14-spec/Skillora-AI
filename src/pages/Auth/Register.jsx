@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaRobot, FaGoogle, FaGithub } from "react-icons/fa";
 import useAuth from "../../hooks/useAuth";
+import authService from "../../services/authService";
 
 function Register() {
   const navigate = useNavigate();
@@ -10,23 +11,28 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      setErrorMsg("Passwords do not match!");
       return;
     }
+    setErrorMsg("");
 
-    // Store user session in context & localstorage
-    login({
-      email,
-      name,
-      token: "mock-jwt-token-12345",
-      role: "user"
-    });
-
-    navigate("/dashboard");
+    try {
+      const res = await authService.register({ name, email, password });
+      if (res.success && res.data) {
+        localStorage.setItem('skillora_token', res.data.token);
+        login(res.data.user);
+        navigate("/dashboard");
+      } else {
+        setErrorMsg(res.message || "Registration failed");
+      }
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || "Registration failed");
+    }
   };
 
   return (
@@ -75,6 +81,12 @@ function Register() {
           <p className="text-gray-500 text-center mt-2">
             Join Skillora AI today
           </p>
+
+          {errorMsg && (
+            <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3 text-sm text-center mt-4">
+              {errorMsg}
+            </div>
+          )}
 
           <form onSubmit={handleRegister} className="mt-8 space-y-5">
 

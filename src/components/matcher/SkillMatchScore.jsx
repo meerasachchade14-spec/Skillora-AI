@@ -4,8 +4,7 @@ import {
   FaArrowUp,
 } from "react-icons/fa";
 
-function SkillMatchScore() {
-  const score = 87;
+function SkillMatchScore({ score = 87 }) {
 
   return (
     <div className="bg-white rounded-3xl shadow-xl p-8">

@@ -1,8 +1,10 @@
 import api from './api';
 
 const matcherService = {
-  matchSkills: async (data) => {
-    const response = await api.post('/skills/match', data);
+  matchSkills: async ({ jobDescription }) => {
+    const response = await api.post('/skills/match/', {
+      job_description: jobDescription,
+    });
     return response.data;
   },
 };

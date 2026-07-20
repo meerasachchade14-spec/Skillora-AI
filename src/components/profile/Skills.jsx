@@ -66,7 +66,7 @@ function Skills() {
 
       <div className="flex items-center gap-4 mb-8">
 
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 flex items-center justify-center text-white text-2xl">
+        <div className="w-14 h-14 rounded-2xl bg-linear-to-r from-sky-500 to-blue-600 flex items-center justify-center text-white text-2xl">
 
           <FaCode />
 
@@ -128,7 +128,7 @@ function Skills() {
                   <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
 
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-sky-500 to-blue-600 transition-all duration-700"
+                      className="h-full rounded-full bg-linear-to-r from-sky-500 to-blue-600 transition-all duration-700"
                       style={{ width: `${skill.level}%` }}
                     />
 

@@ -40,7 +40,18 @@ const courses = [
   },
 ];
 
-function RecommendedCourses() {
+function RecommendedCourses({ courses: customCourses }) {
+  const listToRender = customCourses
+    ? customCourses.map((c, idx) => ({
+        title: c.title,
+        platform: c.platform,
+        rating: "4.8",
+        duration: c.duration,
+        level: "Intermediate",
+        color: idx % 2 === 0 ? "from-sky-500 to-blue-600" : "from-indigo-500 to-blue-600",
+      }))
+    : courses;
+
   return (
     <div className="bg-white rounded-3xl shadow-xl p-8">
 
@@ -72,7 +83,7 @@ function RecommendedCourses() {
 
       <div className="grid lg:grid-cols-2 gap-6">
 
-        {courses.map((course, index) => (
+        {listToRender.map((course, index) => (
 
           <div
             key={index}

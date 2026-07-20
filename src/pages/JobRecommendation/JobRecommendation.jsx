@@ -1,60 +1,59 @@
-import { FaBuilding, FaMapMarkerAlt, FaDollarSign, FaBolt, FaCheckCircle } from "react-icons/fa";
-
-const jobsData = [
-  {
-    title: "Frontend Developer (React)",
-    company: "Google",
-    location: "Bangalore (Hybrid)",
-    salary: "₹18,000,000 - ₹24,000,000 /yr",
-    match: 96,
-    tags: ["ReactJS", "TypeScript", "TailwindCSS"],
-    logoLetter: "G",
-    logoBg: "bg-red-500"
-  },
-  {
-    title: "Software Engineer Intern",
-    company: "Microsoft",
-    location: "Hyderabad (Remote)",
-    salary: "₹80,000 /mo",
-    match: 92,
-    tags: ["JavaScript", "Node.js", "Python"],
-    logoLetter: "M",
-    logoBg: "bg-blue-600"
-  },
-  {
-    title: "React Developer",
-    company: "Synent Technologies",
-    location: "Ahmedabad (Onsite)",
-    salary: "₹6,000,000 - ₹9,000,000 /yr",
-    match: 88,
-    tags: ["ReactJS", "Redux Toolkit", "REST APIs"],
-    logoLetter: "S",
-    logoBg: "bg-indigo-600"
-  },
-  {
-    title: "Full Stack Engineer",
-    company: "Razorpay",
-    location: "Bangalore (Onsite)",
-    salary: "₹1,200,000 - ₹1,800,000 /yr",
-    match: 85,
-    tags: ["ReactJS", "Node.js", "MongoDB"],
-    logoLetter: "R",
-    logoBg: "bg-sky-500"
-  }
-];
+import { useState, useEffect } from "react";
+import { FaBuilding, FaMapMarkerAlt, FaDollarSign, FaBolt, FaCheckCircle, FaSpinner } from "react-icons/fa";
+import jobsService from "../../services/jobsService";
 
 function JobRecommendation() {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const loadRecommendedJobs = async () => {
+    setLoading(true);
+    setErrorMsg("");
+    try {
+      const res = await jobsService.getRecommendedJobs();
+      if (res.success && res.data) {
+        setJobs(res.data);
+      } else {
+        setErrorMsg(res.message || "Failed to fetch job recommendations");
+      }
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || "Please upload a resume first to see personalized job recommendations!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadRecommendedJobs();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-[400px] flex flex-col items-center justify-center gap-4 bg-white rounded-3xl shadow p-12">
+        <FaSpinner className="text-5xl text-blue-600 animate-spin" />
+        <p className="text-slate-500 font-semibold mt-2">Matching your profile with job listings...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-800">Job Recommendations</h1>
-          <p className="text-slate-500 mt-1">Personalized job recommendations based on your resume's technical skills analysis.</p>
-        </div>
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-slate-800">Job Recommendations</h1>
+        <p className="text-slate-500 mt-1">Personalized job recommendations based on your resume's technical skills analysis.</p>
+      </div>
 
-        {/* Job Listings Grid */}
+      {errorMsg ? (
+        <div className="bg-amber-50 border border-amber-250 text-amber-800 rounded-3xl p-8 text-center max-w-2xl mx-auto shadow-sm">
+          <p className="font-semibold text-lg">{errorMsg}</p>
+          <p className="text-slate-600 mt-2">Go to Resume Upload to add your resume and unlock personalized job recommendations.</p>
+        </div>
+      ) : (
+        /* Job Listings Grid */
         <div className="grid md:grid-cols-2 gap-6">
-          {jobsData.map((job, index) => (
+          {jobs.map((job, index) => (
             <div key={index} className="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 flex flex-col justify-between hover:shadow-2xl transition duration-300">
               <div>
                 {/* Header detail */}
@@ -98,17 +97,18 @@ function JobRecommendation() {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 mt-6 border-t pt-4 border-slate-100">
-                <button className="flex-1 py-3 rounded-xl border border-slate-200 hover:border-slate-300 font-semibold text-slate-700 hover:bg-slate-50 transition text-sm">
+              <div className="mt-8 flex gap-4">
+                <button className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition text-sm">
                   View Details
                 </button>
-                <button className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 text-white py-3 rounded-xl font-semibold shadow hover:scale-105 transition text-sm">
-                  <FaBolt /> Apply Now
+                <button className="flex-1 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold hover:shadow-lg transition text-sm">
+                  Apply Now
                 </button>
               </div>
             </div>
           ))}
         </div>
+      )}
     </div>
   );
 }

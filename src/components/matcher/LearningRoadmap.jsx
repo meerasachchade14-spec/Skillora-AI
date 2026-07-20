@@ -43,7 +43,17 @@ const roadmap = [
   },
 ];
 
-function LearningRoadmap() {
+function LearningRoadmap({ roadmap: customRoadmap }) {
+  const listToRender = customRoadmap
+    ? customRoadmap.map((item, idx) => ({
+        week: item.phase.split(":")[0] || `Phase ${idx + 1}`,
+        title: item.phase.split(":")[1]?.trim() || item.phase,
+        duration: `${item.topics.length * 3} Days`,
+        status: idx === 0 ? "In Progress" : "Upcoming",
+        color: idx === 0 ? "bg-blue-100 text-blue-600" : "bg-yellow-100 text-yellow-700",
+      }))
+    : roadmap;
+
   return (
     <div className="bg-white rounded-3xl shadow-xl p-8">
 
@@ -75,7 +85,7 @@ function LearningRoadmap() {
 
       <div className="space-y-6">
 
-        {roadmap.map((item, index) => (
+        {listToRender.map((item, index) => (
 
           <div
             key={index}

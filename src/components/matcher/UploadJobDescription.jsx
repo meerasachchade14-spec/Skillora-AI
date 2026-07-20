@@ -6,7 +6,7 @@ import {
   FaBriefcase,
 } from "react-icons/fa";
 
-function UploadJobDescription() {
+function UploadJobDescription({ onAnalyze, loading }) {
   const fileInput = useRef(null);
 
   const [jobDescription, setJobDescription] = useState("");
@@ -17,6 +17,12 @@ function UploadJobDescription() {
 
     if (file) {
       setFileName(file.name);
+      // For simplicity, read text content if uploaded
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setJobDescription(event.target.result);
+      };
+      reader.readAsText(file);
     }
   };
 
@@ -53,8 +59,9 @@ function UploadJobDescription() {
         rows={10}
         value={jobDescription}
         onChange={(e) => setJobDescription(e.target.value)}
+        disabled={loading}
         placeholder="Paste the complete job description here..."
-        className="w-full rounded-2xl border border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-100 outline-none p-5 resize-none"
+        className="w-full rounded-2xl border border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-100 outline-none p-5 resize-none disabled:bg-slate-50"
       />
 
       {/* OR */}
@@ -74,8 +81,10 @@ function UploadJobDescription() {
       {/* Upload */}
 
       <div
-        onClick={() => fileInput.current.click()}
-        className="border-2 border-dashed border-sky-300 rounded-3xl p-10 text-center cursor-pointer hover:bg-sky-50 hover:border-sky-500 transition"
+        onClick={() => !loading && fileInput.current.click()}
+        className={`border-2 border-dashed border-sky-300 rounded-3xl p-10 text-center cursor-pointer hover:bg-sky-50 hover:border-sky-500 transition ${
+          loading ? "opacity-50 pointer-events-none" : ""
+        }`}
       >
 
         <FaCloudUploadAlt className="text-5xl text-sky-500 mx-auto mb-4" />
@@ -85,11 +94,12 @@ function UploadJobDescription() {
         </h3>
 
         <p className="text-gray-500 mt-2">
-          PDF • DOCX • TXT
+          TXT file
         </p>
 
         <button
-          className="mt-6 px-7 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold hover:scale-105 transition"
+          disabled={loading}
+          className="mt-6 px-7 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold hover:scale-105 transition disabled:bg-slate-300"
         >
           Browse File
         </button>
@@ -97,9 +107,10 @@ function UploadJobDescription() {
         <input
           ref={fileInput}
           type="file"
-          accept=".pdf,.doc,.docx,.txt"
+          accept=".txt"
           className="hidden"
           onChange={handleFile}
+          disabled={loading}
         />
 
       </div>
@@ -135,12 +146,18 @@ function UploadJobDescription() {
       {/* Analyze */}
 
       <button
-        className="mt-8 w-full flex items-center justify-center gap-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white py-4 rounded-2xl font-bold text-lg hover:scale-[1.02] transition"
+        onClick={() => onAnalyze(jobDescription)}
+        disabled={loading || !jobDescription.trim()}
+        className="mt-8 w-full flex items-center justify-center gap-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white py-4 rounded-2xl font-bold text-lg hover:scale-[1.02] transition disabled:opacity-50 disabled:pointer-events-none"
       >
 
-        <FaRobot />
+        {loading ? (
+          <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+        ) : (
+          <FaRobot />
+        )}
 
-        Analyze Skill Match
+        {loading ? "Matching Skills..." : "Analyze Skill Match"}
 
       </button>
 

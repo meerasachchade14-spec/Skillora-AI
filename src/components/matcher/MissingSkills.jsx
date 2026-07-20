@@ -37,7 +37,15 @@ const missingSkills = [
   },
 ];
 
-function MissingSkills() {
+function MissingSkills({ skills }) {
+  const listToRender = skills
+    ? skills.map((name, idx) => ({
+        name,
+        priority: idx === 0 ? "High" : idx === 1 ? "Medium" : "Low",
+        color: idx === 0 ? "bg-red-100 text-red-600" : idx === 1 ? "bg-yellow-100 text-yellow-700" : "bg-green-100 text-green-600",
+      }))
+    : missingSkills;
+
   return (
     <div className="bg-white rounded-3xl shadow-xl p-7">
 
@@ -65,7 +73,7 @@ function MissingSkills() {
 
       <div className="space-y-4">
 
-        {missingSkills.map((skill, index) => (
+        {listToRender.map((skill, index) => (
 
           <div
             key={index}
