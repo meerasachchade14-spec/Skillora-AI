@@ -1,0 +1,9 @@
+Django>=6.0,<6.1
+djangorestframework
+django-cors-headers
+djangorestframework-simplejwt
+django-mongodb-backend==6.0.4
+pymongo>=4.0.0
+python-dotenv
+Pillow
+pypdf
