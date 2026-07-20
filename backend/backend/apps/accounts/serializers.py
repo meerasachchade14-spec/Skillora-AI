@@ -36,13 +36,19 @@ class LoginSerializer(serializers.Serializer):
         if not email or not password:
             raise serializers.ValidationError("Email and password are required.")
 
-        user = authenticate(email=email, password=password)
+        # Django's ModelBackend uses USERNAME_FIELD for lookup.
+        # CustomUser.USERNAME_FIELD = 'email', so we pass email= here.
+        request = self.context.get('request')
+        user = authenticate(request=request, email=email, password=password)
 
         if not user:
             raise serializers.ValidationError("Invalid email or password.")
 
+        if not user.is_active:
+            raise serializers.ValidationError("This account has been disabled.")
+
         if not user.is_verified:
-            raise serializers.ValidationError("This account is not verified yet. Please verify using OTP.")
+            raise serializers.ValidationError("This account is not verified yet. Please verify using the OTP sent to your email.")
 
         data['user'] = user
         return data

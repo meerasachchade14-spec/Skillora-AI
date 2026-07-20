@@ -17,7 +17,7 @@ from .serializers import (
     ResetPasswordSerializer,
     UserProfileSerializer
 )
-from utils.email_service import send_otp_email, send_password_reset_email
+from backend1.backend.utils.email_service import send_otp_email, send_password_reset_email
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -100,7 +100,8 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = LoginSerializer(data=request.data)
+        # Pass request so LoginSerializer can use it in authenticate()
+        serializer = LoginSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             user = serializer.validated_data['user']
             tokens = get_tokens_for_user(user)
@@ -250,12 +251,15 @@ class RequestLoginOTPView(APIView):
         user.otp_created_at = timezone.now()
         user.save()
 
-        # Send SMTP email
-        send_otp_email(email, otp)
+        # Send SMTP email - capture success/failure
+        email_sent = send_otp_email(email, otp)
 
         return Response({
             "success": True,
-            "message": "OTP verification code has been sent to your email."
+            "message": "OTP verification code has been sent to your email.",
+            "data": {
+                "fallback": not email_sent  # True when SMTP failed — frontend shows console fallback message
+            }
         }, status=status.HTTP_200_OK)
 
 class VerifyLoginOTPView(APIView):

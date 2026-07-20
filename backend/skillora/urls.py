@@ -1,38 +1,34 @@
-from django.contrib import admin
 from django.urls import path, include
-from django.conf import settings
-from django.conf.urls.static import static
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 
 
-def home(request):
-    return HttpResponse("🎉 Skillora Backend is Running Successfully!")
+def api_root(request):
+    """Root endpoint — confirms the backend is running."""
+    return JsonResponse({
+        "success": True,
+        "message": "🎉 Skillora AI Backend is running!",
+        "version": "1.0.0",
+        "endpoints": {
+            "auth": "/api/auth/",
+        }
+    })
 
 
 def health_check(request):
+    """Health check endpoint."""
     return JsonResponse({
         "success": True,
+        "status": "healthy",
         "message": "Skillora API is running",
-        "database": "MongoDB"
     })
 
 
 urlpatterns = [
-    path("", home),      # <-- Add this line
-
-    path("admin/", admin.site.urls),
-
+    # Root and health
+    path("", api_root),
+    path("api/", api_root),
     path("api/health/", health_check),
-    path("api/health", health_check),
 
-    path("api/auth/", include("apps.accounts.urls")),
-    path("api/resume/", include("apps.resumes.urls")),
-    path("api/resumes/", include("apps.resumes.urls")),
-    path("api/analysis/", include("apps.analysis.urls")),
-    path("api/skills/", include("apps.matcher.urls")),
-    path("api/matcher/", include("apps.matcher.urls")),
-    path("api/jobs/", include("apps.jobs.urls")),
-    path("api/settings/", include("apps.settings_app.urls")),
+    # Authentication (register)
+    path("api/auth/", include("authentication.urls")),
 ]
-
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
