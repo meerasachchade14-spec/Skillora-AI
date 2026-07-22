@@ -7,21 +7,21 @@ const testimonials = [
     role: "Computer Engineering Student",
     image: "https://i.pravatar.cc/150?img=11",
     review:
-      "Skillora AI completely transformed my resume. My ATS score improved from 58% to 94%, and I received interview calls within a week.",
+      "Skillora AI makes it easier to understand my resume, identify missing skills, and get a clear direction for improving my career profile.",
   },
   {
     name: "Priya Sharma",
     role: "Software Developer",
     image: "https://i.pravatar.cc/150?img=32",
     review:
-      "The AI Career Roadmap helped me focus on the right technologies. I landed my dream frontend developer job after following the recommendations.",
+      "The personalized career guidance and skill recommendations helped me understand which technologies and skills I should focus on next.",
   },
   {
     name: "Rahul Mehta",
     role: "Final Year Student",
     image: "https://i.pravatar.cc/150?img=15",
     review:
-      "Mock interviews felt incredibly realistic. They boosted my confidence and helped me clear multiple technical interview rounds.",
+      "Skillora AI helped me analyze my profile, understand my skill gaps, and create a more focused plan for my career goals.",
   },
 ];
 
@@ -29,7 +29,7 @@ function Testimonials() {
   return (
     <section
       id="testimonials"
-      className="py-24 'bg-gradient-to-b' from-white via-sky-50 to-white"
+      className="py-24 bg-gradient-to-b from-white via-sky-50 to-white"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-10">
 
@@ -47,23 +47,24 @@ function Testimonials() {
           </span>
 
           <h2 className="text-5xl font-black text-slate-900 mt-6">
-            Loved By Students &
+            What Users Say About
             <span className="block text-blue-600">
-              Professionals
+              Skillora AI
             </span>
           </h2>
 
           <p className="text-gray-600 mt-6 text-lg max-w-3xl mx-auto">
-            Thousands of learners trust Skillora AI to improve their resumes,
-            prepare for interviews, and accelerate their careers.
+            Discover how Skillora AI can help users understand their skills,
+            identify career gaps, and plan their next career step.
           </p>
         </motion.div>
 
-        {/* Cards */}
+        {/* Testimonial Cards */}
 
         <div className="grid lg:grid-cols-3 gap-8 mt-20">
 
           {testimonials.map((user, index) => (
+
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 60 }}
@@ -83,27 +84,21 @@ function Testimonials() {
               {/* Quote Icon */}
 
               <div className="absolute top-6 right-6 text-blue-100 text-5xl">
-
                 <FaQuoteLeft />
-
               </div>
 
               {/* Stars */}
 
               <div className="flex gap-1 text-yellow-400">
-
                 {[...Array(5)].map((_, i) => (
                   <FaStar key={i} />
                 ))}
-
               </div>
 
               {/* Review */}
 
               <p className="text-gray-600 leading-8 mt-6">
-
                 "{user.review}"
-
               </p>
 
               {/* User */}
@@ -117,24 +112,19 @@ function Testimonials() {
                 />
 
                 <div>
-
                   <h4 className="text-lg font-bold text-slate-900">
-
                     {user.name}
-
                   </h4>
 
                   <p className="text-gray-500">
-
                     {user.role}
-
                   </p>
-
                 </div>
 
               </div>
 
             </motion.div>
+
           ))}
 
         </div>

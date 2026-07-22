@@ -1,21 +1,36 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { HiOutlineMenuAlt3, HiOutlineX } from "react-icons/hi";
-import { FaRobot } from "react-icons/fa";
+import {
+  HiOutlineMenuAlt3,
+  HiOutlineX,
+} from "react-icons/hi";
+import {
+  FaRobot,
+  FaMoon,
+  FaSun,
+} from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 const navLinks = [
+  { name: "Home", link: "#home" },
+  { name: "AI Analysis", link: "#ai-analysis" },
   { name: "Features", link: "#features" },
   { name: "How It Works", link: "#how-it-works" },
   { name: "FAQ", link: "#faq" },
   { name: "Contact", link: "#contact" },
 ];
 
-function Navbar() {
+function Navbar({ darkMode, setDarkMode }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-blue-100 shadow-sm">
+    <header
+      className={`fixed top-0 left-0 w-full z-50 backdrop-blur-xl border-b shadow-sm transition-colors duration-500 ${
+        darkMode
+          ? "bg-slate-900/90 border-slate-700"
+          : "bg-white/80 border-blue-100"
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-6 lg:px-10">
         <div className="flex items-center justify-between h-20">
 
@@ -31,10 +46,19 @@ function Navbar() {
               </div>
 
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">
+                <h1
+                  className={`text-2xl font-bold ${
+                    darkMode ? "text-white" : "text-slate-900"
+                  }`}
+                >
                   Skillora AI
                 </h1>
-                <p className="text-xs text-gray-500">
+
+                <p
+                  className={`text-xs ${
+                    darkMode ? "text-slate-400" : "text-gray-500"
+                  }`}
+                >
                   Learn Smarter with AI
                 </p>
               </div>
@@ -47,7 +71,11 @@ function Navbar() {
               <a
                 key={item.name}
                 href={item.link}
-                className="font-semibold text-gray-600 hover:text-blue-600 transition duration-300"
+                className={`font-semibold transition duration-300 ${
+                  darkMode
+                    ? "text-slate-300 hover:text-blue-400"
+                    : "text-gray-600 hover:text-blue-600"
+                }`}
               >
                 {item.name}
               </a>
@@ -57,13 +85,36 @@ function Navbar() {
           {/* Desktop Buttons */}
           <div className="hidden lg:flex items-center gap-4">
 
+            {/* Theme Toggle */}
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${
+                darkMode
+                  ? "bg-slate-800 text-yellow-400 hover:bg-slate-700"
+                  : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+              }`}
+              title={
+                darkMode
+                  ? "Switch to Light Mode"
+                  : "Switch to Dark Mode"
+              }
+            >
+              {darkMode ? <FaSun /> : <FaMoon />}
+            </button>
+
+            {/* Login */}
             <Link
               to="/login"
-              className="px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-100 transition duration-300"
+              className={`px-6 py-3 rounded-xl font-semibold transition duration-300 ${
+                darkMode
+                  ? "text-slate-200 hover:bg-slate-800"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
             >
               Login
             </Link>
 
+            {/* Get Started */}
             <Link
               to="/register"
               className="px-7 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold shadow-lg hover:scale-105 transition duration-300"
@@ -76,7 +127,9 @@ function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setOpen(!open)}
-            className="lg:hidden text-3xl text-gray-700"
+            className={`lg:hidden text-3xl ${
+              darkMode ? "text-white" : "text-gray-700"
+            }`}
           >
             {open ? <HiOutlineX /> : <HiOutlineMenuAlt3 />}
           </button>
@@ -89,7 +142,11 @@ function Navbar() {
         <motion.div
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="lg:hidden bg-white border-t border-blue-100"
+          className={`lg:hidden border-t ${
+            darkMode
+              ? "bg-slate-900 border-slate-700"
+              : "bg-white border-blue-100"
+          }`}
         >
           <div className="flex flex-col gap-5 p-6">
 
@@ -98,16 +155,40 @@ function Navbar() {
                 key={item.name}
                 href={item.link}
                 onClick={() => setOpen(false)}
-                className="font-medium text-gray-700"
+                className={`font-medium ${
+                  darkMode
+                    ? "text-slate-300"
+                    : "text-gray-700"
+                }`}
               >
                 {item.name}
               </a>
             ))}
 
+            {/* Mobile Theme Toggle */}
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className={`py-3 rounded-xl flex items-center justify-center gap-2 font-semibold ${
+                darkMode
+                  ? "bg-slate-800 text-yellow-400"
+                  : "bg-blue-50 text-blue-600"
+              }`}
+            >
+              {darkMode ? <FaSun /> : <FaMoon />}
+
+              {darkMode
+                ? "Light Mode"
+                : "Dark Mode"}
+            </button>
+
             <Link
               to="/login"
               onClick={() => setOpen(false)}
-              className="py-3 rounded-xl bg-gray-100 text-center font-semibold"
+              className={`py-3 rounded-xl text-center font-semibold ${
+                darkMode
+                  ? "bg-slate-800 text-white"
+                  : "bg-gray-100"
+              }`}
             >
               Login
             </Link>

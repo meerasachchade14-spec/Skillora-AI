@@ -6,42 +6,61 @@ const faqs = [
   {
     question: "What is Skillora AI?",
     answer:
-      "Skillora AI is an AI-powered career development platform that helps students and professionals analyze resumes, identify skill gaps, prepare for interviews, and receive personalized learning roadmaps.",
+      "Skillora AI is an AI-powered career platform that analyzes your resume, skills, experience, and career goals to provide personalized insights, skill-gap analysis, learning roadmaps, job recommendations, and career guidance.",
   },
   {
-    question: "Is Skillora AI free to use?",
+    question: "How does Skillora AI analyze my resume?",
     answer:
-      "Yes! Skillora AI offers a free plan with essential AI tools. Premium plans unlock advanced resume analysis, unlimited AI career coaching, mock interviews, and more.",
+      "When you upload your resume, our AI extracts and analyzes important information such as skills, technologies, education, experience, projects, and keywords. It then evaluates your profile to provide an ATS score, identify strengths, detect skill gaps, and suggest improvements.",
   },
   {
-    question: "How does the Resume Analyzer work?",
+    question: "What is an ATS score?",
     answer:
-      "Simply upload your resume, and our AI analyzes it for ATS compatibility, keyword optimization, formatting, and provides suggestions to improve your chances of getting shortlisted.",
+      "An ATS score represents how well your resume matches the requirements commonly used by Applicant Tracking Systems. Skillora AI analyzes factors such as relevant keywords, skills, resume structure, and job requirements to help you improve your resume's compatibility.",
   },
   {
-    question: "Can Skillora AI recommend learning resources?",
+    question: "How does Skillora AI detect my skill gaps?",
     answer:
-      "Absolutely! Based on your career goals and skill gaps, Skillora AI creates personalized learning roadmaps with recommended technologies, projects, and learning resources.",
+      "The AI compares your current skills and experience with the skills required for your selected career role or job profile. It identifies missing or underdeveloped skills and helps you understand what you should learn next.",
   },
   {
-    question: "Does Skillora AI help with interview preparation?",
+    question: "Can Skillora AI recommend jobs for me?",
     answer:
-      "Yes. Our AI generates HR and technical interview questions, provides feedback, and helps you practice with realistic interview simulations.",
+      "Yes. Skillora AI analyzes your skills, experience, career interests, and profile information to identify job opportunities that are relevant to your background and career goals.",
   },
   {
-    question: "Is my personal data secure?",
+    question: "How does the personalized learning roadmap work?",
     answer:
-      "Yes. Your resumes, documents, and personal information are encrypted and securely stored. We never share your data with third parties without your permission.",
+      "Based on your target career role and detected skill gaps, Skillora AI creates a personalized learning roadmap. It can suggest important technologies, concepts, projects, and learning areas that can help you progress toward your career goal.",
+  },
+  {
+    question: "Can I create and improve my resume using Skillora AI?",
+    answer:
+      "Yes. You can create a professional resume using the AI Resume Builder and receive AI-powered suggestions to improve your content, skills, keywords, and overall resume quality.",
+  },
+  {
+    question: "Does Skillora AI provide interview preparation?",
+    answer:
+      "Yes. Skillora AI can help users prepare for interviews by providing role-based interview questions, technical and HR preparation guidance, and personalized suggestions based on their target career path.",
+  },
+  {
+    question: "Is my resume and personal data secure?",
+    answer:
+      "Skillora AI is designed to handle user information securely. Your resume and profile data are used to provide personalized analysis and recommendations according to the platform's privacy and security practices.",
   },
 ];
 
-function FAQ() {
+function FAQ({ darkMode }) {
   const [active, setActive] = useState(0);
 
   return (
     <section
       id="faq"
-      className="py-24 bg-linear-to-r from-white to-sky-50"
+      className={`py-24 transition-colors duration-500 ${
+        darkMode
+          ? "bg-gradient-to-r from-slate-950 to-slate-900"
+          : "bg-gradient-to-r from-white to-sky-50"
+      }`}
     >
       <div className="max-w-5xl mx-auto px-6">
 
@@ -54,63 +73,106 @@ function FAQ() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <span className="inline-block px-5 py-2 rounded-full bg-blue-100 text-blue-700 font-semibold">
-            Frequently Asked Questions
+          <span
+            className={`inline-block px-5 py-2 rounded-full font-semibold ${
+              darkMode
+                ? "bg-blue-900/40 text-blue-300"
+                : "bg-blue-100 text-blue-700"
+            }`}
+          >
+            FREQUENTLY ASKED QUESTIONS
           </span>
 
-          <h2 className="text-5xl font-extrabold text-slate-900 mt-6">
+          <h2
+            className={`text-5xl font-extrabold mt-6 ${
+              darkMode ? "text-white" : "text-slate-900"
+            }`}
+          >
             Got Questions?
           </h2>
 
-          <p className="text-gray-600 mt-5 text-lg max-w-2xl mx-auto">
-            Everything you need to know about Skillora AI and how it can
-            accelerate your career journey.
+          <p
+            className={`mt-5 text-lg max-w-2xl mx-auto ${
+              darkMode ? "text-slate-300" : "text-gray-600"
+            }`}
+          >
+            Learn how Skillora AI analyzes your profile and helps you make
+            smarter career decisions.
           </p>
         </motion.div>
 
         {/* FAQ Items */}
 
         <div className="space-y-5">
+
           {faqs.map((faq, index) => (
+
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 25 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{
+                delay: index * 0.08,
+                duration: 0.5,
+              }}
               viewport={{ once: true }}
-              className="bg-white rounded-2xl shadow-md border border-sky-100 overflow-hidden"
+              className={`rounded-2xl shadow-md overflow-hidden border transition-colors duration-500 ${
+                darkMode
+                  ? "bg-slate-900 border-slate-700"
+                  : "bg-white border-sky-100"
+              }`}
             >
+
               <button
                 onClick={() =>
                   setActive(active === index ? -1 : index)
                 }
-                className="w-full flex justify-between items-center p-6 text-left"
+                className="w-full flex justify-between items-center gap-6 p-6 text-left"
               >
-                <h3 className="text-lg md:text-xl font-semibold text-slate-800">
+
+                <h3
+                  className={`text-lg md:text-xl font-semibold ${
+                    darkMode ? "text-white" : "text-slate-800"
+                  }`}
+                >
                   {faq.question}
                 </h3>
 
                 <FaChevronDown
-                  className={`text-blue-600 transition-transform duration-300 ${
+                  className={`flex-shrink-0 transition-transform duration-300 ${
+                    darkMode ? "text-blue-400" : "text-blue-600"
+                  } ${
                     active === index ? "rotate-180" : ""
                   }`}
                 />
+
               </button>
 
               {active === index && (
+
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   transition={{ duration: 0.3 }}
                   className="px-6 pb-6"
                 >
-                  <p className="text-gray-600 leading-8">
+
+                  <p
+                    className={`leading-8 ${
+                      darkMode ? "text-slate-300" : "text-gray-600"
+                    }`}
+                  >
                     {faq.answer}
                   </p>
+
                 </motion.div>
+
               )}
+
             </motion.div>
+
           ))}
+
         </div>
 
       </div>
