@@ -4,7 +4,7 @@ import Sidebar from '../components/dashboard/Sidebar';
 
 function DashboardLayout() {
   return (
-    <div className="min-h-screen bg-slate-100 flex">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex transition-colors duration-500">
       <Sidebar />
 
       <div className="flex-1 flex flex-col ml-72">

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useContext } from "react";
+import { ThemeContext } from "../../context/ThemeContext";
 
 import Navbar from "../../components/landing/Navbar";
 import Hero from "../../components/landing/Hero";
@@ -8,14 +9,9 @@ import HowItWorks from "../../components/landing/HowItWorks";
 import FAQ from "../../components/landing/FAQ";
 import Footer from "../../components/landing/Footer";
 
-import SplashScreen from "../../components/splash/SplashScreen";
-
 function Landing() {
-  const [darkMode, setDarkMode] = useState(false);
-
-  const [showSplash, setShowSplash] = useState(
-    performance.getEntriesByType("navigation")[0]?.type === "reload"
-  );
+  const { theme, toggleTheme } = useContext(ThemeContext);
+  const darkMode = theme === "dark";
 
   return (
     <div
@@ -25,20 +21,10 @@ function Landing() {
           : "bg-white text-slate-900"
       }`}
     >
-
-      {/* Splash Screen only on Refresh */}
-
-      {showSplash && (
-        <SplashScreen
-          onComplete={() => setShowSplash(false)}
-        />
-      )}
-
       {/* Navbar */}
-
       <Navbar
         darkMode={darkMode}
-        setDarkMode={setDarkMode}
+        setDarkMode={toggleTheme}
       />
 
       <main>
@@ -54,7 +40,6 @@ function Landing() {
       </main>
 
       <Footer darkMode={darkMode} />
-
     </div>
   );
 }
