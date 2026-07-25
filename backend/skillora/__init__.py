@@ -1,1 +1,0 @@
-# Skillora project package
