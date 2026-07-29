@@ -14,6 +14,7 @@ const themeColors = {
     border: "#dbeafe",
     bgLight: "#eff6ff",
   },
+
   green: {
     primary: "#16A34A",
     gradient: "linear-gradient(to bottom, #16A34A, #15803D)",
@@ -21,6 +22,7 @@ const themeColors = {
     border: "#dcfce7",
     bgLight: "#f0fdf4",
   },
+
   purple: {
     primary: "#7C3AED",
     gradient: "linear-gradient(to bottom, #7C3AED, #6D28D9)",
@@ -28,6 +30,7 @@ const themeColors = {
     border: "#f3e8ff",
     bgLight: "#faf5ff",
   },
+
   red: {
     primary: "#DC2626",
     gradient: "linear-gradient(to bottom, #DC2626, #B91C1C)",
@@ -35,6 +38,7 @@ const themeColors = {
     border: "#fee2e2",
     bgLight: "#fef2f2",
   },
+
   orange: {
     primary: "#EA580C",
     gradient: "linear-gradient(to bottom, #EA580C, #C2410C)",
@@ -42,6 +46,7 @@ const themeColors = {
     border: "#ffedd5",
     bgLight: "#fff7ed",
   },
+
   gray: {
     primary: "#4B5563",
     gradient: "linear-gradient(to bottom, #4B5563, #374151)",
@@ -51,422 +56,476 @@ const themeColors = {
   },
 };
 
-function CreativeTemplate({ resumeData, theme = "blue", font = "Poppins" }) {
+function CreativeTemplate({
+  resumeData,
+  theme = "blue",
+  font = "Poppins",
+}) {
   const activeTheme = themeColors[theme] || themeColors.blue;
 
   const {
-    personal,
-    education,
-    experience,
-    projects,
-    skills,
-    certifications,
-    languages,
-    achievements,
+    personal = {},
+    education = [],
+    experience = [],
+    projects = [],
+    skills = [],
+    certifications = [],
+    languages = [],
+    achievements = [],
   } = resumeData;
 
   return (
     <div
       className="bg-white rounded-xl shadow-2xl overflow-hidden border"
-      style={{ fontFamily: `'${font}', sans-serif` }}
+      style={{
+        fontFamily: `'${font}', sans-serif`,
+      }}
     >
-
       <div className="grid grid-cols-12">
 
-        {/* LEFT SIDEBAR */}
+        {/* ================= LEFT SIDEBAR ================= */}
 
         <div
           className="col-span-4 text-white p-6"
-          style={{ background: activeTheme.gradient }}
+          style={{
+            background: activeTheme.gradient,
+          }}
         >
 
-          {/* Avatar */}
+          {/* Profile */}
 
           <div
             className="w-32 h-32 rounded-full bg-white flex items-center justify-center text-5xl font-bold mx-auto"
-            style={{ color: activeTheme.text }}
+            style={{
+              color: activeTheme.text,
+            }}
           >
-
             {personal.fullName
-              ? personal.fullName.charAt(0)
+              ? personal.fullName.charAt(0).toUpperCase()
               : "U"}
-
           </div>
 
           <h1 className="text-2xl font-bold text-center mt-5">
-
             {personal.fullName || "Your Name"}
-
           </h1>
 
-          <p className="text-center text-blue-100 mt-2">
-
-            {personal.summary || "Professional Summary"}
-
-          </p>
+          {personal.summary && (
+            <p className="text-center text-white/80 mt-2 text-sm">
+              {personal.summary}
+            </p>
+          )}
 
           {/* Contact */}
 
-          <div className="mt-8 space-y-4 text-sm">
+          {(personal.email ||
+            personal.phone ||
+            personal.address ||
+            personal.linkedin ||
+            personal.github) && (
+            <div className="mt-8 space-y-4 text-sm">
 
-            <div className="flex items-center gap-3">
+              {personal.email && (
+                <div className="flex items-center gap-3">
+                  <FaEnvelope />
+                  <span className="break-all">
+                    {personal.email}
+                  </span>
+                </div>
+              )}
 
-              <FaEnvelope />
+              {personal.phone && (
+                <div className="flex items-center gap-3">
+                  <FaPhone />
+                  <span>{personal.phone}</span>
+                </div>
+              )}
 
-              <span>{personal.email || "email@example.com"}</span>
+              {personal.address && (
+                <div className="flex items-center gap-3">
+                  <FaMapMarkerAlt />
+                  <span>{personal.address}</span>
+                </div>
+              )}
+
+              {personal.linkedin && (
+                <div className="flex items-center gap-3">
+                  <FaLinkedin />
+                  <span className="break-all">
+                    {personal.linkedin}
+                  </span>
+                </div>
+              )}
+
+              {personal.github && (
+                <div className="flex items-center gap-3">
+                  <FaGithub />
+                  <span className="break-all">
+                    {personal.github}
+                  </span>
+                </div>
+              )}
 
             </div>
-
-            <div className="flex items-center gap-3">
-
-              <FaPhone />
-
-              <span>{personal.phone || "+91 XXXXX XXXXX"}</span>
-
-            </div>
-
-            <div className="flex items-center gap-3">
-
-              <FaMapMarkerAlt />
-
-              <span>{personal.address || "Location"}</span>
-
-            </div>
-
-            <div className="flex items-center gap-3">
-
-              <FaLinkedin />
-
-              <span>{personal.linkedin || "LinkedIn"}</span>
-
-            </div>
-
-            <div className="flex items-center gap-3">
-
-              <FaGithub />
-
-              <span>{personal.github || "GitHub"}</span>
-
-            </div>
-
-          </div>
+          )}
 
           {/* Skills */}
 
-          <div className="mt-10">
+          {skills.length > 0 && (
+            <div className="mt-10">
 
-            <h2 className="text-xl font-bold mb-4">
-
-              Skills
-
-            </h2>
-
-            {skills.length === 0 ? (
-
-              <p className="text-blue-200">
-
-                No Skills Added
-
-              </p>
-
-            ) : (
+              <h2 className="text-xl font-bold mb-4">
+                Skills
+              </h2>
 
               <div className="flex flex-wrap gap-2">
 
                 {skills.map((skill, index) => (
-
                   <span
                     key={index}
                     className="bg-white/20 px-3 py-1 rounded-full text-sm"
                   >
                     {skill}
                   </span>
-
                 ))}
 
               </div>
 
-            )}
-
-          </div>
+            </div>
+          )}
 
           {/* Languages */}
 
-          <div className="mt-10">
+          {languages.length > 0 && (
+            <div className="mt-10">
 
-            <h2 className="text-xl font-bold mb-4">
-
-              Languages
-
-            </h2>
-
-            {languages.length === 0 ? (
-
-              <p className="text-blue-200">
-
-                No Languages Added
-
-              </p>
-
-            ) : (
+              <h2 className="text-xl font-bold mb-4">
+                Languages
+              </h2>
 
               <div className="space-y-2">
 
                 {languages.map((lang, index) => (
-
                   <div
                     key={index}
                     className="bg-white/20 rounded-lg px-3 py-2 text-sm font-medium"
                   >
-                    {lang.language || "Language"} ({lang.proficiency})
-                  </div>
+                    {lang.language}
 
+                    {lang.proficiency && (
+                      <span className="text-white/70">
+                        {" "}
+                        ({lang.proficiency})
+                      </span>
+                    )}
+                  </div>
                 ))}
 
               </div>
 
-            )}
-
-          </div>
+            </div>
+          )}
 
         </div>
 
-        {/* RIGHT CONTENT */}
+        {/* ================= RIGHT CONTENT ================= */}
 
         <div className="col-span-8 p-8 space-y-8">
 
           {/* Education */}
 
-          <section>
+          {education.length > 0 && (
+            <section>
 
-            <h2
-              className="text-2xl font-bold border-b pb-2"
-              style={{ color: activeTheme.text, borderColor: activeTheme.border }}
-            >
-              Education
-            </h2>
+              <h2
+                className="text-2xl font-bold border-b pb-2"
+                style={{
+                  color: activeTheme.text,
+                  borderColor: activeTheme.border,
+                }}
+              >
+                Education
+              </h2>
 
-            {education.length === 0 ? (
+              {education.map((item, index) => (
+                <div
+                  key={index}
+                  className="mt-5"
+                >
 
-              <p className="text-gray-400 mt-3">
+                  {item.degree && (
+                    <h3 className="font-bold text-lg">
+                      {item.degree}
+                    </h3>
+                  )}
 
-                No Education Added
+                  {item.college && (
+                    <p className="text-gray-700">
+                      {item.college}
+                    </p>
+                  )}
 
-              </p>
-
-            ) : (
-
-              education.map((item, index) => (
-
-                <div key={index} className="mt-5">
-
-                  <h3 className="font-bold text-lg">
-
-                    {item.degree}
-
-                  </h3>
-
-                  <p className="text-gray-700">{item.college}</p>
-
-                  <p className="text-sm text-gray-500">
-
-                    {item.year}
-
-                  </p>
+                  {item.year && (
+                    <p className="text-sm text-gray-500">
+                      {item.year}
+                    </p>
+                  )}
 
                 </div>
+              ))}
 
-              ))
-
-            )}
-
-          </section>
+            </section>
+          )}
 
           {/* Experience */}
 
-          <section>
+          {experience.length > 0 && (
+            <section>
 
-            <h2
-              className="text-2xl font-bold border-b pb-2"
-              style={{ color: activeTheme.text, borderColor: activeTheme.border }}
-            >
-              Experience
-            </h2>
+              <h2
+                className="text-2xl font-bold border-b pb-2"
+                style={{
+                  color: activeTheme.text,
+                  borderColor: activeTheme.border,
+                }}
+              >
+                Experience
+              </h2>
 
-            {experience.length === 0 ? (
+              {experience.map((item, index) => (
+                <div
+                  key={index}
+                  className="mt-5"
+                >
 
-              <p className="text-gray-400 mt-3">
+                  {item.position && (
+                    <h3 className="font-bold text-lg">
+                      {item.position}
+                    </h3>
+                  )}
 
-                No Experience Added
+                  {item.company && (
+                    <p
+                      className="font-medium"
+                      style={{
+                        color: activeTheme.text,
+                      }}
+                    >
+                      {item.company}
+                    </p>
+                  )}
 
-              </p>
+                  {(item.startDate || item.endDate) && (
+                    <p className="text-sm text-gray-500">
+                      {item.startDate}
+                      {item.startDate && item.endDate && " - "}
+                      {item.endDate}
+                    </p>
+                  )}
 
-            ) : (
-
-              experience.map((item, index) => (
-
-                <div key={index} className="mt-5">
-
-                  <h3 className="font-bold text-lg">
-
-                    {item.position}
-
-                  </h3>
-
-                  <p className="font-medium" style={{ color: activeTheme.text }}>
-
-                    {item.company}
-
-                  </p>
-
-                  <p className="text-sm text-gray-500">
-
-                    {item.startDate} - {item.endDate}
-
-                  </p>
-
-                  <p className="mt-2 text-gray-700">
-
-                    {item.description}
-
-                  </p>
+                  {item.description && (
+                    <p className="mt-2 text-gray-700 whitespace-pre-line">
+                      {item.description}
+                    </p>
+                  )}
 
                 </div>
+              ))}
 
-              ))
-
-            )}
-
-          </section>
+            </section>
+          )}
 
           {/* Projects */}
 
-          <section>
+          {projects.length > 0 && (
+            <section>
 
-            <h2
-              className="text-2xl font-bold border-b pb-2"
-              style={{ color: activeTheme.text, borderColor: activeTheme.border }}
-            >
-              Projects
-            </h2>
+              <h2
+                className="text-2xl font-bold border-b pb-2"
+                style={{
+                  color: activeTheme.text,
+                  borderColor: activeTheme.border,
+                }}
+              >
+                Projects
+              </h2>
 
-            {projects.length === 0 ? (
+              {projects.map((item, index) => (
+                <div
+                  key={index}
+                  className="mt-5"
+                >
 
-              <p className="text-gray-400 mt-3">
+                  {item.title && (
+                    <h3 className="font-bold text-lg">
+                      {item.title}
+                    </h3>
+                  )}
 
-                No Projects Added
+                  {item.technologies && (
+                    <p
+                      className="text-sm font-medium mt-1"
+                      style={{
+                        color: activeTheme.text,
+                      }}
+                    >
+                      {item.technologies}
+                    </p>
+                  )}
 
-              </p>
+                  {item.description && (
+                    <p className="text-gray-700 mt-2">
+                      {item.description}
+                    </p>
+                  )}
 
-            ) : (
+                  {(item.github || item.live) && (
+                    <div className="flex gap-4 mt-2 text-sm">
 
-              projects.map((item, index) => (
+                      {item.github && (
+                        <span
+                          style={{
+                            color: activeTheme.text,
+                          }}
+                        >
+                          GitHub: {item.github}
+                        </span>
+                      )}
 
-                <div key={index} className="mt-5">
+                      {item.live && (
+                        <span
+                          style={{
+                            color: activeTheme.text,
+                          }}
+                        >
+                          Live: {item.live}
+                        </span>
+                      )}
 
-                  <h3 className="font-bold">
-
-                    {item.title}
-
-                  </h3>
-
-                  <p className="text-gray-700">
-
-                    {item.description}
-
-                  </p>
+                    </div>
+                  )}
 
                 </div>
+              ))}
 
-              ))
-
-            )}
-
-          </section>
+            </section>
+          )}
 
           {/* Certifications */}
 
-          <section>
+          {certifications.length > 0 && (
+            <section>
 
-            <h2
-              className="text-2xl font-bold border-b pb-2"
-              style={{ color: activeTheme.text, borderColor: activeTheme.border }}
-            >
-              Certifications
-            </h2>
+              <h2
+                className="text-2xl font-bold border-b pb-2"
+                style={{
+                  color: activeTheme.text,
+                  borderColor: activeTheme.border,
+                }}
+              >
+                Certifications
+              </h2>
 
-            {certifications.length === 0 ? (
+              <div className="mt-4 space-y-3">
 
-              <p className="text-gray-400 mt-3">
+                {certifications.map((item, index) => (
+                  <div
+                    key={index}
+                    className="border-l-4 pl-4"
+                    style={{
+                      borderColor: activeTheme.primary,
+                    }}
+                  >
 
-                No Certifications Added
+                    {item.name && (
+                      <h3 className="font-semibold">
+                        {item.name}
+                      </h3>
+                    )}
 
-              </p>
+                    {item.organization && (
+                      <p className="text-sm text-gray-600">
+                        {item.organization}
+                      </p>
+                    )}
 
-) : (
+                    {item.issueDate && (
+                      <p className="text-sm text-gray-500">
+                        Issued: {item.issueDate}
+                      </p>
+                    )}
 
-              certifications.map((item, index) => (
+                    {item.credentialId && (
+                      <p className="text-sm text-gray-500">
+                        Credential ID: {item.credentialId}
+                      </p>
+                    )}
 
-                <div key={index} className="mt-3 text-gray-700">
+                  </div>
+                ))}
 
-                  • {item.name}
+              </div>
 
-                </div>
-
-              ))
-
-            )}
-
-          </section>
+            </section>
+          )}
 
           {/* Achievements */}
 
-          <section>
+          {achievements.length > 0 && (
+            <section>
 
-            <h2
-              className="text-2xl font-bold border-b pb-2"
-              style={{ color: activeTheme.text, borderColor: activeTheme.border }}
-            >
-              Achievements
-            </h2>
+              <h2
+                className="text-2xl font-bold border-b pb-2"
+                style={{
+                  color: activeTheme.text,
+                  borderColor: activeTheme.border,
+                }}
+              >
+                Achievements
+              </h2>
 
-            {achievements.length === 0 ? (
-
-              <p className="text-gray-400 mt-3">
-
-                No Achievements Added
-
-              </p>
-
-            ) : (
-
-              <ul className="list-disc ml-5 mt-4 text-gray-700">
+              <ul className="list-disc ml-5 mt-4">
 
                 {achievements.map((item, index) => (
+                  <li
+                    key={index}
+                    className="mt-2 text-gray-700"
+                  >
 
-                  <li key={index} className="mt-2 text-gray-700">
-                    <span className="font-semibold text-slate-800">
-                      {item.title || "Achievement Title"}
-                    </span>
-                    {item.organization && ` at ${item.organization}`}
-                    {item.year && ` (${item.year})`}
-                    {item.description && (
-                      <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                    {item.title && (
+                      <span className="font-semibold text-slate-800">
+                        {item.title}
+                      </span>
                     )}
-                  </li>
 
+                    {item.organization && (
+                      <span>
+                        {" "}at {item.organization}
+                      </span>
+                    )}
+
+                    {item.year && (
+                      <span>
+                        {" "}({item.year})
+                      </span>
+                    )}
+
+                    {item.description && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        {item.description}
+                      </p>
+                    )}
+
+                  </li>
                 ))}
 
               </ul>
 
-            )}
-
-          </section>
+            </section>
+          )}
 
         </div>
 
       </div>
-
     </div>
   );
 }

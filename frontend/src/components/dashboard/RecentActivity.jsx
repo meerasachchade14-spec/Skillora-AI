@@ -1,67 +1,85 @@
 import { motion } from "framer-motion";
 import {
-  FaCheckCircle,
   FaUpload,
   FaRobot,
+  FaChartBar,
   FaBriefcase,
 } from "react-icons/fa";
 
 const activities = [
   {
-    icon: <FaUpload className="text-blue-600" />,
-    title: "Resume Uploaded",
-    time: "10 minutes ago",
+    icon: <FaUpload />,
+    title: "Resume Workspace",
+    description: "Upload your resume to begin your analysis journey.",
+    color: "bg-blue-50 text-blue-600",
   },
   {
-    icon: <FaRobot className="text-purple-600" />,
-    title: "AI Resume Analysis Completed",
-    time: "25 minutes ago",
+    icon: <FaRobot />,
+    title: "AI Resume Analysis",
+    description: "Review resume insights and improvement suggestions.",
+    color: "bg-purple-50 text-purple-600",
   },
   {
-    icon: <FaCheckCircle className="text-green-600" />,
-    title: "ATS Score Improved to 92%",
-    time: "1 hour ago",
+    icon: <FaChartBar />,
+    title: "Skill Matching",
+    description: "Explore how your skills align with career opportunities.",
+    color: "bg-emerald-50 text-emerald-600",
   },
   {
-    icon: <FaBriefcase className="text-orange-600" />,
-    title: "5 New Job Matches Found",
-    time: "2 hours ago",
+    icon: <FaBriefcase />,
+    title: "Job Recommendations",
+    description: "Discover roles based on your profile and skills.",
+    color: "bg-orange-50 text-orange-600",
   },
 ];
 
 function RecentActivity() {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="bg-white rounded-3xl shadow-lg p-8"
+    <motion.section
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm h-full"
     >
 
-      <h2 className="text-2xl font-bold text-slate-900 mb-8">
-        Recent Activity
-      </h2>
+      <div className="mb-6">
 
-      <div className="space-y-6">
+        <p className="text-sm font-bold uppercase tracking-wide text-blue-600">
+          Your Workspace
+        </p>
 
-        {activities.map((item, index) => (
+        <h2 className="text-2xl font-black text-slate-900 mt-1">
+          Continue Your Journey
+        </h2>
+
+        <p className="text-sm text-slate-500 mt-2">
+          Explore the tools available in your Skillora AI workspace.
+        </p>
+
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+
+        {activities.map((item) => (
 
           <div
-            key={index}
-            className="flex items-center gap-5 border-b border-slate-100 pb-5 last:border-none"
+            key={item.title}
+            className="flex gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100"
           >
 
-            <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-xl">
+            <div
+              className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center ${item.color}`}
+            >
               {item.icon}
             </div>
 
-            <div className="flex-1">
+            <div>
 
-              <h3 className="font-semibold text-slate-900">
+              <h3 className="font-bold text-slate-900 text-sm">
                 {item.title}
               </h3>
 
-              <p className="text-sm text-gray-500 mt-1">
-                {item.time}
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                {item.description}
               </p>
 
             </div>
@@ -72,7 +90,7 @@ function RecentActivity() {
 
       </div>
 
-    </motion.div>
+    </motion.section>
   );
 }
 

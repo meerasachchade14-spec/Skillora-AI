@@ -5,179 +5,140 @@ import {
   FaGraduationCap,
   FaBriefcase,
   FaMapMarkerAlt,
+  FaIdCard,
 } from "react-icons/fa";
 
 function ResumeSummary({ summary }) {
+
+  const details = [
+    {
+      label: "Full Name",
+      value: summary.name,
+      icon: FaUser,
+    },
+    {
+      label: "Email",
+      value: summary.email,
+      icon: FaEnvelope,
+    },
+    {
+      label: "Phone",
+      value: summary.phone,
+      icon: FaPhone,
+    },
+    {
+      label: "Education",
+      value: summary.education,
+      icon: FaGraduationCap,
+    },
+    {
+      label: "Experience",
+      value: summary.experience,
+      icon: FaBriefcase,
+    },
+    {
+      label: "Location",
+      value: summary.location || "Gandhinagar, Gujarat",
+      icon: FaMapMarkerAlt,
+    },
+  ];
+
   return (
-    <div className="bg-white rounded-3xl shadow-xl p-8">
+    <div className="bg-white rounded-[28px] border border-slate-200 shadow-sm p-6 md:p-8">
 
-      {/* Header */}
+      {/* HEADER */}
+      <div className="flex items-center gap-3 mb-8">
 
-      <div className="mb-8">
-
-        <h2 className="text-2xl font-bold text-slate-800">
-          Resume Summary
-        </h2>
-
-        <p className="text-gray-500 mt-2">
-          Personal information extracted from your resume.
-        </p>
-
-      </div>
-
-      {/* Cards */}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-        {/* Name */}
-
-        <div className="flex items-center gap-4 bg-slate-50 rounded-2xl p-5">
-
-          <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center">
-
-            <FaUser className="text-sky-600 text-xl" />
-
-          </div>
-
-          <div>
-
-            <p className="text-gray-500 text-sm">Full Name</p>
-
-            <h3 className="font-bold text-slate-800">
-              {summary.name}
-            </h3>
-
-          </div>
-
+        <div className="w-11 h-11 rounded-2xl bg-blue-50 flex items-center justify-center">
+          <FaIdCard className="text-blue-600 text-lg" />
         </div>
 
-        {/* Email */}
+        <div>
 
-        <div className="flex items-center gap-4 bg-slate-50 rounded-2xl p-5">
+          <h2 className="text-2xl font-black text-slate-900">
+            Resume Summary
+          </h2>
 
-          <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center">
-
-            <FaEnvelope className="text-sky-600 text-xl" />
-
-          </div>
-
-          <div>
-
-            <p className="text-gray-500 text-sm">Email</p>
-
-            <h3 className="font-semibold text-slate-800 break-all">
-              {summary.email}
-            </h3>
-
-          </div>
-
-        </div>
-
-        {/* Phone */}
-
-        <div className="flex items-center gap-4 bg-slate-50 rounded-2xl p-5">
-
-          <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center">
-
-            <FaPhone className="text-sky-600 text-xl" />
-
-          </div>
-
-          <div>
-
-            <p className="text-gray-500 text-sm">Phone</p>
-
-            <h3 className="font-semibold text-slate-800">
-              {summary.phone}
-            </h3>
-
-          </div>
-
-        </div>
-
-        {/* Education */}
-
-        <div className="flex items-center gap-4 bg-slate-50 rounded-2xl p-5">
-
-          <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center">
-
-            <FaGraduationCap className="text-sky-600 text-xl" />
-
-          </div>
-
-          <div>
-
-            <p className="text-gray-500 text-sm">Education</p>
-
-            <h3 className="font-semibold text-slate-800">
-              {summary.education}
-            </h3>
-
-          </div>
-
-        </div>
-
-        {/* Experience */}
-
-        <div className="flex items-center gap-4 bg-slate-50 rounded-2xl p-5">
-
-          <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center">
-
-            <FaBriefcase className="text-sky-600 text-xl" />
-
-          </div>
-
-          <div>
-
-            <p className="text-gray-500 text-sm">Experience</p>
-
-            <h3 className="font-semibold text-slate-800">
-              {summary.experience}
-            </h3>
-
-          </div>
-
-        </div>
-
-        {/* Location */}
-
-        <div className="flex items-center gap-4 bg-slate-50 rounded-2xl p-5">
-
-          <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center">
-
-            <FaMapMarkerAlt className="text-sky-600 text-xl" />
-
-          </div>
-
-          <div>
-
-            <p className="text-gray-500 text-sm">Location</p>
-
-            <h3 className="font-semibold text-slate-800">
-              Gandhinagar, Gujarat
-            </h3>
-
-          </div>
+          <p className="text-sm text-slate-500 mt-1">
+            Personal information extracted from your resume
+          </p>
 
         </div>
 
       </div>
 
-      {/* Professional Summary */}
+      {/* INFORMATION GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-      <div className="mt-8 bg-gradient-to-r from-sky-50 to-blue-50 rounded-2xl p-6 border border-sky-100">
+        {details.map((item, index) => {
 
-        <h3 className="text-lg font-bold text-slate-800 mb-3">
-          Professional Summary
-        </h3>
+          const Icon = item.icon;
 
-        <p className="text-gray-600 leading-8">
+          return (
 
-          Passionate Computer Engineering student with strong
-          knowledge of React.js, JavaScript, Python and Machine
-          Learning. Experienced in developing responsive web
-          applications and AI-based projects with a focus on
-          modern UI design and problem solving.
+            <div
+              key={index}
+              className="group flex items-center gap-4 rounded-2xl border border-slate-200 p-4 hover:border-blue-300 hover:bg-blue-50/40 transition-all duration-300"
+            >
+
+              <div className="w-11 h-11 rounded-xl bg-slate-50 group-hover:bg-blue-100 flex items-center justify-center transition">
+
+                <Icon className="text-blue-600" />
+
+              </div>
+
+              <div className="min-w-0">
+
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  {item.label}
+                </p>
+
+                <h3 className="font-bold text-slate-800 mt-1 break-words">
+                  {item.value}
+                </h3>
+
+              </div>
+
+            </div>
+
+          );
+
+        })}
+
+      </div>
+
+      {/* PROFESSIONAL SUMMARY */}
+      <div className="mt-8 rounded-2xl bg-gradient-to-br from-blue-50 to-sky-50 border border-blue-100 p-6">
+
+        <div className="flex items-center gap-3 mb-4">
+
+          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+
+            <FaUser className="text-blue-600" />
+
+          </div>
+
+          <div>
+
+            <h3 className="font-black text-slate-900">
+              Professional Summary
+            </h3>
+
+            <p className="text-xs text-slate-500 mt-1">
+              AI-generated profile overview
+            </p>
+
+          </div>
+
+        </div>
+
+        <p className="text-sm text-slate-600 leading-7">
+
+          Passionate Computer Engineering student with strong knowledge
+          of React.js, JavaScript, Python and Machine Learning. Experienced
+          in developing responsive web applications and AI-based projects
+          with a focus on modern UI design, problem solving and building
+          practical technology solutions.
 
         </p>
 

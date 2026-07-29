@@ -1,160 +1,148 @@
 import {
-  FaBuilding,
-  FaMapMarkerAlt,
-  FaMoneyBillWave,
-  FaClock,
-  FaCheckCircle,
+FaCheckCircle
 } from "react-icons/fa";
 
-function JobDetails() {
-  return (
-    <div className="bg-white rounded-3xl shadow-xl p-8">
+function JobDetails(){
 
-      <h2 className="text-3xl font-bold text-slate-800 mb-6">
-        Job Details
-      </h2>
+const responsibilities=[
 
-      <div className="space-y-5">
+"Build scalable React applications",
 
-        <div className="flex items-center gap-4">
+"Collaborate with backend developers",
 
-          <FaBuilding className="text-sky-600 text-xl" />
+"Write reusable UI components",
 
-          <div>
+"Optimize application performance",
 
-            <h3 className="font-bold">
-              Company
-            </h3>
+"Participate in code reviews"
 
-            <p className="text-gray-600">
-              Google India
-            </p>
+];
 
-          </div>
+const requirements=[
 
-        </div>
+"ReactJS",
 
-        <div className="flex items-center gap-4">
+"JavaScript",
 
-          <FaMapMarkerAlt className="text-red-500 text-xl" />
+"TypeScript",
 
-          <div>
+"Git",
 
-            <h3 className="font-bold">
-              Location
-            </h3>
+"REST APIs"
 
-            <p className="text-gray-600">
-              Bangalore, India
-            </p>
+];
 
-          </div>
+return(
 
-        </div>
+<div className="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8">
 
-        <div className="flex items-center gap-4">
+<h2 className="text-2xl font-black mb-8">
 
-          <FaMoneyBillWave className="text-green-600 text-xl" />
+Job Details
 
-          <div>
+</h2>
 
-            <h3 className="font-bold">
-              Salary
-            </h3>
+<div className="grid md:grid-cols-2 gap-8">
 
-            <p className="text-gray-600">
-              ₹20 - ₹28 LPA
-            </p>
+<div>
 
-          </div>
+<h3 className="font-black text-lg mb-5">
 
-        </div>
+Responsibilities
 
-        <div className="flex items-center gap-4">
+</h3>
 
-          <FaClock className="text-blue-600 text-xl" />
+<div className="space-y-4">
 
-          <div>
+{
 
-            <h3 className="font-bold">
-              Experience
-            </h3>
+responsibilities.map((item,index)=>(
 
-            <p className="text-gray-600">
-              2 - 4 Years
-            </p>
+<div
 
-          </div>
+key={index}
 
-        </div>
+className="flex gap-3"
 
-      </div>
+>
 
-      <div className="mt-10">
+<FaCheckCircle className="text-green-500 mt-1"/>
 
-        <h3 className="text-2xl font-bold text-slate-800 mb-4">
-          Job Description
-        </h3>
+<p className="text-slate-600">
 
-        <p className="text-gray-600 leading-8">
-          We are looking for a passionate Frontend Developer with
-          strong knowledge of React.js, JavaScript, Tailwind CSS,
-          REST APIs, and modern frontend development practices.
-          You will collaborate with designers and backend engineers
-          to build scalable, responsive, and user-friendly web
-          applications.
-        </p>
+{item}
 
-      </div>
+</p>
 
-      <div className="mt-10">
+</div>
 
-        <h3 className="text-2xl font-bold text-slate-800 mb-4">
-          Required Skills
-        </h3>
+))
 
-        <div className="grid md:grid-cols-2 gap-4">
+}
 
-          {[
-            "React.js",
-            "JavaScript",
-            "Tailwind CSS",
-            "REST APIs",
-            "Git",
-            "TypeScript",
-            "Redux",
-            "HTML & CSS",
-          ].map((skill) => (
+</div>
 
-            <div
-              key={skill}
-              className="flex items-center gap-3 bg-slate-50 rounded-xl p-4"
-            >
+</div>
 
-              <FaCheckCircle className="text-green-500" />
+<div>
 
-              {skill}
+<h3 className="font-black text-lg mb-5">
 
-            </div>
+Required Skills
 
-          ))}
+</h3>
 
-        </div>
+<div className="flex flex-wrap gap-3">
 
-      </div>
+{
 
-      <div className="mt-10">
+requirements.map((item,index)=>(
 
-        <button className="px-8 py-4 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold hover:scale-105 transition">
+<span
 
-          Apply Now
+key={index}
 
-        </button>
+className="px-5 py-3 rounded-full bg-blue-50 text-blue-600 font-semibold"
 
-      </div>
+>
 
-    </div>
-  );
+{item}
+
+</span>
+
+))
+
+}
+
+</div>
+
+</div>
+
+</div>
+
+<div className="mt-8 rounded-3xl bg-gradient-to-r from-sky-500 to-blue-600 p-6 text-white">
+
+<h3 className="text-xl font-black mb-3">
+
+Hiring Note
+
+</h3>
+
+<p className="text-sky-100 leading-8">
+
+Candidates with strong React projects,
+GitHub activity and modern frontend
+development experience will receive higher
+priority during screening.
+
+</p>
+
+</div>
+
+</div>
+
+);
+
 }
 
 export default JobDetails;

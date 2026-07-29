@@ -1,173 +1,123 @@
 import {
-  FaBuilding,
-  FaUsers,
-  FaGlobe,
-  FaMapMarkerAlt,
-  FaStar,
-  FaBriefcase,
-  FaArrowRight,
+FaBuilding,
+FaUsers,
+FaGlobe,
+FaStar
 } from "react-icons/fa";
 
-function CompanyCard() {
-  return (
-    <div className="bg-white rounded-3xl shadow-xl p-8">
+function CompanyCard(){
 
-      {/* Header */}
+return(
 
-      <div className="flex items-center gap-5">
+<div className="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8">
 
-        <div className="w-24 h-24 rounded-3xl bg-gradient-to-r from-sky-500 to-blue-600 flex items-center justify-center text-white text-4xl font-bold shadow-lg">
+<div className="flex justify-between items-center mb-8">
 
-          G
+<div>
 
-        </div>
+<h2 className="text-2xl font-black">
 
-        <div>
+Top Company Match
 
-          <h2 className="text-3xl font-bold text-slate-800">
-            Google India
-          </h2>
+</h2>
 
-          <p className="text-sky-600 font-semibold mt-2">
-            Technology Company
-          </p>
+<p className="text-slate-500 mt-1">
 
-          <div className="flex items-center gap-2 mt-3">
+Best company based on your profile
 
-            <FaStar className="text-yellow-500" />
+</p>
 
-            <span className="font-semibold">
-              4.8 / 5 Rating
-            </span>
+</div>
 
-          </div>
+<div className="w-16 h-16 rounded-3xl bg-red-500 text-white flex items-center justify-center text-3xl font-black">
 
-        </div>
+G
 
-      </div>
+</div>
 
-      {/* Company Stats */}
+</div>
 
-      <div className="grid md:grid-cols-2 gap-5 mt-10">
+<div className="space-y-5">
 
-        <div className="bg-slate-50 rounded-2xl p-5 flex items-center gap-4">
+<div className="flex justify-between">
 
-          <FaUsers className="text-sky-600 text-2xl" />
+<span className="text-slate-500">
 
-          <div>
+Company
 
-            <h3 className="font-bold text-slate-800">
-              Employees
-            </h3>
+</span>
 
-            <p className="text-gray-500">
-              180,000+
-            </p>
+<b>Google</b>
 
-          </div>
+</div>
 
-        </div>
+<div className="flex justify-between">
 
-        <div className="bg-slate-50 rounded-2xl p-5 flex items-center gap-4">
+<span className="text-slate-500">
 
-          <FaBuilding className="text-blue-600 text-2xl" />
+Rating
 
-          <div>
+</span>
 
-            <h3 className="font-bold text-slate-800">
-              Industry
-            </h3>
+<span className="flex items-center gap-2 font-bold">
 
-            <p className="text-gray-500">
-              Information Technology
-            </p>
+<FaStar className="text-yellow-500"/>
 
-          </div>
+4.8
 
-        </div>
+</span>
 
-        <div className="bg-slate-50 rounded-2xl p-5 flex items-center gap-4">
+</div>
 
-          <FaMapMarkerAlt className="text-red-500 text-2xl" />
+<div className="flex justify-between">
 
-          <div>
+<span className="text-slate-500">
 
-            <h3 className="font-bold text-slate-800">
-              Headquarters
-            </h3>
+Employees
 
-            <p className="text-gray-500">
-              Mountain View, California
-            </p>
+</span>
 
-          </div>
+<span className="font-bold">
 
-        </div>
+180,000+
 
-        <div className="bg-slate-50 rounded-2xl p-5 flex items-center gap-4">
+</span>
 
-          <FaBriefcase className="text-green-600 text-2xl" />
+</div>
 
-          <div>
+<div className="flex justify-between">
 
-            <h3 className="font-bold text-slate-800">
-              Open Positions
-            </h3>
+<span className="text-slate-500">
 
-            <p className="text-gray-500">
-              350+
-            </p>
+Website
 
-          </div>
+</span>
 
-        </div>
+<span className="text-blue-600 font-bold">
 
-      </div>
+careers.google.com
 
-      {/* About */}
+</span>
 
-      <div className="mt-10">
+</div>
 
-        <h3 className="text-2xl font-bold text-slate-800 mb-4">
-          About Company
-        </h3>
+</div>
 
-        <p className="text-gray-600 leading-8">
-          Google is one of the world's leading technology companies,
-          building products that organize the world's information and
-          make it universally accessible. Employees work on innovative
-          products including Search, Gmail, Android, Maps, Chrome,
-          Cloud, and Artificial Intelligence.
-        </p>
+<div className="mt-8 rounded-3xl bg-blue-50 border border-blue-100 p-6">
 
-      </div>
+<p className="leading-7 text-slate-600">
 
-      {/* Website */}
+Google is actively hiring frontend engineers with React,
+TypeScript and AI experience.
 
-      <div className="mt-10 flex justify-between items-center bg-sky-50 rounded-2xl p-6">
+</p>
 
-        <div className="flex items-center gap-3">
+</div>
 
-          <FaGlobe className="text-sky-600 text-xl" />
+</div>
 
-          <span className="font-semibold text-slate-700">
-            careers.google.com
-          </span>
+);
 
-        </div>
-
-        <button className="flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition">
-
-          Visit Website
-
-          <FaArrowRight />
-
-        </button>
-
-      </div>
-
-    </div>
-  );
 }
 
 export default CompanyCard;

@@ -1,63 +1,136 @@
-import React from "react";
-import { Check } from "lucide-react";
+import {
+  FaUser,
+  FaGraduationCap,
+  FaBriefcase,
+  FaProjectDiagram,
+  FaTools,
+  FaCertificate,
+  FaLanguage,
+  FaTrophy,
+  FaHandsHelping,
+  FaLayerGroup,
+} from "react-icons/fa";
 
-const Stepper = ({ steps = [], currentStep = 0 }) => {
+const icons = [
+  FaUser,
+  FaGraduationCap,
+  FaBriefcase,
+  FaProjectDiagram,
+  FaTools,
+  FaCertificate,
+  FaLanguage,
+  FaTrophy,
+  FaHandsHelping,
+  FaLayerGroup,
+];
+
+function Stepper({ steps, currentStep, onStepClick }) {
   return (
-    <div className="w-full mb-8 overflow-x-auto">
-      <div className="flex items-center justify-between min-w-max">
+    <div className="w-full">
+      <div className="grid grid-cols-10 gap-2">
         {steps.map((step, index) => {
-          const completed = index < currentStep;
-          const active = index === currentStep;
+          const Icon = icons[index];
+
+          const isActive = currentStep === index;
+          const isCompleted = currentStep > index;
 
           return (
-            <React.Fragment key={step}>
-              <div className="flex flex-col items-center min-w-[90px]">
-                {/* Circle */}
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300
-                  ${
-                    completed
-                      ? "bg-green-500 text-white"
-                      : active
-                      ? "bg-blue-600 text-white ring-4 ring-blue-200"
-                      : "bg-gray-200 text-gray-600"
-                  }`}
-                >
-                  {completed ? (
-                    <Check size={18} />
-                  ) : (
-                    index + 1
-                  )}
-                </div>
+            <button
+              key={step}
+              type="button"
+              onClick={() => onStepClick?.(index)}
+              className={`
+                group
+                relative
+                min-w-0
+                h-[82px]
+                rounded-2xl
+                border
+                flex
+                flex-col
+                items-center
+                justify-center
+                gap-1.5
+                transition-all
+                duration-300
+                ${
+                  isActive
+                    ? "bg-gradient-to-br from-blue-600 to-indigo-600 border-blue-600 text-white shadow-lg shadow-blue-200 scale-[1.02]"
+                    : isCompleted
+                    ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                    : "bg-white border-slate-200 text-slate-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/50"
+                }
+              `}
+            >
+              {/* Active indicator */}
+              {isActive && (
+                <span className="absolute top-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-white" />
+              )}
 
-                {/* Step Name */}
-                <span
-                  className={`mt-2 text-xs text-center font-medium ${
-                    active
-                      ? "text-blue-600"
-                      : completed
-                      ? "text-green-600"
-                      : "text-gray-500"
-                  }`}
-                >
-                  {step}
-                </span>
+              {/* Icon */}
+              <div
+                className={`
+                  w-8
+                  h-8
+                  rounded-xl
+                  flex
+                  items-center
+                  justify-center
+                  transition-all
+                  ${
+                    isActive
+                      ? "bg-white/20 text-white"
+                      : isCompleted
+                      ? "bg-blue-100 text-blue-600"
+                      : "bg-slate-100 text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600"
+                  }
+                `}
+              >
+                <Icon className="text-sm" />
               </div>
 
-              {/* Connector */}
-              {index !== steps.length - 1 && (
-                <div
-                  className={`flex-1 h-1 mx-2 rounded-full transition-all duration-300 ${
-                    completed ? "bg-green-500" : "bg-gray-300"
-                  }`}
-                />
-              )}
-            </React.Fragment>
+              {/* Name */}
+              <span
+                className={`
+                  text-[10px]
+                  font-extrabold
+                  text-center
+                  leading-tight
+                  truncate
+                  max-w-full
+                  px-1
+                  ${
+                    isActive
+                      ? "text-white"
+                      : isCompleted
+                      ? "text-blue-700"
+                      : "text-slate-600"
+                  }
+                `}
+              >
+                {step}
+              </span>
+
+              {/* Step number */}
+              <span
+                className={`
+                  text-[8px]
+                  font-bold
+                  ${
+                    isActive
+                      ? "text-blue-100"
+                      : "text-slate-400"
+                  }
+                `}
+              >
+                {String(index + 1).padStart(2, "0")}
+              </span>
+            </button>
           );
         })}
       </div>
     </div>
   );
-};
+}
 
 export default Stepper;

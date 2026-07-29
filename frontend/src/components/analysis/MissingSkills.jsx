@@ -4,123 +4,153 @@ import {
   FaBrain,
   FaCloud,
   FaDocker,
-  FaAws,
   FaCheckCircle,
 } from "react-icons/fa";
 
-function MissingSkills() {
 
-  const skills = [
+function MissingSkills({ skills = [] }) {
+
+
+  const skillData = [
+
     {
       name: "Docker",
       demand: "Very High",
       priority: 95,
       color: "bg-red-500",
     },
+
     {
       name: "AWS",
       demand: "Very High",
       priority: 92,
       color: "bg-orange-500",
     },
+
     {
       name: "TypeScript",
       demand: "High",
       priority: 88,
       color: "bg-blue-500",
     },
+
     {
       name: "Node.js",
       demand: "High",
       priority: 85,
       color: "bg-green-500",
     },
+
     {
       name: "CI/CD",
       demand: "High",
       priority: 80,
       color: "bg-purple-500",
     },
-    {
-      name: "Kubernetes",
-      demand: "Medium",
-      priority: 74,
-      color: "bg-cyan-500",
-    },
+
   ];
+
+
+  const displayedSkills = skills.length
+
+    ? skillData.filter((skill) =>
+        skills.includes(skill.name)
+      )
+
+    : skillData;
+
 
   return (
 
-    <div className="bg-white rounded-3xl shadow-xl p-8">
+    <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm p-6 md:p-8">
 
-      {/* Header */}
 
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 mb-10">
 
         <div>
 
-          <h2 className="text-2xl font-bold text-slate-800">
+          <div className="flex items-center gap-3 mb-3">
 
-            Missing Skills Analysis
+            <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center">
 
-          </h2>
+              <FaBrain className="text-red-500 text-xl" />
 
-          <p className="text-gray-500 mt-2">
+            </div>
 
-            AI identified skills that can improve your ATS score.
 
-          </p>
+            <div>
+
+              <h2 className="text-2xl md:text-3xl font-black text-slate-900">
+
+                Missing Skills
+
+              </h2>
+
+
+              <p className="text-slate-500 mt-1">
+
+                Skills that could improve your career opportunities.
+
+              </p>
+
+            </div>
+
+          </div>
 
         </div>
 
-        <div className="bg-red-100 text-red-600 px-4 py-2 rounded-full font-semibold">
 
-          High Priority
+        <div className="px-4 py-2 rounded-full bg-red-50 border border-red-100 text-red-600 text-sm font-bold">
+
+          Priority Analysis
 
         </div>
 
       </div>
 
-      {/* Skill Cards */}
 
-      <div className="space-y-6">
+      <div className="space-y-5">
 
-        {skills.map((skill, index) => (
+        {displayedSkills.map((skill, index) => (
 
           <div
+
             key={index}
-            className="border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition"
+
+            className="rounded-3xl border border-slate-200 p-6 hover:shadow-lg transition"
+
           >
 
             <div className="flex justify-between items-center">
 
               <div>
 
-                <h3 className="text-lg font-bold text-slate-800">
+                <h3 className="text-lg font-black text-slate-800">
 
                   {skill.name}
 
                 </h3>
 
-                <p className="text-gray-500 mt-1">
+                <p className="text-slate-500 mt-1">
 
-                  Market Demand : {skill.demand}
+                  Market Demand: {skill.demand}
 
                 </p>
 
               </div>
 
+
               <div className="text-right">
 
-                <div className="text-2xl font-bold text-sky-600">
+                <div className="text-2xl font-black text-blue-600">
 
                   {skill.priority}%
 
                 </div>
 
-                <p className="text-sm text-gray-500">
+                <p className="text-xs text-slate-500">
 
-                  Importance
+                  Priority
 
                 </p>
 
@@ -128,13 +158,19 @@ function MissingSkills() {
 
             </div>
 
-            <div className="mt-5 w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+
+            <div className="mt-5 h-3 bg-slate-100 rounded-full overflow-hidden">
 
               <div
-                className={`h-full ${skill.color}`}
+
+                className={`h-full ${skill.color} rounded-full`}
+
                 style={{
+
                   width: `${skill.priority}%`,
+
                 }}
+
               />
 
             </div>
@@ -145,61 +181,60 @@ function MissingSkills() {
 
       </div>
 
-      {/* AI Suggestion */}
 
-      <div className="mt-10 rounded-3xl bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-100 p-6">
+      <div className="mt-10 rounded-3xl bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-100 p-7">
 
         <div className="flex items-center gap-3 mb-4">
 
-          <FaBrain className="text-sky-600 text-2xl" />
+          <FaBrain className="text-blue-600 text-xl" />
 
-          <h3 className="text-xl font-bold text-slate-800">
+          <h3 className="text-xl font-black text-slate-900">
 
-            AI Suggestion
+            AI Skill Gap Insight
 
           </h3>
 
         </div>
 
-        <p className="text-gray-600 leading-8">
 
-          Your resume already demonstrates good frontend
-          development skills. Learning cloud computing,
-          DevOps tools, backend technologies and deployment
-          platforms can increase your ATS score from
-          <span className="font-bold text-sky-600"> 82% </span>
-          to
-          <span className="font-bold text-green-600"> 95%+</span>.
+        <p className="text-slate-600 leading-8">
+
+          Your current profile has a strong frontend foundation.
+
+          The highest-impact improvements would be cloud computing,
+
+          backend development, containerization and deployment.
 
         </p>
 
       </div>
 
-      {/* Learning Roadmap */}
 
       <div className="mt-10">
 
         <div className="flex items-center gap-3 mb-5">
 
-          <FaBookOpen className="text-sky-600 text-xl" />
+          <FaBookOpen className="text-blue-600 text-xl" />
 
-          <h3 className="text-xl font-bold text-slate-800">
+          <h3 className="text-xl font-black text-slate-900">
 
-            Recommended Learning Roadmap
+            Recommended Learning Path
 
           </h3>
 
         </div>
 
+
         <div className="grid md:grid-cols-2 gap-5">
 
-          <div className="bg-slate-50 rounded-2xl p-5">
+
+          <div className="rounded-3xl bg-slate-50 p-6">
 
             <div className="flex items-center gap-3 mb-3">
 
               <FaDocker className="text-blue-500 text-2xl" />
 
-              <h4 className="font-bold">
+              <h4 className="font-black">
 
                 Docker
 
@@ -207,7 +242,7 @@ function MissingSkills() {
 
             </div>
 
-            <p className="text-gray-600">
+            <p className="text-slate-600">
 
               Learn containerization and deployment.
 
@@ -215,104 +250,73 @@ function MissingSkills() {
 
           </div>
 
-          <div className="bg-slate-50 rounded-2xl p-5">
 
-            <div className="flex items-center gap-3 mb-3">
-
-              <FaAws className="text-orange-500 text-2xl" />
-
-              <h4 className="font-bold">
-
-                AWS Cloud
-
-              </h4>
-
-            </div>
-
-            <p className="text-gray-600">
-
-              Learn EC2, S3, IAM and deployment.
-
-            </p>
-
-          </div>
-
-          <div className="bg-slate-50 rounded-2xl p-5">
+          <div className="rounded-3xl bg-slate-50 p-6">
 
             <div className="flex items-center gap-3 mb-3">
 
               <FaCloud className="text-cyan-500 text-2xl" />
 
-              <h4 className="font-bold">
+              <h4 className="font-black">
 
-                Kubernetes
-
-              </h4>
-
-            </div>
-
-            <p className="text-gray-600">
-
-              Learn container orchestration.
-
-            </p>
-
-          </div>
-
-          <div className="bg-slate-50 rounded-2xl p-5">
-
-            <div className="flex items-center gap-3 mb-3">
-
-              <FaArrowUp className="text-green-500 text-2xl" />
-
-              <h4 className="font-bold">
-
-                CI/CD
+                Cloud Computing
 
               </h4>
 
             </div>
 
-            <p className="text-gray-600">
+            <p className="text-slate-600">
 
-              Automate testing and deployment.
+              Learn cloud deployment and infrastructure.
 
             </p>
 
           </div>
+
 
         </div>
 
       </div>
 
-      {/* Bottom Tips */}
 
-      <div className="mt-10 bg-green-50 rounded-2xl p-6">
+      <div className="mt-10 rounded-3xl bg-emerald-50 border border-emerald-100 p-7">
 
-        <h3 className="text-xl font-bold text-green-700 mb-4">
+        <h3 className="text-xl font-black text-emerald-800 mb-5">
 
           Quick Wins
 
         </h3>
 
-        <div className="space-y-3">
+
+        <div className="space-y-4">
 
           {[
-            "Learn Docker Basics",
-            "Deploy a React Project on AWS",
-            "Build one Full Stack Project",
+
+            "Learn Docker fundamentals",
+
+            "Deploy one project to the cloud",
+
+            "Add TypeScript to a React project",
+
             "Learn GitHub Actions",
-            "Add TypeScript to React Projects",
+
           ].map((tip, index) => (
 
             <div
+
               key={index}
-              className="flex items-center gap-3 text-green-700"
+
+              className="flex items-center gap-3 text-emerald-700"
+
             >
 
               <FaCheckCircle />
 
-              {tip}
+              <span className="font-medium">
+
+                {tip}
+
+              </span>
 
             </div>
 
@@ -327,5 +331,6 @@ function MissingSkills() {
   );
 
 }
+
 
 export default MissingSkills;

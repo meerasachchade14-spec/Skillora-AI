@@ -4,11 +4,11 @@ import {
   FaFilePdf,
   FaFileWord,
   FaCheckCircle,
+  FaBolt,
 } from "react-icons/fa";
 
 function UploadAnotherResume() {
   const inputRef = useRef(null);
-
   const [fileName, setFileName] = useState("");
 
   const handleFile = (e) => {
@@ -20,168 +20,149 @@ function UploadAnotherResume() {
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-xl p-8">
+    <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl">
 
-      {/* Heading */}
+      {/* Top Gradient Header */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-sky-900 px-8 py-14 text-center text-white">
 
-      <div className="text-center mb-8">
+        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-sky-400/20 blur-3xl" />
+        <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl" />
 
-        <div className="w-20 h-20 rounded-full bg-sky-100 flex items-center justify-center mx-auto mb-5">
+        <div className="relative">
 
-          <FaCloudUploadAlt className="text-4xl text-sky-600" />
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-white/10 backdrop-blur-xl">
+
+            <FaCloudUploadAlt className="text-4xl text-sky-300" />
+
+          </div>
+
+          <h2 className="text-3xl font-black">
+            Analyze Another Resume
+          </h2>
+
+          <p className="mx-auto mt-3 max-w-xl text-slate-300">
+            Upload a new resume and get instant AI-powered insights,
+            ATS scoring, skill analysis and career recommendations.
+          </p>
 
         </div>
 
-        <h2 className="text-3xl font-bold text-slate-800">
-
-          Upload Another Resume
-
-        </h2>
-
-        <p className="text-gray-500 mt-3">
-
-          Upload a new resume to generate another AI analysis.
-
-        </p>
-
       </div>
 
-      {/* Upload Box */}
+      <div className="p-8">
 
-      <div
-        onClick={() => inputRef.current.click()}
-        className="border-2 border-dashed border-sky-300 rounded-3xl p-12 cursor-pointer hover:border-sky-500 hover:bg-sky-50 transition-all duration-300"
-      >
+        {/* Upload Area */}
+        <div
+          onClick={() => inputRef.current.click()}
+          className="group cursor-pointer rounded-3xl border-2 border-dashed border-sky-200 bg-sky-50/50 p-12 text-center transition-all duration-300 hover:border-sky-500 hover:bg-sky-50"
+        >
 
-        <div className="text-center">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-white shadow-lg transition group-hover:scale-110">
 
-          <FaCloudUploadAlt className="text-6xl text-sky-500 mx-auto mb-5" />
+            <FaCloudUploadAlt className="text-4xl text-sky-500" />
 
-          <h3 className="text-xl font-bold text-slate-700">
+          </div>
 
-            Drag & Drop Resume Here
-
+          <h3 className="mt-6 text-xl font-bold text-slate-800">
+            Drop your resume here
           </h3>
 
-          <p className="text-gray-500 mt-3">
-
-            or click to browse your computer
-
+          <p className="mt-2 text-slate-500">
+            PDF, DOC or DOCX files supported
           </p>
 
           <button
-            className="mt-6 px-8 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold hover:scale-105 transition"
+            type="button"
+            className="mt-6 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-8 py-3 font-bold text-white shadow-lg shadow-sky-500/20 transition hover:-translate-y-1"
           >
-            Browse Resume
+            Browse Files
           </button>
 
+          <input
+            ref={inputRef}
+            type="file"
+            accept=".pdf,.doc,.docx"
+            className="hidden"
+            onChange={handleFile}
+          />
+
         </div>
 
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".pdf,.doc,.docx"
-          className="hidden"
-          onChange={handleFile}
-        />
+        {/* Selected File */}
+        {fileName && (
+          <div className="mt-6 flex items-center gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
 
-      </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100">
+              <FaCheckCircle className="text-2xl text-emerald-500" />
+            </div>
 
-      {/* Selected File */}
+            <div>
+              <p className="font-bold text-emerald-700">
+                Resume Ready
+              </p>
 
-      {fileName && (
+              <p className="text-sm text-slate-600">
+                {fileName}
+              </p>
+            </div>
 
-        <div className="mt-8 bg-green-50 border border-green-200 rounded-2xl p-5 flex items-center gap-4">
+          </div>
+        )}
 
-          <FaCheckCircle className="text-3xl text-green-500" />
+        {/* Supported Formats */}
+        <div className="mt-8 grid gap-4 md:grid-cols-2">
 
-          <div>
+          <div className="flex items-center gap-4 rounded-2xl border border-red-100 bg-red-50 p-5">
 
-            <h3 className="font-bold text-green-700">
+            <FaFilePdf className="text-3xl text-red-500" />
 
-              Resume Selected
+            <div>
+              <p className="font-bold text-slate-800">
+                PDF
+              </p>
 
-            </h3>
+              <p className="text-sm text-slate-500">
+                Best for ATS analysis
+              </p>
+            </div>
 
-            <p className="text-gray-600">
+          </div>
 
-              {fileName}
+          <div className="flex items-center gap-4 rounded-2xl border border-blue-100 bg-blue-50 p-5">
 
-            </p>
+            <FaFileWord className="text-3xl text-blue-600" />
+
+            <div>
+              <p className="font-bold text-slate-800">
+                DOC / DOCX
+              </p>
+
+              <p className="text-sm text-slate-500">
+                Microsoft Word format
+              </p>
+            </div>
 
           </div>
 
         </div>
 
-      )}
+        {/* Feature Strip */}
+        <div className="mt-8 flex items-center gap-4 rounded-2xl bg-slate-950 p-6 text-white">
 
-      {/* Supported Files */}
-
-      <div className="grid md:grid-cols-2 gap-5 mt-10">
-
-        <div className="rounded-2xl bg-red-50 p-5 flex items-center gap-4">
-
-          <FaFilePdf className="text-4xl text-red-500" />
+          <FaBolt className="text-2xl text-sky-400" />
 
           <div>
-
             <h3 className="font-bold">
-
-              PDF Resume
-
+              Instant AI Analysis
             </h3>
 
-            <p className="text-gray-500 text-sm">
-
-              Preferred format for ATS analysis
-
+            <p className="mt-1 text-sm text-slate-400">
+              Get your ATS score, missing skills, keyword analysis
+              and personalized career recommendations.
             </p>
-
           </div>
 
         </div>
-
-        <div className="rounded-2xl bg-blue-50 p-5 flex items-center gap-4">
-
-          <FaFileWord className="text-4xl text-blue-600" />
-
-          <div>
-
-            <h3 className="font-bold">
-
-              DOC / DOCX
-
-            </h3>
-
-            <p className="text-gray-500 text-sm">
-
-              Microsoft Word documents supported
-
-            </p>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* Bottom Card */}
-
-      <div className="mt-10 rounded-3xl bg-gradient-to-r from-sky-500 to-blue-600 text-white p-8">
-
-        <h3 className="text-2xl font-bold mb-4">
-
-          AI Resume Analysis
-
-        </h3>
-
-        <p className="leading-8 text-sky-100">
-
-          Upload your latest resume to receive a complete ATS score,
-          keyword matching, recruiter insights, missing skills,
-          AI recommendations, and personalized improvement tips.
-
-        </p>
 
       </div>
 

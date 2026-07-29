@@ -3,120 +3,105 @@ import {
   FaShareAlt,
   FaRedo,
   FaFilePdf,
+  FaDownload,
 } from "react-icons/fa";
 
 function AnalysisActions() {
   return (
-    <div className="bg-white rounded-3xl shadow-xl p-8">
-
-      {/* Header */}
+    <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-xl">
 
       <div className="mb-8">
 
-        <h2 className="text-2xl font-bold text-slate-800">
+        <p className="text-xs font-bold uppercase tracking-widest text-sky-500">
+          Report Management
+        </p>
+
+        <h2 className="mt-2 text-3xl font-black text-slate-800">
           Analysis Actions
         </h2>
 
-        <p className="text-gray-500 mt-2">
-          Save, share or print your resume analysis report.
+        <p className="mt-2 text-slate-500">
+          Save, share or export your complete AI resume report.
         </p>
 
       </div>
 
-      {/* Action Buttons */}
+      <div className="grid gap-4 md:grid-cols-2">
 
-      <div className="grid md:grid-cols-2 gap-5">
-
-        <button
-          className="flex items-center justify-center gap-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white py-4 rounded-2xl font-semibold hover:scale-105 transition"
-        >
+        <button className="group flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 py-4 font-bold text-white shadow-lg shadow-sky-500/20 transition hover:-translate-y-1">
           <FaFilePdf />
           Download PDF Report
         </button>
 
-        <button
-          className="flex items-center justify-center gap-3 bg-white border-2 border-sky-500 text-sky-600 py-4 rounded-2xl font-semibold hover:bg-sky-50 transition"
-        >
+        <button className="flex items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 py-4 font-bold text-slate-700 transition hover:border-sky-400 hover:bg-sky-50">
           <FaPrint />
           Print Report
         </button>
 
-        <button
-          className="flex items-center justify-center gap-3 bg-slate-900 text-white py-4 rounded-2xl font-semibold hover:bg-black transition"
-        >
+        <button className="flex items-center justify-center gap-3 rounded-2xl bg-slate-950 py-4 font-bold text-white transition hover:bg-slate-800">
           <FaShareAlt />
           Share Analysis
         </button>
 
-        <button
-          className="flex items-center justify-center gap-3 bg-green-500 text-white py-4 rounded-2xl font-semibold hover:bg-green-600 transition"
-        >
+        <button className="flex items-center justify-center gap-3 rounded-2xl bg-emerald-500 py-4 font-bold text-white transition hover:bg-emerald-600">
           <FaRedo />
-          Analyze Again
+          Analyze Another Resume
         </button>
 
       </div>
 
-      {/* Divider */}
+      <div className="my-10 h-px bg-slate-200" />
 
-      <div className="my-10 border-t border-slate-200"></div>
+      <div className="grid gap-5 md:grid-cols-3">
 
-      {/* Report Summary */}
-
-      <div className="grid md:grid-cols-3 gap-6">
-
-        <div className="bg-sky-50 rounded-2xl p-6 text-center">
-
-          <h3 className="text-slate-500 text-sm">
+        <div className="rounded-2xl bg-sky-50 p-6">
+          <p className="text-sm text-slate-500">
             ATS Score
-          </h3>
+          </p>
 
-          <p className="text-4xl font-bold text-sky-600 mt-3">
+          <p className="mt-2 text-4xl font-black text-sky-600">
             88%
           </p>
-
         </div>
 
-        <div className="bg-green-50 rounded-2xl p-6 text-center">
-
-          <h3 className="text-slate-500 text-sm">
+        <div className="rounded-2xl bg-emerald-50 p-6">
+          <p className="text-sm text-slate-500">
             Recruiter Match
-          </h3>
+          </p>
 
-          <p className="text-4xl font-bold text-green-600 mt-3">
+          <p className="mt-2 text-4xl font-black text-emerald-600">
             90%
           </p>
-
         </div>
 
-        <div className="bg-indigo-50 rounded-2xl p-6 text-center">
-
-          <h3 className="text-slate-500 text-sm">
+        <div className="rounded-2xl bg-indigo-50 p-6">
+          <p className="text-sm text-slate-500">
             Resume Rating
-          </h3>
-
-          <p className="text-4xl font-bold text-indigo-600 mt-3">
-            A+
           </p>
 
+          <p className="mt-2 text-4xl font-black text-indigo-600">
+            A+
+          </p>
         </div>
 
       </div>
 
-      {/* AI Message */}
+      <div className="mt-8 flex items-start gap-4 rounded-3xl bg-gradient-to-r from-slate-950 to-blue-950 p-6 text-white">
 
-      <div className="mt-10 rounded-3xl bg-gradient-to-r from-sky-500 to-blue-600 text-white p-6">
+        <FaDownload className="mt-1 text-xl text-sky-400" />
 
-        <h3 className="text-xl font-bold mb-4">
-          AI Suggestion
-        </h3>
+        <div>
 
-        <p className="leading-8 text-sky-100">
-          Your resume is well structured and ATS-friendly.
-          Before applying for jobs, download the report and
-          review the improvement tips to further increase your
-          chances of getting shortlisted.
-        </p>
+          <h3 className="font-bold">
+            Ready to improve your chances?
+          </h3>
+
+          <p className="mt-2 text-sm leading-7 text-slate-300">
+            Download your report and use the AI recommendations
+            to optimize your resume before applying.
+          </p>
+
+        </div>
 
       </div>
 

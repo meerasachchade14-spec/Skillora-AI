@@ -1,72 +1,58 @@
-import UploadJobDescription from "../../components/matcher/UploadJobDescription";
+import ResumeStatus from "../../components/matcher/ResumeStatus";
 import SkillMatchScore from "../../components/matcher/SkillMatchScore";
-import SkillChart from "../../components/matcher/SkillChart";
+import SkillOverview from "../../components/matcher/SkillOverview";
 import MissingSkills from "../../components/matcher/MissingSkills";
-import SkillProgress from "../../components/matcher/SkillProgress";
-import SkillCards from "../../components/matcher/SkillCards";
-import AIInsights from "../../components/matcher/AIInsights";
-import LearningRoadmap from "../../components/matcher/LearningRoadmap";
-import RecommendedCourses from "../../components/matcher/RecommendedCourses";
-import MatchActions from "../../components/matcher/MatchActions";
+import SkillDistribution from "../../components/matcher/SkillDistribution";
+import IndustryBenchmark from "../../components/matcher/IndustryBenchmark";
+import AIRecommendations from "../../components/matcher/AIRecommendations";
+import SkillHistory from "../../components/matcher/SkillHistory";
 import MatchSidebar from "../../components/matcher/MatchSidebar";
 
 function SkillMatcher() {
   return (
     <div className="space-y-8">
 
-      {/* Header */}
-      <div className="mb-8">
+      <div>
         <h1 className="text-4xl font-bold text-slate-800">
           AI Skill Matcher
         </h1>
 
-        <p className="text-gray-500 mt-2 text-lg">
-          Compare your resume with the job description and
-          discover missing skills using AI.
+        <p className="text-slate-500 mt-2 text-lg">
+          Analyze your uploaded resume to discover your strengths, skill gaps,
+          industry readiness, and personalized AI recommendations.
         </p>
       </div>
 
       <div className="grid grid-cols-12 gap-8">
 
-          {/* LEFT */}
+        <div className="col-span-8 space-y-8">
 
-          <div className="col-span-8 space-y-8">
+          <ResumeStatus />
 
-            <UploadJobDescription />
+          <SkillMatchScore />
 
-            <SkillMatchScore />
+          <SkillOverview />
 
-            <div className="grid md:grid-cols-2 gap-8">
+          <MissingSkills />
 
-              <SkillChart />
+          <SkillDistribution />
 
-              <MissingSkills />
+          <IndustryBenchmark />
 
-            </div>
+          <AIRecommendations />
 
-            <SkillProgress />
+          <SkillHistory />
 
-            <SkillCards />
+        </div>
 
-            <AIInsights />
+        <div className="col-span-4">
 
-            <LearningRoadmap />
+          <MatchSidebar />
 
-            <RecommendedCourses />
-
-            <MatchActions />
-
-          </div>
-
-          {/* RIGHT */}
-
-          <div className="col-span-4">
-
-            <MatchSidebar />
-
-          </div>
+        </div>
 
       </div>
+
     </div>
   );
 }

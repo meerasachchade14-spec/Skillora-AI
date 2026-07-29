@@ -2,57 +2,80 @@ import ModernTemplate from "./templates/ModernTemplate";
 import ProfessionalTemplate from "./templates/ProfessionalTemplate";
 import CreativeTemplate from "./templates/CreativeTemplate";
 
-function ResumePreview({ resumeData, template, theme, font }) {
+function ResumePreview({
+  resumeData,
+  template,
+  theme,
+  font,
+}) {
   return (
-    <div className="w-full">
+    <section className="bg-white rounded-[28px] border border-slate-200 shadow-xl overflow-hidden">
 
       {/* Header */}
 
-      <div className="flex justify-between items-center mb-5">
+      <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
 
-        <h2 className="text-2xl font-bold text-slate-800">
-          Live Resume Preview
-        </h2>
+        <div>
+          <p className="text-xs uppercase tracking-widest font-black text-blue-600">
+            Live Preview
+          </p>
 
-        <span className="px-4 py-2 rounded-full bg-sky-100 text-sky-700 font-semibold text-sm">
-          ATS Friendly
-        </span>
+          <h2 className="text-lg font-black text-slate-900 mt-1">
+            Your Resume
+          </h2>
+        </div>
+
+        <div className="flex items-center gap-2">
+
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+
+          <span className="text-xs font-bold text-slate-500">
+            Live
+          </span>
+
+        </div>
 
       </div>
 
-      {/* Preview Container */}
+
+      {/* Preview */}
 
       <div
-       id="resume-preview"
-       className="
-       bg-slate-200
-        rounded-2xl
-        shadow-xl
-         p-6
-         overflow-auto
-          h-[900px]
-           "
-          >
+        id="resume-preview"
+        className="bg-slate-200 p-5 h-[850px] overflow-y-auto overflow-x-hidden"
+      >
 
-        <div className="scale-[0.82] origin-top">
+        <div className="origin-top scale-[0.82]">
 
           {template === "modern" && (
-            <ModernTemplate resumeData={resumeData} theme={theme} font={font} />
+            <ModernTemplate
+              resumeData={resumeData}
+              theme={theme}
+              font={font}
+            />
           )}
 
           {template === "professional" && (
-            <ProfessionalTemplate resumeData={resumeData} theme={theme} font={font} />
+            <ProfessionalTemplate
+              resumeData={resumeData}
+              theme={theme}
+              font={font}
+            />
           )}
 
           {template === "creative" && (
-            <CreativeTemplate resumeData={resumeData} theme={theme} font={font} />
+            <CreativeTemplate
+              resumeData={resumeData}
+              theme={theme}
+              font={font}
+            />
           )}
 
         </div>
 
       </div>
 
-    </div>
+    </section>
   );
 }
 

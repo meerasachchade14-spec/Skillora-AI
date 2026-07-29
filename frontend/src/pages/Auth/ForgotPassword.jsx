@@ -65,54 +65,63 @@ function ForgotPassword() {
       </div>
 
       {/* Right Side */}
-      <div className="flex-1 flex items-center justify-center px-6 py-10">
-        <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl p-10 border border-slate-100 dark:border-slate-800 transition-colors duration-500">
-          <h2 className="text-4xl font-black text-center tracking-tight text-slate-900 dark:text-white">
-            Forgot Password
-          </h2>
-          <p className="text-slate-500 dark:text-slate-400 text-center mt-2 font-medium">
-            Enter your email to receive an OTP
-          </p>
+<div className="flex-1 flex items-center justify-center px-6 py-10 bg-white">
 
-          {/* Error Message */}
-          {error && (
-            <div className="mt-5 p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-sm font-medium">
-              {error}
-            </div>
-          )}
+  <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-10 border border-slate-100">
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-            <div>
-              <input
-                type="email"
-                placeholder="Email Address"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
-              />
-            </div>
+    <h2 className="text-4xl font-black text-center tracking-tight text-slate-900">
+      Forgot Password
+    </h2>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-sky-500 to-blue-600 text-white py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-blue-500/20 active:scale-[0.98] hover:scale-[1.01] transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-            >
-              {loading ? "Sending OTP..." : "Send OTP"}
-            </button>
-          </form>
+    <p className="text-slate-500 text-center mt-2 font-medium">
+      Enter your email to receive an OTP
+    </p>
 
-          {/* Back to Login Link */}
-          <div className="mt-8 text-center text-sm font-medium">
-            <Link
-              to="/login"
-              className="text-blue-600 dark:text-blue-400 hover:underline font-bold"
-            >
-              Back to Login
-            </Link>
-          </div>
-        </div>
+    {/* Error Message */}
+    {error && (
+      <div className="mt-5 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-medium">
+        {error}
       </div>
+    )}
+
+    <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+
+      <div>
+        <input
+          type="email"
+          placeholder="Email Address"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full border border-slate-200 rounded-xl px-4 py-3 outline-none bg-white text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-gradient-to-r from-sky-500 to-blue-600 text-white py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-blue-500/20 active:scale-[0.98] hover:scale-[1.01] transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+      >
+        {loading ? "Sending OTP..." : "Send OTP"}
+      </button>
+
+    </form>
+
+    {/* Back to Login Link */}
+    <div className="mt-8 text-center text-sm font-medium">
+
+      <Link
+        to="/login"
+        className="text-blue-600 hover:text-blue-700 hover:underline font-bold"
+      >
+        Back to Login
+      </Link>
+
+    </div>
+
+  </div>
+
+</div>
     </div>
   );
 }

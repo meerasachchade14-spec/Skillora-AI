@@ -2,89 +2,108 @@ import {
   FaCode,
   FaStar,
   FaCheckCircle,
+  FaArrowUp,
 } from "react-icons/fa";
 
-function SkillsAnalysis({ skills }) {
-
+function SkillsAnalysis({ skills = [] }) {
   const skillData = [
-    { name: "React.js", level: 95 },
-    { name: "JavaScript", level: 92 },
-    { name: "Python", level: 88 },
-    { name: "Tailwind CSS", level: 90 },
-    { name: "MongoDB", level: 82 },
-    { name: "Git & GitHub", level: 86 },
+    { name: "React.js", level: 95, category: "Frontend" },
+    { name: "JavaScript", level: 92, category: "Programming" },
+    { name: "Python", level: 88, category: "Programming" },
+    { name: "Tailwind CSS", level: 90, category: "Frontend" },
+    { name: "MongoDB", level: 82, category: "Database" },
+    { name: "Git & GitHub", level: 86, category: "Tools" },
   ];
 
   return (
+    <div className="bg-white rounded-[28px] border border-slate-200 shadow-sm p-6 md:p-8">
 
-    <div className="bg-white rounded-3xl shadow-xl p-8">
-
-      {/* Header */}
-
-      <div className="flex justify-between items-center mb-8">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
 
         <div>
+          <div className="flex items-center gap-3">
 
-          <h2 className="text-2xl font-bold text-slate-800">
+            <div className="w-11 h-11 rounded-2xl bg-blue-50 flex items-center justify-center">
+              <FaCode className="text-blue-600 text-lg" />
+            </div>
 
-            Skills Analysis
+            <div>
+              <h2 className="text-2xl font-black text-slate-900">
+                Skills Analysis
+              </h2>
 
-          </h2>
+              <p className="text-sm text-slate-500 mt-1">
+                AI detected technical skills from your resume
+              </p>
+            </div>
 
-          <p className="text-gray-500 mt-2">
-
-            AI detected technical skills from your resume.
-
-          </p>
-
+          </div>
         </div>
 
-        <div className="bg-sky-100 text-sky-700 px-4 py-2 rounded-full font-semibold">
-
-          {skills.length} Skills Found
-
+        <div className="px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-sm font-bold">
+          {skills.length || skillData.length} Skills Found
         </div>
 
       </div>
 
-      {/* Skills */}
-
-      <div className="space-y-6">
+      {/* SKILLS GRID */}
+      <div className="grid md:grid-cols-2 gap-4">
 
         {skillData.map((skill, index) => (
 
-          <div key={index}>
+          <div
+            key={index}
+            className="group rounded-2xl border border-slate-200 p-5 hover:border-blue-300 hover:shadow-md transition-all duration-300"
+          >
 
-            <div className="flex justify-between items-center mb-2">
+            <div className="flex justify-between items-start mb-4">
 
               <div className="flex items-center gap-3">
 
-                <FaCode className="text-sky-500" />
+                <div className="w-10 h-10 rounded-xl bg-slate-50 group-hover:bg-blue-50 flex items-center justify-center transition">
+                  <FaCode className="text-blue-600" />
+                </div>
 
-                <span className="font-semibold text-slate-700">
+                <div>
+                  <h3 className="font-bold text-slate-800">
+                    {skill.name}
+                  </h3>
 
-                  {skill.name}
-
-                </span>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {skill.category}
+                  </p>
+                </div>
 
               </div>
 
-              <span className="font-bold text-sky-600">
-
+              <span className="text-sm font-black text-blue-600">
                 {skill.level}%
-
               </span>
 
             </div>
 
-            <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
 
               <div
-                className="h-full rounded-full bg-gradient-to-r from-sky-500 to-blue-600 transition-all duration-700"
+                className="h-full rounded-full bg-gradient-to-r from-blue-500 to-sky-400 transition-all duration-700"
                 style={{
                   width: `${skill.level}%`,
                 }}
               />
+
+            </div>
+
+            <div className="flex justify-between items-center mt-3">
+
+              <span className="text-xs text-slate-400">
+                Proficiency
+              </span>
+
+              <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                <FaArrowUp />
+                Strong
+              </span>
 
             </div>
 
@@ -94,44 +113,52 @@ function SkillsAnalysis({ skills }) {
 
       </div>
 
-      {/* AI Insight */}
+      {/* AI INSIGHT */}
+      <div className="mt-8 rounded-2xl bg-gradient-to-br from-blue-50 to-sky-50 border border-blue-100 p-6">
 
-      <div className="mt-10 bg-gradient-to-r from-sky-50 to-blue-50 rounded-2xl p-6 border border-sky-100">
+        <div className="flex items-center gap-3 mb-3">
 
-        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+            <FaStar className="text-yellow-500" />
+          </div>
 
-          <FaStar className="text-yellow-500 text-2xl" />
+          <div>
+            <h3 className="font-black text-slate-900">
+              AI Insight
+            </h3>
 
-          <h3 className="text-xl font-bold text-slate-800">
-
-            AI Insight
-
-          </h3>
+            <p className="text-xs text-slate-500">
+              Personalized skill analysis
+            </p>
+          </div>
 
         </div>
 
-        <p className="text-gray-600 leading-7">
-
-          Your resume demonstrates strong frontend development
-          skills with React.js, JavaScript and Tailwind CSS.
-          Adding technologies like Docker, AWS, TypeScript,
-          Node.js and CI/CD will significantly improve your
-          ATS score and increase your chances of getting
-          shortlisted.
-
+        <p className="text-sm text-slate-600 leading-7">
+          Your resume demonstrates strong frontend development skills,
+          especially in React.js, JavaScript and Tailwind CSS. Adding
+          cloud, backend and DevOps technologies can significantly
+          improve your ATS performance and career opportunities.
         </p>
 
       </div>
 
-      {/* Recommended Skills */}
-
+      {/* RECOMMENDED SKILLS */}
       <div className="mt-8">
 
-        <h3 className="text-lg font-bold text-slate-800 mb-5">
+        <div className="flex items-center justify-between mb-4">
 
-          Recommended Skills
+          <div>
+            <h3 className="font-black text-slate-900">
+              Recommended Skills
+            </h3>
 
-        </h3>
+            <p className="text-sm text-slate-500 mt-1">
+              Skills that can strengthen your profile
+            </p>
+          </div>
+
+        </div>
 
         <div className="flex flex-wrap gap-3">
 
@@ -148,13 +175,10 @@ function SkillsAnalysis({ skills }) {
 
             <div
               key={index}
-              className="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full font-medium"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-semibold hover:bg-emerald-100 transition"
             >
-
-              <FaCheckCircle />
-
+              <FaCheckCircle className="text-emerald-500" />
               {skill}
-
             </div>
 
           ))}
@@ -164,9 +188,7 @@ function SkillsAnalysis({ skills }) {
       </div>
 
     </div>
-
   );
-
 }
 
 export default SkillsAnalysis;

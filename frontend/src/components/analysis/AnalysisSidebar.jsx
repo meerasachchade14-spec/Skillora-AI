@@ -9,95 +9,148 @@ import {
   FaLightbulb,
   FaArrowCircleUp,
   FaRobot,
+  FaChartBar,
+  FaExclamationTriangle,
+  FaBalanceScale,
+  FaChartLine,
+  FaCog,
 } from "react-icons/fa";
 
 const menuItems = [
   {
-    icon: <FaChartPie />,
+    id: "overall",
     title: "Overall Score",
-    color: "bg-sky-100 text-sky-600",
+    icon: <FaChartPie />,
   },
   {
-    icon: <FaFileAlt />,
+    id: "summary",
     title: "Resume Summary",
-    color: "bg-blue-100 text-blue-600",
+    icon: <FaFileAlt />,
   },
   {
-    icon: <FaSearch />,
+    id: "ats",
     title: "ATS Analysis",
-    color: "bg-cyan-100 text-cyan-600",
+    icon: <FaSearch />,
   },
   {
-    icon: <FaCode />,
+    id: "skills",
     title: "Skills",
-    color: "bg-indigo-100 text-indigo-600",
+    icon: <FaCode />,
   },
   {
-    icon: <FaBriefcase />,
+    id: "experience",
     title: "Experience",
-    color: "bg-green-100 text-green-600",
+    icon: <FaBriefcase />,
   },
   {
-    icon: <FaGraduationCap />,
+    id: "education",
     title: "Education",
-    color: "bg-purple-100 text-purple-600",
+    icon: <FaGraduationCap />,
   },
   {
-    icon: <FaProjectDiagram />,
+    id: "projects",
     title: "Projects",
-    color: "bg-pink-100 text-pink-600",
+    icon: <FaProjectDiagram />,
   },
   {
-    icon: <FaLightbulb />,
+    id: "keywords",
     title: "Keyword Match",
-    color: "bg-yellow-100 text-yellow-600",
+    icon: <FaLightbulb />,
   },
   {
-    icon: <FaArrowCircleUp />,
+    id: "missing",
+    title: "Missing Skills",
+    icon: <FaExclamationTriangle />,
+  },
+  {
+    id: "strengths",
+    title: "Strength & Weakness",
+    icon: <FaBalanceScale />,
+  },
+  {
+    id: "improvement",
     title: "Improvement Tips",
-    color: "bg-orange-100 text-orange-600",
+    icon: <FaArrowCircleUp />,
   },
   {
-    icon: <FaRobot />,
+    id: "recommendations",
     title: "AI Recommendation",
-    color: "bg-slate-200 text-slate-700",
+    icon: <FaRobot />,
+  },
+  {
+    id: "charts",
+    title: "Analytics",
+    icon: <FaChartBar />,
   },
 ];
 
-function AnalysisSidebar() {
+function AnalysisSidebar({
+  score = 87,
+  activeSection,
+  setActiveSection,
+}) {
   return (
-    <div className="sticky top-6">
+    <aside className="sticky top-6">
 
-      <div className="bg-white rounded-3xl shadow-xl p-6">
+      <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-xl">
 
-        {/* Heading */}
+        {/* Header */}
 
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">
-          Analysis
-        </h2>
+        <div className="mb-6 px-2">
 
-        <p className="text-gray-500 mb-6">
-          Navigate through all resume reports.
-        </p>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-sky-500">
+            Resume Intelligence
+          </p>
+
+          <h2 className="mt-2 text-2xl font-black text-slate-800">
+            Analysis
+          </h2>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Explore your AI-generated resume insights.
+          </p>
+
+        </div>
 
         {/* Score Card */}
 
-        <div className="rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 text-white p-5 mb-8">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-950 to-sky-900 p-6 text-white">
 
-          <p className="text-sm opacity-90">
-            Overall ATS Score
-          </p>
+          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-sky-400/20 blur-2xl" />
 
-          <h1 className="text-5xl font-bold mt-2">
-            88%
-          </h1>
+          <div className="relative">
 
-          <div className="mt-4 h-2 bg-white/30 rounded-full overflow-hidden">
+            <div className="flex items-center justify-between">
 
-            <div
-              className="h-full bg-white rounded-full"
-              style={{ width: "88%" }}
-            />
+              <p className="text-sm text-slate-300">
+                Overall ATS Score
+              </p>
+
+              <FaChartLine className="text-sky-300" />
+
+            </div>
+
+            <h1 className="mt-3 text-5xl font-black">
+              {score}
+              <span className="text-2xl text-sky-300">
+                %
+              </span>
+            </h1>
+
+            <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/20">
+
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-sky-300 to-blue-400 transition-all duration-700"
+                style={{
+                  width: `${score}%`,
+                }}
+              />
+
+            </div>
+
+            <p className="mt-3 text-xs text-slate-300">
+              Excellent ATS compatibility
+            </p>
 
           </div>
 
@@ -105,80 +158,114 @@ function AnalysisSidebar() {
 
         {/* Navigation */}
 
-        <div className="space-y-3">
+        <nav className="mt-6 space-y-1">
 
-          {menuItems.map((item, index) => (
+          {menuItems.map((item) => {
 
-            <button
-              key={index}
-              className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all duration-300 text-left"
-            >
+            const isActive =
+              activeSection === item.id;
 
-              <div
-                className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg ${item.color}`}
+            return (
+
+              <button
+                key={item.id}
+                onClick={() =>
+                  setActiveSection(item.id)
+                }
+                className={`group flex w-full items-center gap-4 rounded-2xl px-4 py-3 text-left transition-all duration-300 ${
+                  isActive
+                    ? "bg-sky-50 text-sky-600 shadow-sm"
+                    : "text-slate-600 hover:bg-slate-50"
+                }`}
               >
-                {item.icon}
-              </div>
 
-              <span className="font-medium text-slate-700">
-                {item.title}
-              </span>
+                <span
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl text-lg transition ${
+                    isActive
+                      ? "bg-sky-500 text-white shadow-lg shadow-sky-500/30"
+                      : "bg-slate-100 text-slate-500 group-hover:bg-sky-100 group-hover:text-sky-600"
+                  }`}
+                >
+                  {item.icon}
+                </span>
 
-            </button>
+                <span className="font-semibold">
+                  {item.title}
+                </span>
 
-          ))}
+              </button>
 
-        </div>
+            );
+
+          })}
+
+        </nav>
 
         {/* AI Status */}
 
-        <div className="mt-8 rounded-2xl bg-sky-50 border border-sky-100 p-5">
+        <div className="mt-6 rounded-2xl border border-sky-100 bg-sky-50 p-5">
 
-          <h3 className="font-bold text-sky-700 mb-3">
+          <h3 className="mb-4 font-bold text-sky-700">
             AI Status
           </h3>
 
-          <div className="flex justify-between mb-2">
+          <div className="space-y-3 text-sm">
 
-            <span className="text-gray-600">
-              Resume Quality
-            </span>
+            <div className="flex justify-between">
 
-            <span className="font-bold text-sky-600">
-              Excellent
-            </span>
+              <span className="text-slate-500">
+                Resume Quality
+              </span>
 
-          </div>
+              <span className="font-bold text-emerald-600">
+                Excellent
+              </span>
 
-          <div className="flex justify-between mb-2">
+            </div>
 
-            <span className="text-gray-600">
-              ATS Ready
-            </span>
+            <div className="flex justify-between">
 
-            <span className="font-bold text-green-600">
-              Yes
-            </span>
+              <span className="text-slate-500">
+                ATS Ready
+              </span>
 
-          </div>
+              <span className="font-bold text-emerald-600">
+                Yes
+              </span>
 
-          <div className="flex justify-between">
+            </div>
 
-            <span className="text-gray-600">
-              Recruiter Match
-            </span>
+            <div className="flex justify-between">
 
-            <span className="font-bold text-sky-600">
-              90%
-            </span>
+              <span className="text-slate-500">
+                Recruiter Match
+              </span>
+
+              <span className="font-bold text-sky-600">
+                90%
+              </span>
+
+            </div>
 
           </div>
 
         </div>
 
+        {/* Settings */}
+
+        <button className="mt-4 flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-slate-500 transition hover:bg-slate-50 hover:text-sky-600">
+
+          <FaCog />
+
+          <span className="font-medium">
+            Analysis Settings
+          </span>
+
+        </button>
+
       </div>
 
-    </div>
+    </aside>
   );
 }
 

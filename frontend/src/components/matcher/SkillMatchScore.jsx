@@ -1,179 +1,113 @@
 import {
   FaCheckCircle,
-  FaRobot,
-  FaArrowUp,
+  FaStar,
+  FaBrain,
 } from "react-icons/fa";
 
 function SkillMatchScore() {
-  const score = 87;
 
   return (
-    <div className="bg-white rounded-3xl shadow-xl p-8">
 
-      {/* Header */}
+    <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8">
 
       <div className="flex justify-between items-center mb-8">
 
         <div>
 
-          <h2 className="text-3xl font-bold text-slate-800">
-            Skill Match Score
+          <h2 className="text-2xl font-black">
+            Overall Skill Match
           </h2>
 
-          <p className="text-gray-500 mt-2">
-            AI comparison between your resume and job description
+          <p className="text-slate-500 mt-2">
+            AI calculated score based on your resume.
           </p>
 
         </div>
 
-        <div className="bg-sky-100 text-sky-600 px-5 py-2 rounded-full font-semibold">
-          ATS Friendly
-        </div>
-
       </div>
 
-      {/* Main Section */}
-
-      <div className="grid md:grid-cols-2 gap-10 items-center">
-
-        {/* Circular Score */}
+      <div className="grid md:grid-cols-2 gap-8 items-center">
 
         <div className="flex justify-center">
 
-          <div className="relative w-56 h-56">
+          <div className="w-56 h-56 rounded-full border-[16px] border-sky-500 flex flex-col justify-center items-center">
 
-            <div className="absolute inset-0 rounded-full border-[16px] border-slate-200"></div>
+            <h1 className="text-6xl font-black text-sky-600">
+              88%
+            </h1>
 
-            <div
-              className="absolute inset-0 rounded-full border-[16px] border-sky-500"
-              style={{
-                clipPath: `inset(${100 - score}% 0 0 0)`,
-              }}
-            ></div>
-
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-
-              <h1 className="text-6xl font-bold text-sky-600">
-                {score}%
-              </h1>
-
-              <p className="text-gray-500 mt-2">
-                Overall Match
-              </p>
-
-            </div>
+            <p className="text-slate-500 mt-2">
+              Excellent Match
+            </p>
 
           </div>
 
         </div>
 
-        {/* Stats */}
+        <div className="space-y-5">
 
-        <div className="space-y-6">
-
-          <div className="flex items-center gap-4 bg-green-50 rounded-2xl p-5">
-
-            <FaCheckCircle className="text-3xl text-green-500" />
+          <div className="rounded-3xl bg-green-50 border border-green-100 p-5 flex justify-between">
 
             <div>
 
-              <h3 className="font-bold text-lg">
-                Excellent Match
-              </h3>
-
-              <p className="text-gray-500">
-                Your resume matches most job requirements.
+              <p className="text-slate-500">
+                Skills Matched
               </p>
+
+              <h3 className="text-3xl font-black text-green-600">
+                42
+              </h3>
 
             </div>
 
+            <FaCheckCircle className="text-green-500 text-3xl"/>
+
           </div>
 
-          <div className="flex items-center gap-4 bg-sky-50 rounded-2xl p-5">
-
-            <FaRobot className="text-3xl text-sky-500" />
+          <div className="rounded-3xl bg-orange-50 border border-orange-100 p-5 flex justify-between">
 
             <div>
 
-              <h3 className="font-bold text-lg">
-                AI Recommendation
-              </h3>
-
-              <p className="text-gray-500">
-                Add 3 more technical skills to reach 95%+
-                matching score.
+              <p className="text-slate-500">
+                Missing Skills
               </p>
+
+              <h3 className="text-3xl font-black text-orange-500">
+                9
+              </h3>
 
             </div>
 
+            <FaBrain className="text-orange-500 text-3xl"/>
+
           </div>
 
-          <div className="flex items-center gap-4 bg-indigo-50 rounded-2xl p-5">
-
-            <FaArrowUp className="text-3xl text-indigo-500" />
+          <div className="rounded-3xl bg-blue-50 border border-blue-100 p-5 flex justify-between">
 
             <div>
 
-              <h3 className="font-bold text-lg">
-                Recruiter Visibility
-              </h3>
-
-              <p className="text-gray-500">
-                High probability of getting shortlisted.
+              <p className="text-slate-500">
+                AI Confidence
               </p>
+
+              <h3 className="text-3xl font-black text-blue-600">
+                96%
+              </h3>
 
             </div>
 
+            <FaStar className="text-blue-500 text-3xl"/>
+
           </div>
-
-        </div>
-
-      </div>
-
-      {/* Bottom Cards */}
-
-      <div className="grid md:grid-cols-3 gap-6 mt-10">
-
-        <div className="bg-slate-50 rounded-2xl p-6 text-center">
-
-          <h3 className="text-gray-500 text-sm">
-            Resume Skills
-          </h3>
-
-          <p className="text-4xl font-bold text-slate-800 mt-2">
-            18
-          </p>
-
-        </div>
-
-        <div className="bg-sky-50 rounded-2xl p-6 text-center">
-
-          <h3 className="text-gray-500 text-sm">
-            Matched Skills
-          </h3>
-
-          <p className="text-4xl font-bold text-sky-600 mt-2">
-            15
-          </p>
-
-        </div>
-
-        <div className="bg-red-50 rounded-2xl p-6 text-center">
-
-          <h3 className="text-gray-500 text-sm">
-            Missing Skills
-          </h3>
-
-          <p className="text-4xl font-bold text-red-500 mt-2">
-            3
-          </p>
 
         </div>
 
       </div>
 
     </div>
+
   );
+
 }
 
 export default SkillMatchScore;

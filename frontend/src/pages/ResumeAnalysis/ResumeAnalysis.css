@@ -1,0 +1,265 @@
+.resume-analysis-page {
+
+  min-height: 100vh;
+
+  padding: 24px;
+
+  background:
+
+    radial-gradient(
+
+      circle at 0% 0%,
+
+      rgba(14, 165, 233, 0.08),
+
+      transparent 28%
+
+    ),
+
+    radial-gradient(
+
+      circle at 100% 10%,
+
+      rgba(99, 102, 241, 0.06),
+
+      transparent 28%
+
+    ),
+
+    #f8fafc;
+
+}
+
+
+.analysis-navigation-wrapper {
+
+  position: sticky;
+
+  top: 16px;
+
+  z-index: 40;
+
+  margin: 24px 0 32px;
+
+}
+
+
+.analysis-navigation {
+
+  display: flex;
+
+  gap: 8px;
+
+  padding: 10px;
+
+  overflow-x: auto;
+
+  background: rgba(255, 255, 255, 0.86);
+
+  backdrop-filter: blur(20px);
+
+  -webkit-backdrop-filter: blur(20px);
+
+  border: 1px solid rgba(226, 232, 240, 0.9);
+
+  border-radius: 24px;
+
+  box-shadow:
+
+    0 18px 45px rgba(15, 23, 42, 0.07),
+
+    0 4px 12px rgba(15, 23, 42, 0.04);
+
+  scrollbar-width: none;
+
+}
+
+
+.analysis-navigation::-webkit-scrollbar {
+
+  display: none;
+
+}
+
+
+.analysis-nav-item {
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  padding: 10px 15px;
+
+  border: none;
+
+  border-radius: 15px;
+
+  background: transparent;
+
+  color: #64748b;
+
+  font-size: 13px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: all 0.25s ease;
+
+}
+
+
+.analysis-nav-item:hover {
+
+  background: #f0f9ff;
+
+  color: #0284c7;
+
+  transform: translateY(-2px);
+
+}
+
+
+.analysis-nav-icon {
+
+  width: 32px;
+
+  height: 32px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: #f1f5f9;
+
+  color: #64748b;
+
+  transition: all 0.25s ease;
+
+}
+
+
+.analysis-nav-item:hover .analysis-nav-icon {
+
+  background: #e0f2fe;
+
+  color: #0284c7;
+
+}
+
+
+.analysis-nav-item.active {
+
+  color: white;
+
+  background:
+
+    linear-gradient(
+
+      135deg,
+
+      #0284c7,
+
+      #2563eb
+
+    );
+
+  box-shadow:
+
+    0 10px 24px rgba(37, 99, 235, 0.25);
+
+}
+
+
+.analysis-nav-item.active .analysis-nav-icon {
+
+  color: #0284c7;
+
+  background: white;
+
+}
+
+
+.analysis-content {
+
+  width: 100%;
+
+  max-width: 1500px;
+
+  margin: 0 auto;
+
+  animation: analysisFadeIn 0.35s ease;
+
+}
+
+
+@keyframes analysisFadeIn {
+
+  from {
+
+    opacity: 0;
+
+    transform: translateY(12px);
+
+  }
+
+  to {
+
+    opacity: 1;
+
+    transform: translateY(0);
+
+  }
+
+}
+
+
+@media (max-width: 768px) {
+
+  .resume-analysis-page {
+
+    padding: 12px;
+
+  }
+
+  .analysis-navigation-wrapper {
+
+    top: 8px;
+
+    margin: 16px 0 24px;
+
+  }
+
+  .analysis-navigation {
+
+    border-radius: 18px;
+
+    padding: 8px;
+
+  }
+
+  .analysis-nav-item {
+
+    padding: 8px 11px;
+
+    font-size: 11px;
+
+  }
+
+  .analysis-nav-icon {
+
+    width: 28px;
+
+    height: 28px;
+
+  }
+
+}

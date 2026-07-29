@@ -1,72 +1,127 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   FaUpload,
   FaFileAlt,
-  FaSearch,
+  FaChartBar,
   FaBriefcase,
+  FaArrowRight,
 } from "react-icons/fa";
 
 const actions = [
   {
     title: "Upload Resume",
+    description: "Add a resume for AI analysis",
     icon: <FaUpload />,
+    path: "/resume-upload",
     color: "from-sky-500 to-blue-600",
   },
   {
-    title: "Resume Analysis",
+    title: "Analyze Resume",
+    description: "Review your resume insights",
     icon: <FaFileAlt />,
-    color: "from-purple-500 to-pink-600",
+    path: "/resume-analysis",
+    color: "from-violet-500 to-purple-600",
   },
   {
-    title: "Skill Match",
-    icon: <FaSearch />,
-    color: "from-green-500 to-emerald-600",
+    title: "Match Skills",
+    description: "Compare skills with career goals",
+    icon: <FaChartBar />,
+    path: "/skill-matcher",
+    color: "from-emerald-500 to-teal-600",
   },
   {
-    title: "Find Jobs",
+    title: "Explore Jobs",
+    description: "Discover recommended roles",
     icon: <FaBriefcase />,
+    path: "/jobs",
     color: "from-orange-500 to-red-500",
   },
 ];
 
 function QuickActions() {
+  const navigate = useNavigate();
+
   return (
-    <div className="bg-white rounded-3xl shadow-lg p-8">
+    <motion.section
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm"
+    >
 
-      <h2 className="text-2xl font-bold text-slate-900 mb-8">
-        Quick Actions
-      </h2>
+      {/* Header */}
+      <div className="flex items-start justify-between mb-5">
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div>
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-600">
+            Shortcuts
+          </p>
+
+          <h2 className="text-xl font-extrabold text-slate-900 mt-1">
+            Quick Actions
+          </h2>
+        </div>
+
+        <span className="px-2.5 py-1 rounded-full bg-slate-100 text-[10px] font-bold text-slate-500">
+          4 tools
+        </span>
+
+      </div>
+
+
+      {/* Action List */}
+      <div className="space-y-3">
 
         {actions.map((item, index) => (
 
-          <motion.div
-            key={index}
-            whileHover={{
-              y: -8,
-              scale: 1.04,
-            }}
-            className="cursor-pointer border border-slate-200 rounded-2xl p-6 text-center hover:shadow-xl transition-all"
+          <motion.button
+            key={item.title}
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.08 }}
+            whileHover={{ x: 4 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate(item.path)}
+            className="w-full flex items-center gap-3.5 p-3.5 rounded-2xl border border-slate-200 hover:border-blue-200 hover:bg-blue-50/40 transition-all duration-300 text-left group cursor-pointer"
           >
 
+            {/* Icon */}
             <div
-              className={`w-16 h-16 mx-auto rounded-2xl bg-gradient-to-r ${item.color} text-white flex items-center justify-center text-2xl`}
+              className={`w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br ${item.color} text-white flex items-center justify-center text-sm shadow-md`}
             >
               {item.icon}
             </div>
 
-            <h3 className="mt-5 font-semibold text-lg">
-              {item.title}
-            </h3>
 
-          </motion.div>
+            {/* Text */}
+            <div className="flex-1 min-w-0">
+
+              <h3 className="font-bold text-slate-900 text-sm">
+                {item.title}
+              </h3>
+
+              <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                {item.description}
+              </p>
+
+            </div>
+
+
+            {/* Arrow */}
+            <div className="w-7 h-7 rounded-full flex items-center justify-center bg-slate-50 group-hover:bg-blue-100 transition-colors">
+
+              <FaArrowRight className="text-[10px] text-slate-400 group-hover:text-blue-600 transition-colors" />
+
+            </div>
+
+          </motion.button>
 
         ))}
 
       </div>
 
-    </div>
+    </motion.section>
   );
 }
 

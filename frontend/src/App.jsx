@@ -25,6 +25,7 @@ import JobRecommendation from "./pages/JobRecommendation/JobRecommendation";
 import Profile from "./pages/Profile/Profile";
 import Settings from "./pages/Settings/Settings";
 import Roadmap from "./pages/Roadmap/Roadmap";
+import CareerInsights from "./pages/CareerInsights/CareerInsights";
 import NotFound from "./pages/NotFound/NotFound";
 
 /* ---------------- Splash Screen ---------------- */
@@ -105,6 +106,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/roadmap" element={<Roadmap />} />
+          <Route path="/career-insights" element={<CareerInsights />} />
         </Route>
 
         {/* 404 Page */}

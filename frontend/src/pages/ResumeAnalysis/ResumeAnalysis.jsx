@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import AnalysisHeader from "../../components/analysis/AnalysisHeader";
 import ResumeScore from "../../components/analysis/ResumeScore";
 import ATSBreakdown from "../../components/analysis/ATSBreakdown";
@@ -8,15 +10,19 @@ import EducationAnalysis from "../../components/analysis/EducationAnalysis";
 import ProjectsAnalysis from "../../components/analysis/ProjectsAnalysis";
 import KeywordAnalysis from "../../components/analysis/KeywordAnalysis";
 import MissingSkills from "../../components/analysis/MissingSkills";
-import StrengthWeakness from "../../components/analysis/StrengthWeakness";
+import ProfileInsights from "../../components/analysis/ProfileInsights";
 import ImprovementTips from "../../components/analysis/ImprovementTips";
-import AIRecommendations from "../../components/analysis/AIRecommendations";
-import AnalysisCharts from "../../components/analysis/AnalysisCharts";
-import AnalysisSidebar from "../../components/analysis/AnalysisSidebar";
+
+import AnalysisNavigation from "../../components/analysis/AnalysisNavigation";
+
+import "./ResumeAnalysis.css";
+
 
 function ResumeAnalysis() {
 
-  // Dummy data (Later Backend API se replace hoga)
+  const [activeSection, setActiveSection] =
+    useState("overall-score");
+
 
   const analysis = {
 
@@ -27,7 +33,7 @@ function ResumeAnalysis() {
       email: "jhanvi@gmail.com",
       phone: "+91 9876543210",
       education: "B.E Computer Engineering",
-      experience: "Frontend Developer Intern"
+      experience: "Frontend Developer Intern",
     },
 
     skills: [
@@ -36,84 +42,157 @@ function ResumeAnalysis() {
       "Tailwind",
       "Python",
       "MongoDB",
-      "Git"
+      "Git",
     ],
 
     missingSkills: [
       "Docker",
       "AWS",
       "TypeScript",
-      "CI/CD"
+      "CI/CD",
     ],
 
     strengths: [
       "Good Projects",
       "Strong React Skills",
       "Clean Resume",
-      "ATS Friendly"
+      "ATS Friendly",
     ],
 
     weaknesses: [
       "No Certifications",
       "Weak Summary",
-      "Missing Keywords"
-    ]
+      "Missing Keywords",
+    ],
 
   };
 
+
+  const sections = {
+
+    "overall-score": (
+
+      <ResumeScore
+        score={analysis.score}
+      />
+
+    ),
+
+
+    "resume-summary": (
+
+      <ResumeSummary
+        summary={analysis.summary}
+      />
+
+    ),
+
+
+    "ats-analysis": (
+
+      <ATSBreakdown />
+
+    ),
+
+
+    "skills": (
+
+      <SkillsAnalysis
+        skills={analysis.skills}
+      />
+
+    ),
+
+
+    "experience": (
+
+      <ExperienceAnalysis />
+
+    ),
+
+
+    "education": (
+
+      <EducationAnalysis />
+
+    ),
+
+
+    "projects": (
+
+      <ProjectsAnalysis />
+
+    ),
+
+
+    "keyword-match": (
+
+      <KeywordAnalysis />
+
+    ),
+
+
+    "missing-skills": (
+
+      <MissingSkills
+        skills={analysis.missingSkills}
+      />
+
+    ),
+
+
+    "profile-insights": (
+
+      <ProfileInsights
+        strengths={analysis.strengths}
+        weaknesses={analysis.weaknesses}
+      />
+
+    ),
+
+
+    "improvement-tips": (
+
+      <ImprovementTips />
+
+    ),
+
+  };
+
+
   return (
-    <div className="space-y-8">
+
+    <div className="resume-analysis-page">
+
+      {/* HEADER */}
+
       <AnalysisHeader />
 
-      <div className="grid grid-cols-12 gap-6">
 
-          {/* LEFT */}
+      {/* HORIZONTAL NAVIGATION */}
 
-          <div className="col-span-8 space-y-6">
+      <AnalysisNavigation
 
-            <ResumeScore score={analysis.score} />
+        activeSection={activeSection}
 
-            <ATSBreakdown />
+        setActiveSection={setActiveSection}
 
-            <ResumeSummary summary={analysis.summary} />
+      />
 
-            <SkillsAnalysis skills={analysis.skills} />
 
-            <ExperienceAnalysis />
+      {/* ACTIVE SECTION */}
 
-            <EducationAnalysis />
+      <main className="analysis-content">
 
-            <ProjectsAnalysis />
+        {sections[activeSection]}
 
-            <KeywordAnalysis />
+      </main>
 
-            <MissingSkills skills={analysis.missingSkills} />
-
-            <StrengthWeakness
-              strengths={analysis.strengths}
-              weaknesses={analysis.weaknesses}
-            />
-
-            <ImprovementTips />
-
-            <AIRecommendations />
-
-            <AnalysisCharts />
-
-          </div>
-
-          {/* RIGHT */}
-
-          <div className="col-span-4">
-
-            <AnalysisSidebar score={analysis.score} />
-
-          </div>
-
-      </div>
     </div>
+
   );
 
 }
+
 
 export default ResumeAnalysis;

@@ -1,125 +1,113 @@
 import {
-  FaUserCircle,
+  FaFire,
+  FaBuilding,
   FaBriefcase,
-  FaBookmark,
-  FaCheckCircle,
   FaChartLine,
   FaRobot,
-  FaBullseye,
 } from "react-icons/fa";
 
 function JobsSidebar() {
+
   return (
-    <div className="space-y-6">
 
-      {/* Profile Card */}
+    <div className="sticky top-6 space-y-6">
 
-      <div className="bg-white rounded-3xl shadow-xl p-6">
+      {/* AI Match */}
 
-        <div className="flex flex-col items-center">
+      <div className="bg-gradient-to-r from-sky-500 to-blue-600 rounded-[30px] p-7 text-white">
 
-          <div className="w-24 h-24 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 flex items-center justify-center text-white text-5xl">
+        <h3 className="text-xl font-black">
 
-            <FaUserCircle />
+          AI Job Match
 
-          </div>
-
-          <h2 className="text-2xl font-bold text-slate-800 mt-4">
-            John Doe
-          </h2>
-
-          <p className="text-gray-500">
-            Frontend Developer
-          </p>
-
-        </div>
-
-      </div>
-
-      {/* Match Score */}
-
-      <div className="bg-white rounded-3xl shadow-xl p-6">
-
-        <h3 className="text-xl font-bold text-slate-800 mb-5">
-          Job Match
         </h3>
 
-        <div className="flex justify-center">
+        <h1 className="text-6xl font-black mt-4">
 
-          <div className="w-36 h-36 rounded-full border-[10px] border-sky-500 flex items-center justify-center">
+          94%
 
-            <div className="text-center">
+        </h1>
 
-              <h2 className="text-4xl font-bold text-sky-600">
-                91%
-              </h2>
+        <p className="mt-4 text-sky-100">
 
-              <p className="text-gray-500">
-                Match
-              </p>
+          Excellent compatibility with Software Engineering roles.
 
-            </div>
-
-          </div>
-
-        </div>
+        </p>
 
       </div>
 
-      {/* Statistics */}
+      {/* Stats */}
 
-      <div className="bg-white rounded-3xl shadow-xl p-6">
+      <div className="bg-white rounded-[30px] border border-slate-200 shadow-sm p-6">
 
-        <h3 className="text-xl font-bold text-slate-800 mb-5">
-          Statistics
+        <h3 className="font-black text-xl mb-5">
+
+          Job Statistics
+
         </h3>
 
         <div className="space-y-5">
 
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between">
 
-            <div className="flex items-center gap-3">
+            <span className="text-slate-500">
 
-              <FaBriefcase className="text-sky-600" />
+              Matching Jobs
 
-              <span>Applied Jobs</span>
+            </span>
 
-            </div>
+            <span className="font-black text-blue-600">
 
-            <span className="font-bold text-sky-600">
-              18
+              58
+
             </span>
 
           </div>
 
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between">
 
-            <div className="flex items-center gap-3">
+            <span className="text-slate-500">
 
-              <FaBookmark className="text-yellow-500" />
+              Saved Jobs
 
-              <span>Saved Jobs</span>
+            </span>
 
-            </div>
+            <span className="font-black">
 
-            <span className="font-bold text-yellow-500">
               12
+
             </span>
 
           </div>
 
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between">
 
-            <div className="flex items-center gap-3">
+            <span className="text-slate-500">
 
-              <FaCheckCircle className="text-green-500" />
+              Applications
 
-              <span>Interviews</span>
+            </span>
 
-            </div>
+            <span className="font-black">
 
-            <span className="font-bold text-green-600">
-              5
+              7
+
+            </span>
+
+          </div>
+
+          <div className="flex justify-between">
+
+            <span className="text-slate-500">
+
+              Interviews
+
+            </span>
+
+            <span className="font-black text-green-600">
+
+              2
+
             </span>
 
           </div>
@@ -128,61 +116,38 @@ function JobsSidebar() {
 
       </div>
 
-      {/* Weekly Progress */}
+      {/* Trending */}
 
-      <div className="bg-white rounded-3xl shadow-xl p-6">
+      <div className="bg-white rounded-[30px] border border-slate-200 shadow-sm p-6">
 
-        <div className="flex items-center gap-3 mb-5">
+        <h3 className="font-black text-xl mb-5">
 
-          <FaChartLine className="text-sky-600 text-2xl" />
+          Trending Roles
 
-          <h3 className="text-xl font-bold text-slate-800">
-            Weekly Progress
-          </h3>
-
-        </div>
+        </h3>
 
         <div className="space-y-4">
 
           {[
-            {
-              label: "Applications",
-              value: "80%",
-            },
-            {
-              label: "Resume Score",
-              value: "90%",
-            },
-            {
-              label: "Interview Prep",
-              value: "65%",
-            },
-          ].map((item, index) => (
+            "Frontend Developer",
+            "React Developer",
+            "Full Stack Engineer",
+            "Software Engineer",
+            "AI Engineer",
+          ].map((role) => (
 
-            <div key={index}>
+            <div
+              key={role}
+              className="flex items-center gap-3"
+            >
 
-              <div className="flex justify-between mb-2">
+              <FaFire className="text-orange-500"/>
 
-                <span className="text-gray-600">
-                  {item.label}
-                </span>
+              <span className="font-medium">
 
-                <span className="font-semibold text-sky-600">
-                  {item.value}
-                </span>
+                {role}
 
-              </div>
-
-              <div className="w-full bg-slate-200 rounded-full h-3">
-
-                <div
-                  className="bg-gradient-to-r from-sky-500 to-blue-600 h-3 rounded-full"
-                  style={{
-                    width: item.value,
-                  }}
-                />
-
-              </div>
+              </span>
 
             </div>
 
@@ -192,56 +157,36 @@ function JobsSidebar() {
 
       </div>
 
-      {/* AI Tips */}
+      {/* AI */}
 
-      <div className="bg-gradient-to-r from-sky-500 to-blue-600 rounded-3xl shadow-xl p-6 text-white">
+      <div className="bg-blue-50 border border-blue-100 rounded-[30px] p-6">
 
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-3">
 
-          <FaRobot className="text-2xl" />
+          <FaRobot className="text-blue-600 text-xl"/>
 
-          <h3 className="text-xl font-bold">
-            AI Career Tip
+          <h3 className="font-black text-blue-700">
+
+            AI Recruiter
+
           </h3>
 
         </div>
 
-        <p className="leading-8 text-sky-100">
+        <p className="text-slate-600 leading-7">
 
-          Add Docker, AWS and TypeScript to your resume.
-          Completing one advanced React project can improve
-          your AI Job Match Score by nearly 10%.
-
-        </p>
-
-      </div>
-
-      {/* Career Goal */}
-
-      <div className="bg-white rounded-3xl shadow-xl p-6">
-
-        <div className="flex items-center gap-3 mb-4">
-
-          <FaBullseye className="text-sky-600 text-2xl" />
-
-          <h3 className="text-xl font-bold text-slate-800">
-            Career Goal
-          </h3>
-
-        </div>
-
-        <p className="text-gray-600 leading-8">
-
-          Target Product Based Companies and maintain an
-          AI Match Score above 95% for maximum interview
-          opportunities.
+          Based on your profile, Skillora AI predicts a very high
+          chance of getting shortlisted for Frontend and Full Stack
+          Developer positions.
 
         </p>
 
       </div>
 
     </div>
+
   );
+
 }
 
 export default JobsSidebar;

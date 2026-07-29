@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import {
   FaFileAlt,
   FaBriefcase,
-  FaBookOpen,
+  FaGraduationCap,
   FaChartLine,
 } from "react-icons/fa";
 
@@ -10,24 +10,28 @@ const stats = [
   {
     title: "Resume Score",
     value: "92%",
+    subtitle: "Latest analysis",
     icon: <FaFileAlt />,
     color: "from-sky-500 to-blue-600",
   },
   {
     title: "Job Matches",
     value: "24",
+    subtitle: "Recommended roles",
     icon: <FaBriefcase />,
-    color: "from-green-500 to-emerald-600",
+    color: "from-emerald-500 to-teal-600",
   },
   {
-    title: "Courses",
-    value: "12",
-    icon: <FaBookOpen />,
-    color: "from-purple-500 to-pink-600",
+    title: "Learning Progress",
+    value: "68%",
+    subtitle: "Roadmap progress",
+    icon: <FaGraduationCap />,
+    color: "from-violet-500 to-purple-600",
   },
   {
     title: "Skill Growth",
     value: "+18%",
+    subtitle: "Compared to last review",
     icon: <FaChartLine />,
     color: "from-orange-500 to-red-500",
   },
@@ -35,38 +39,39 @@ const stats = [
 
 function StatsCards() {
   return (
-    <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
 
       {stats.map((item, index) => (
 
         <motion.div
-          key={index}
-          initial={{ opacity: 0, y: 30 }}
+          key={item.title}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
-          whileHover={{
-            y: -8,
-            scale: 1.02,
-          }}
-          className="bg-white rounded-3xl shadow-lg p-6"
+          transition={{ delay: index * 0.08 }}
+          whileHover={{ y: -5 }}
+          className="group bg-white rounded-3xl border border-slate-200 p-5 shadow-sm hover:shadow-xl transition-all duration-300"
         >
 
-          <div className="flex justify-between items-center">
+          <div className="flex items-start justify-between gap-4">
 
-            <div>
+            <div className="min-w-0">
 
-              <p className="text-gray-500">
+              <p className="text-sm font-semibold text-slate-500">
                 {item.title}
               </p>
 
-              <h2 className="text-4xl font-bold mt-3">
+              <h2 className="text-3xl font-black text-slate-900 mt-3">
                 {item.value}
               </h2>
+
+              <p className="text-xs text-slate-400 mt-2">
+                {item.subtitle}
+              </p>
 
             </div>
 
             <div
-              className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${item.color} text-white flex items-center justify-center text-2xl shadow-lg`}
+              className={`shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br ${item.color} text-white flex items-center justify-center text-xl shadow-lg`}
             >
               {item.icon}
             </div>

@@ -1,208 +1,119 @@
 import {
   FaMoneyBillWave,
   FaChartLine,
-  FaMapMarkerAlt,
-  FaBriefcase,
 } from "react-icons/fa";
 
 function SalaryInsights() {
-  return (
-    <div className="bg-white rounded-3xl shadow-xl p-8">
 
-      {/* Header */}
+  return (
+
+    <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8">
 
       <div className="flex items-center gap-4 mb-8">
 
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 flex items-center justify-center text-white text-3xl">
+        <div className="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center">
 
-          <FaMoneyBillWave />
+          <FaMoneyBillWave className="text-green-600 text-2xl"/>
 
         </div>
 
         <div>
 
-          <h2 className="text-3xl font-bold text-slate-800">
+          <h2 className="text-2xl font-black">
+
             Salary Insights
+
           </h2>
 
-          <p className="text-gray-500 mt-2">
-            AI estimated salaries based on market trends.
+          <p className="text-slate-500 mt-1">
+
+            Estimated salary based on your profile
+
           </p>
 
         </div>
 
       </div>
 
-      {/* Cards */}
+      <div className="grid md:grid-cols-3 gap-5">
 
-      <div className="grid md:grid-cols-3 gap-6">
+        <div className="rounded-3xl bg-green-50 border border-green-100 p-6">
 
-        <div className="bg-sky-50 rounded-2xl p-6">
+          <p className="text-slate-500 text-sm">
 
-          <FaMoneyBillWave className="text-sky-600 text-3xl mb-4" />
+            Average Package
 
-          <h3 className="font-bold text-slate-700">
-            Average Salary
-          </h3>
+          </p>
 
-          <p className="text-3xl font-bold text-sky-600 mt-3">
+          <h3 className="text-3xl font-black text-green-600 mt-3">
+
             ₹18 LPA
-          </p>
+
+          </h3>
 
         </div>
 
-        <div className="bg-slate-50 rounded-2xl p-6">
+        <div className="rounded-3xl bg-blue-50 border border-blue-100 p-6">
 
-          <FaChartLine className="text-green-600 text-3xl mb-4" />
+          <p className="text-slate-500 text-sm">
 
-          <h3 className="font-bold text-slate-700">
-            Yearly Growth
-          </h3>
+            Highest Expected
 
-          <p className="text-3xl font-bold text-green-600 mt-3">
-            +18%
           </p>
+
+          <h3 className="text-3xl font-black text-blue-600 mt-3">
+
+            ₹28 LPA
+
+          </h3>
 
         </div>
 
-        <div className="bg-slate-50 rounded-2xl p-6">
+        <div className="rounded-3xl bg-orange-50 border border-orange-100 p-6">
 
-          <FaBriefcase className="text-blue-600 text-3xl mb-4" />
+          <p className="text-slate-500 text-sm">
 
-          <h3 className="font-bold text-slate-700">
-            Top Company Offer
-          </h3>
+            Market Growth
 
-          <p className="text-3xl font-bold text-blue-600 mt-3">
-            ₹32 LPA
           </p>
+
+          <h3 className="text-3xl font-black text-orange-600 mt-3">
+
+            +22%
+
+          </h3>
 
         </div>
 
       </div>
 
-      {/* Salary by Experience */}
+      <div className="mt-8 rounded-3xl bg-gradient-to-r from-sky-500 to-blue-600 p-7 text-white">
 
-      <div className="mt-10">
+        <div className="flex items-center gap-3 mb-3">
 
-        <h3 className="text-2xl font-bold text-slate-800 mb-5">
-          Salary by Experience
-        </h3>
+          <FaChartLine className="text-2xl"/>
 
-        <div className="space-y-5">
+          <h3 className="text-xl font-black">
 
-          {[
-            {
-              exp: "Fresher",
-              salary: "₹6 LPA",
-              width: "25%",
-            },
-            {
-              exp: "1-2 Years",
-              salary: "₹12 LPA",
-              width: "45%",
-            },
-            {
-              exp: "3-5 Years",
-              salary: "₹18 LPA",
-              width: "70%",
-            },
-            {
-              exp: "5+ Years",
-              salary: "₹30 LPA",
-              width: "100%",
-            },
-          ].map((item, index) => (
+            AI Salary Prediction
 
-            <div key={index}>
-
-              <div className="flex justify-between mb-2">
-
-                <span className="font-semibold">
-                  {item.exp}
-                </span>
-
-                <span className="text-sky-600 font-bold">
-                  {item.salary}
-                </span>
-
-              </div>
-
-              <div className="w-full bg-slate-200 rounded-full h-3">
-
-                <div
-                  className="bg-gradient-to-r from-sky-500 to-blue-600 h-3 rounded-full"
-                  style={{
-                    width: item.width,
-                  }}
-                />
-
-              </div>
-
-            </div>
-
-          ))}
+          </h3>
 
         </div>
 
-      </div>
+        <p className="text-sky-100 leading-8">
 
-      {/* Locations */}
+          Learning Docker, AWS and System Design can increase your
+          expected package by nearly <b>25%</b> over the next year.
 
-      <div className="mt-10">
-
-        <h3 className="text-2xl font-bold text-slate-800 mb-5">
-          Top Paying Cities
-        </h3>
-
-        <div className="space-y-4">
-
-          {[
-            {
-              city: "Bangalore",
-              salary: "₹22 LPA",
-            },
-            {
-              city: "Hyderabad",
-              salary: "₹20 LPA",
-            },
-            {
-              city: "Pune",
-              salary: "₹18 LPA",
-            },
-            {
-              city: "Gurgaon",
-              salary: "₹21 LPA",
-            },
-          ].map((city, index) => (
-
-            <div
-              key={index}
-              className="flex justify-between items-center bg-slate-50 rounded-xl p-4"
-            >
-
-              <div className="flex items-center gap-3">
-
-                <FaMapMarkerAlt className="text-red-500" />
-
-                <span>{city.city}</span>
-
-              </div>
-
-              <span className="font-bold text-sky-600">
-                {city.salary}
-              </span>
-
-            </div>
-
-          ))}
-
-        </div>
+        </p>
 
       </div>
 
     </div>
+
   );
+
 }
 
 export default SalaryInsights;

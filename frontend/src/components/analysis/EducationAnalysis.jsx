@@ -3,10 +3,10 @@ import {
   FaCalendarAlt,
   FaStar,
   FaCheckCircle,
+  FaGraduationCap,
 } from "react-icons/fa";
 
 function EducationAnalysis() {
-
   const education = [
     {
       degree: "B.E. Computer Engineering",
@@ -25,122 +25,108 @@ function EducationAnalysis() {
   ];
 
   return (
-
-    <div className="bg-white rounded-3xl shadow-xl p-8">
+    <div className="bg-white rounded-[28px] border border-slate-200 shadow-sm p-6 md:p-8">
 
       {/* Header */}
-
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
 
         <div>
+          <div className="flex items-center gap-3">
 
-          <h2 className="text-2xl font-bold text-slate-800">
+            <div className="w-11 h-11 rounded-2xl bg-blue-50 flex items-center justify-center">
+              <FaGraduationCap className="text-blue-600 text-xl" />
+            </div>
 
-            Education Analysis
+            <div>
+              <h2 className="text-2xl font-black text-slate-900">
+                Education Analysis
+              </h2>
 
-          </h2>
+              <p className="text-sm text-slate-500 mt-1">
+                AI evaluation of your academic background.
+              </p>
+            </div>
 
-          <p className="text-gray-500 mt-2">
-
-            AI evaluation of your academic background.
-
-          </p>
-
+          </div>
         </div>
 
-        <div className="px-4 py-2 rounded-full bg-sky-100 text-sky-700 font-semibold">
-
+        <div className="px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-bold">
           Academic Profile
-
         </div>
 
       </div>
 
-      {/* Timeline */}
-
-      <div className="space-y-8">
+      {/* Education Timeline */}
+      <div className="space-y-6">
 
         {education.map((item, index) => (
 
           <div
             key={index}
-            className="relative border-l-4 border-sky-500 pl-8"
+            className="relative pl-8 md:pl-10"
           >
 
-            <div className="absolute -left-[11px] top-2 w-5 h-5 rounded-full bg-sky-500 border-4 border-white shadow-lg"></div>
+            {/* Timeline */}
+            <div className="absolute left-0 top-0 bottom-0 w-px bg-blue-100" />
 
-            <div className="bg-slate-50 rounded-2xl p-6">
+            <div className="absolute -left-[7px] top-5 w-4 h-4 rounded-full bg-blue-600 ring-4 ring-blue-50" />
 
-              <div className="flex justify-between items-start">
+            {/* Card */}
+            <div className="group rounded-2xl border border-slate-200 bg-slate-50/60 p-5 md:p-6 hover:bg-white hover:border-blue-200 hover:shadow-md transition-all duration-300">
+
+              <div className="flex flex-col lg:flex-row justify-between gap-5">
 
                 <div>
 
-                  <h3 className="text-xl font-bold text-slate-800">
-
+                  <h3 className="text-lg md:text-xl font-black text-slate-900">
                     {item.degree}
-
                   </h3>
 
-                  <div className="flex items-center gap-2 mt-3 text-gray-600">
-
-                    <FaUniversity />
-
+                  <div className="flex items-center gap-2 mt-3 text-sm text-slate-600">
+                    <FaUniversity className="text-blue-500" />
                     {item.college}
-
                   </div>
 
-                  <div className="flex items-center gap-2 mt-2 text-gray-500">
-
-                    <FaCalendarAlt />
-
+                  <div className="flex items-center gap-2 mt-2 text-sm text-slate-500">
+                    <FaCalendarAlt className="text-blue-400" />
                     {item.duration}
-
                   </div>
 
                 </div>
 
-                <div className="text-right">
+                <div className="lg:text-right">
 
-                  <div className="text-2xl font-bold text-sky-600">
-
+                  <p className="text-2xl font-black text-blue-600">
                     {item.cgpa}
+                  </p>
 
-                  </div>
-
-                  <p className="text-sm text-gray-500">
-
-                    Academic Score
-
+                  <p className="text-xs text-slate-500 mt-1">
+                    Academic Performance
                   </p>
 
                 </div>
 
               </div>
 
-              {/* Progress */}
-
+              {/* Score */}
               <div className="mt-6">
 
-                <div className="flex justify-between mb-2">
+                <div className="flex justify-between items-center mb-2">
 
-                  <span className="font-medium">
-
+                  <span className="text-sm font-bold text-slate-700">
                     Education Quality
-
                   </span>
 
-                  <span className="font-bold text-sky-600">
-
+                  <span className="text-sm font-black text-blue-600">
                     {item.score}%
-
                   </span>
 
                 </div>
 
-                <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+                <div className="h-2.5 bg-slate-200 rounded-full overflow-hidden">
 
                   <div
-                    className="h-full bg-gradient-to-r from-sky-500 to-blue-600 rounded-full"
+                    className="h-full rounded-full bg-gradient-to-r from-sky-400 via-blue-600 to-indigo-600 transition-all duration-700"
                     style={{
                       width: `${item.score}%`,
                     }}
@@ -159,43 +145,43 @@ function EducationAnalysis() {
       </div>
 
       {/* AI Review */}
+      <div className="mt-8 rounded-2xl bg-gradient-to-br from-blue-50 via-white to-indigo-50 border border-blue-100 p-6">
 
-      <div className="mt-10 bg-gradient-to-r from-sky-50 to-blue-50 rounded-2xl p-6 border border-sky-100">
+        <div className="flex items-center gap-3 mb-3">
 
-        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center">
+            <FaStar className="text-yellow-500" />
+          </div>
 
-          <FaStar className="text-yellow-500 text-2xl" />
+          <div>
+            <h3 className="font-black text-slate-900">
+              AI Education Review
+            </h3>
 
-          <h3 className="text-xl font-bold text-slate-800">
-
-            AI Education Review
-
-          </h3>
+            <p className="text-xs text-slate-500">
+              Academic profile insight
+            </p>
+          </div>
 
         </div>
 
-        <p className="text-gray-600 leading-8">
-
-          Your academic background is strong and relevant to
-          software engineering roles. Maintaining a good CGPA
-          while adding certifications and technical projects
-          significantly improves recruiter confidence.
-
+        <p className="text-sm text-slate-600 leading-7">
+          Your academic background is strong and relevant to software
+          engineering roles. Maintaining a good CGPA while adding
+          certifications and technical projects can further improve
+          recruiter confidence.
         </p>
 
       </div>
 
-      {/* Suggestions */}
-
+      {/* Recommendations */}
       <div className="mt-8">
 
-        <h3 className="text-lg font-bold text-slate-800 mb-5">
-
+        <h3 className="text-lg font-black text-slate-900 mb-4">
           Recommendations
-
         </h3>
 
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-3">
 
           {[
             "Mention your latest semester CGPA.",
@@ -206,10 +192,10 @@ function EducationAnalysis() {
 
             <div
               key={index}
-              className="flex items-center gap-3 bg-green-50 rounded-xl p-4 text-green-700"
+              className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 text-sm font-medium text-emerald-700"
             >
 
-              <FaCheckCircle />
+              <FaCheckCircle className="shrink-0" />
 
               {tip}
 
@@ -222,9 +208,7 @@ function EducationAnalysis() {
       </div>
 
     </div>
-
   );
-
 }
 
 export default EducationAnalysis;
