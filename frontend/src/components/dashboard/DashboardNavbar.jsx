@@ -1,11 +1,8 @@
 import { motion } from "framer-motion";
-import {
-  FaBell,
-  FaSearch,
-  FaUserCircle,
-} from "react-icons/fa";
+import useAuth from "../../hooks/useAuth";
 
 function DashboardNavbar() {
+  const { user } = useAuth();
 
   return (
     <motion.header
@@ -14,78 +11,51 @@ function DashboardNavbar() {
       transition={{ duration: 0.5 }}
       className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-slate-200"
     >
-
       <div className="flex items-center justify-between px-6 lg:px-8 py-5">
-
         {/* Left */}
         <div>
-
           <h1 className="text-3xl font-extrabold text-slate-900">
-            Dashboard
+            Skillora AI
           </h1>
-
           <p className="text-slate-500 mt-1 font-medium">
-            Your personalized career growth overview.
+            Welcome back, {user?.name || "User"}!
           </p>
-
         </div>
 
         {/* Right */}
         <div className="flex items-center gap-4">
-
-          {/* Search */}
-          <div className="hidden lg:flex items-center bg-slate-100 rounded-2xl px-4 py-3 w-80">
-
-            <FaSearch className="text-slate-400 mr-3" />
-
-            <input
-              type="text"
-              placeholder="Search your dashboard..."
-              className="bg-transparent outline-none w-full text-slate-900 placeholder-slate-400 font-medium"
-            />
-
-          </div>
-
-          {/* Notification */}
-          <div className="relative">
-
-            <button className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white transition flex items-center justify-center shadow-sm">
-
-              <FaBell className="text-lg" />
-
-            </button>
-
-            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">
-
-              3
-
-            </span>
-
-          </div>
-
-          {/* Profile */}
+          {/* Profile Card */}
           <div className="flex items-center gap-3 bg-slate-100 rounded-2xl px-4 py-2">
+            {user?.profile_picture ? (
+              <img
+                src={user.profile_picture}
+                alt="Profile"
+                className="w-10 h-10 rounded-full object-cover border border-blue-500/20"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-md">
+                {user?.name
+                  ? user.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                      .substring(0, 2)
+                  : "US"}
+              </div>
+            )}
 
-            <FaUserCircle className="text-4xl text-blue-600" />
-
-            <div className="hidden md:block">
-
+            <div className="hidden md:block text-left">
               <h3 className="font-bold text-slate-900 text-sm">
-                Jhanvi
+                {user?.name || "Skillora User"}
               </h3>
-
               <p className="text-xs text-slate-500 font-medium">
-                Computer Engineering
+                {user?.role || "Student"}
               </p>
-
             </div>
-
           </div>
-
         </div>
-
       </div>
-
     </motion.header>
   );
 }

@@ -48,6 +48,24 @@ const authService = {
     const response = await api.get("/auth/profile/");
     return response.data;
   },
+
+  // Update User Profile
+  updateProfile: async (data) => {
+    const response = await api.put("/auth/profile/", data);
+    return response.data;
+  },
+
+  // Delete User Account
+  deleteAccount: async () => {
+    const response = await api.delete("/auth/delete-account/");
+    return response.data;
+  },
+
+  // Report a Bug
+  reportBug: async (data) => {
+    const response = await api.post("/auth/report-bug/", data);
+    return response.data;
+  },
 };
 
 export default authService;

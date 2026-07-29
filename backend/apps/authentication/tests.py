@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from config.db import get_db, _mongo_client
 from apps.authentication.otp_utils import create_otp
 
-@override_settings(MONGO_DB_NAME='test_skillora_ai')
+@override_settings(MONGO_DB_NAME='test_skillora_ai', EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
 class AuthenticationAPITests(APITestCase):
     
     def setUp(self):
@@ -181,3 +181,78 @@ class AuthenticationAPITests(APITestCase):
         updated_user = self.db.users.find_one({"email": "reset.test@example.com"})
         self.assertTrue(check_password("newsecurepassword123", updated_user["password"]))
         self.assertFalse(check_password("oldpassword123", updated_user["password"]))
+
+    def test_delete_account_success(self):
+        from apps.authentication.services import generate_jwt_token
+        # 1. Create a verified user
+        user_doc = {
+            "name": "Delete Me",
+            "email": "delete.test@example.com",
+            "password": make_password("mypassword123"),
+            "is_verified": True,
+            "created_at": datetime.utcnow()
+        }
+        res = self.db.users.insert_one(user_doc)
+        user_id = str(res.inserted_id)
+
+        # Create dummy records in other collections
+        self.db.resumes.insert_one({"email": "delete.test@example.com", "filename": "resume.pdf"})
+        self.db.analyses.insert_one({"user_id": user_id, "score": 85})
+
+        # 2. Generate JWT token
+        token = generate_jwt_token("delete.test@example.com", user_id)
+
+        # 3. Request account deletion
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        response = self.client.delete('/api/auth/delete-account/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # 4. Verify user and other collections are cleared
+        self.assertIsNone(self.db.users.find_one({"email": "delete.test@example.com"}))
+        self.assertEqual(self.db.resumes.count_documents({"email": "delete.test@example.com"}), 0)
+        self.assertEqual(self.db.analyses.count_documents({"user_id": user_id}), 0)
+
+        # 5. Verify same email can register again
+        self.client.credentials()  # Clear auth header so the registration request is unauthenticated
+        register_payload = {
+            "name": "Delete Me Again",
+            "email": "delete.test@example.com",
+            "password": "newsecurepassword123",
+            "confirm_password": "newsecurepassword123"
+        }
+        reg_response = self.client.post('/api/auth/register/', register_payload, format='json')
+        self.assertEqual(reg_response.status_code, status.HTTP_201_CREATED)
+
+    def test_report_bug_success(self):
+        from apps.authentication.services import generate_jwt_token
+        from django.core import mail
+        # 1. Create a verified user
+        user_doc = {
+            "name": "Reporter",
+            "email": "bug.reporter@example.com",
+            "password": make_password("mypassword123"),
+            "is_verified": True,
+            "created_at": datetime.utcnow()
+        }
+        res = self.db.users.insert_one(user_doc)
+        user_id = str(res.inserted_id)
+
+        # 2. Generate JWT token
+        token = generate_jwt_token("bug.reporter@example.com", user_id)
+
+        # 3. Post bug report
+        bug_payload = {
+            "subject": "UI button misaligned",
+            "description": "The profile save button overlaps the input field on mobile screens."
+        }
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        response = self.client.post('/api/auth/report-bug/', bug_payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # 4. Verify email was sent
+        self.assertEqual(len(mail.outbox), 1)
+        sent_email = mail.outbox[0]
+        self.assertEqual(sent_email.to, ["meera.ldrp.7@gmail.com"])
+        self.assertIn("UI button misaligned", sent_email.subject)
+        self.assertIn("bug.reporter@example.com", sent_email.body)
+        self.assertIn("overlaps the input field", sent_email.body)

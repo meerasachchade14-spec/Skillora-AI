@@ -21,6 +21,28 @@ from apps.authentication.serializers import (
     ResetPasswordSerializer,
     SocialAuthSerializer
 )
+from django.core.mail import send_mail
+from django.conf import settings
+
+def get_user_profile_response_dict(user_doc):
+    return {
+        "id": str(user_doc['_id']),
+        "name": user_doc.get('name'),
+        "email": user_doc.get('email'),
+        "dob": user_doc.get('dob'),
+        "phone_number": user_doc.get('phone_number'),
+        "linkedin": user_doc.get('linkedin'),
+        "github": user_doc.get('github'),
+        "bio": user_doc.get('bio'),
+        "role": user_doc.get('role', 'Student'),
+        "profile_picture": user_doc.get('profile_picture'),
+        "education": user_doc.get('education', {}),
+        "experience": user_doc.get('experience', []),
+        "projects": user_doc.get('projects', []),
+        "skills": user_doc.get('skills', []),
+        "resume": user_doc.get('resume', {}),
+        "certifications": user_doc.get('certifications', [])
+    }
 
 class RegisterView(APIView):
     """
@@ -46,6 +68,32 @@ class RegisterView(APIView):
                 'google_id': None,
                 'github_id': None,
                 'phone_number': None,
+                'dob': None,
+                'linkedin': '',
+                'github': '',
+                'bio': '',
+                'role': 'Student',
+                'profile_picture': None,
+                'education': {
+                    'school': {
+                        'name': '',
+                        'board': '',
+                        'passing_year': '',
+                        'percentage': ''
+                    },
+                    'graduation': {
+                        'college': '',
+                        'degree': '',
+                        'branch': '',
+                        'passing_year': '',
+                        'cgpa_percentage': ''
+                    }
+                },
+                'experience': [],
+                'projects': [],
+                'skills': [],
+                'resume': {},
+                'certifications': [],
                 'created_at': datetime.utcnow(),
                 'updated_at': datetime.utcnow()
             }
@@ -106,11 +154,7 @@ class VerifyOtpView(APIView):
                 return Response({
                     "message": "OTP verified successfully.",
                     "token": token,
-                    "user": {
-                        "id": str(user['_id']),
-                        "name": user.get('name'),
-                        "email": user.get('email')
-                    }
+                    "user": get_user_profile_response_dict(user)
                 }, status=status.HTTP_200_OK)
                 
             return Response({"error": "Invalid or expired OTP."}, status=status.HTTP_400_BAD_REQUEST)
@@ -164,11 +208,7 @@ class LoginView(APIView):
             return Response({
                 "message": "Login successful.",
                 "token": token,
-                "user": {
-                    "id": str(user['_id']),
-                    "name": user.get('name'),
-                    "email": user.get('email')
-                }
+                "user": get_user_profile_response_dict(user)
             }, status=status.HTTP_200_OK)
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -364,11 +404,7 @@ class GoogleAuthView(APIView):
                     return Response({
                         "message": "Login successful.",
                         "token": token,
-                        "user": {
-                            "id": str(user['_id']),
-                            "name": user.get('name'),
-                            "email": user.get('email')
-                        }
+                        "user": get_user_profile_response_dict(user)
                     }, status=status.HTTP_200_OK)
                 
                 # If they exist but need phone verification:
@@ -399,11 +435,7 @@ class GoogleAuthView(APIView):
                 return Response({
                     "message": "Google login setup and verification successful.",
                     "token": token,
-                    "user": {
-                        "id": str(user['_id']),
-                        "name": user.get('name'),
-                        "email": user.get('email')
-                    }
+                    "user": get_user_profile_response_dict(user)
                 }, status=status.HTTP_200_OK)
                 
             else:
@@ -427,20 +459,43 @@ class GoogleAuthView(APIView):
                     'google_id': social_id,
                     'github_id': None,
                     'phone_number': phone_number,
+                    'dob': None,
+                    'linkedin': '',
+                    'github': '',
+                    'bio': '',
+                    'role': 'Student',
+                    'profile_picture': None,
+                    'education': {
+                        'school': {
+                            'name': '',
+                            'board': '',
+                            'passing_year': '',
+                            'percentage': ''
+                        },
+                        'graduation': {
+                            'college': '',
+                            'degree': '',
+                            'branch': '',
+                            'passing_year': '',
+                            'cgpa_percentage': ''
+                        }
+                    },
+                    'experience': [],
+                    'projects': [],
+                    'skills': [],
+                    'resume': {},
+                    'certifications': [],
                     'created_at': datetime.utcnow(),
                     'updated_at': datetime.utcnow()
                 }
                 
                 result = db.users.insert_one(user_doc)
                 token = generate_jwt_token(email, str(result.inserted_id))
+                created_user = db.users.find_one({'_id': result.inserted_id})
                 return Response({
                     "message": "Google registration and verification successful.",
                     "token": token,
-                    "user": {
-                        "id": str(result.inserted_id),
-                        "name": name,
-                        "email": email
-                    }
+                    "user": get_user_profile_response_dict(created_user)
                 }, status=status.HTTP_201_CREATED)
                 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -479,11 +534,7 @@ class GithubAuthView(APIView):
                     return Response({
                         "message": "Login successful.",
                         "token": token,
-                        "user": {
-                            "id": str(user['_id']),
-                            "name": user.get('name'),
-                            "email": user.get('email')
-                        }
+                        "user": get_user_profile_response_dict(user)
                     }, status=status.HTTP_200_OK)
                 
                 # If they exist but need phone verification:
@@ -513,11 +564,7 @@ class GithubAuthView(APIView):
                 return Response({
                     "message": "GitHub login setup and verification successful.",
                     "token": token,
-                    "user": {
-                        "id": str(user['_id']),
-                        "name": user.get('name'),
-                        "email": user.get('email')
-                    }
+                    "user": get_user_profile_response_dict(user)
                 }, status=status.HTTP_200_OK)
                 
             else:
@@ -541,20 +588,184 @@ class GithubAuthView(APIView):
                     'google_id': None,
                     'github_id': social_id,
                     'phone_number': phone_number,
+                    'dob': None,
+                    'linkedin': '',
+                    'github': '',
+                    'bio': '',
+                    'role': 'Student',
+                    'profile_picture': None,
+                    'education': {
+                        'school': {
+                            'name': '',
+                            'board': '',
+                            'passing_year': '',
+                            'percentage': ''
+                        },
+                        'graduation': {
+                            'college': '',
+                            'degree': '',
+                            'branch': '',
+                            'passing_year': '',
+                            'cgpa_percentage': ''
+                        }
+                    },
+                    'experience': [],
+                    'projects': [],
+                    'skills': [],
+                    'resume': {},
+                    'certifications': [],
                     'created_at': datetime.utcnow(),
                     'updated_at': datetime.utcnow()
                 }
                 
                 result = db.users.insert_one(user_doc)
                 token = generate_jwt_token(email, str(result.inserted_id))
+                created_user = db.users.find_one({'_id': result.inserted_id})
                 return Response({
                     "message": "GitHub registration and verification successful.",
                     "token": token,
-                    "user": {
-                        "id": str(result.inserted_id),
-                        "name": name,
-                        "email": email
-                    }
+                    "user": get_user_profile_response_dict(created_user)
                 }, status=status.HTTP_201_CREATED)
                 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        db = get_db()
+        user_data = db.users.find_one({'email': request.user.email})
+        if not user_data:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(get_user_profile_response_dict(user_data), status=status.HTTP_200_OK)
+
+    def put(self, request):
+        db = get_db()
+        user_data = db.users.find_one({'email': request.user.email})
+        if not user_data:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+            
+        data = request.data
+        update_fields = {}
+        
+        # Core editable profile fields
+        if 'name' in data:
+            update_fields['name'] = data['name']
+        if 'dob' in data:
+            update_fields['dob'] = data['dob']
+        if 'phone_number' in data:
+            update_fields['phone_number'] = data['phone_number']
+        if 'linkedin' in data:
+            update_fields['linkedin'] = data['linkedin']
+        if 'github' in data:
+            update_fields['github'] = data['github']
+        if 'bio' in data:
+            update_fields['bio'] = data['bio']
+        if 'role' in data:
+            update_fields['role'] = data['role']
+        if 'profile_picture' in data:
+            update_fields['profile_picture'] = data['profile_picture']
+            
+        # Complex structured sections
+        if 'education' in data:
+            update_fields['education'] = data['education']
+        if 'experience' in data:
+            update_fields['experience'] = data['experience']
+        if 'projects' in data:
+            update_fields['projects'] = data['projects']
+        if 'skills' in data:
+            update_fields['skills'] = data['skills']
+        if 'resume' in data:
+            update_fields['resume'] = data['resume']
+        if 'certifications' in data:
+            update_fields['certifications'] = data['certifications']
+            
+        if update_fields:
+            update_fields['updated_at'] = datetime.utcnow()
+            db.users.update_one({'_id': user_data['_id']}, {'$set': update_fields})
+            
+        updated_user = db.users.find_one({'_id': user_data['_id']})
+        return Response(get_user_profile_response_dict(updated_user), status=status.HTTP_200_OK)
+
+
+class DeleteAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        db = get_db()
+        email = request.user.email
+        
+        # Retrieve user document to obtain their ID for relational deletions
+        user_doc = db.users.find_one({'email': email})
+        user_id = str(user_doc['_id']) if user_doc else None
+        
+        # 1. Delete user from users collection
+        user_result = db.users.delete_one({'email': email})
+        
+        # 2. Delete user's OTP records
+        db.otps.delete_many({'email': email})
+        
+        # 3. Clean up other user-specific collections
+        # We delete by user_id if available, and by email as a fallback, to ensure completeness
+        user_queries = []
+        if email:
+            user_queries.append({'email': email})
+            user_queries.append({'user_email': email})
+        if user_id:
+            user_queries.append({'user_id': user_id})
+            
+        collections_to_clean = [
+            'resumes',
+            'resume_analyses',
+            'analyses',
+            'skill_matcher_history',
+            'matcher_history',
+            'learning_roadmaps',
+            'roadmaps',
+            'job_recommendations',
+            'career_insights'
+        ]
+        
+        for q in user_queries:
+            for col_name in collections_to_clean:
+                try:
+                    db[col_name].delete_many(q)
+                except Exception:
+                    # Fail silently for individual collections to guarantee standard user flow
+                    pass
+        
+        if user_result.deleted_count > 0:
+            return Response({"message": "Account deleted permanently."}, status=status.HTTP_200_OK)
+        return Response({"error": "Failed to delete account or account does not exist."}, status=status.HTTP_404_NOT_FOUND)
+
+
+class ReportBugView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        subject = request.data.get('subject')
+        description = request.data.get('description')
+        
+        if not subject or not description:
+            return Response({"error": "Subject and description are required."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        email = request.user.email
+        email_subject = f"[Skillora AI Bug Report] {subject}"
+        email_body = (
+            f"Subject: {subject}\n"
+            f"Reporter: {email}\n\n"
+            f"Description:\n{description}\n"
+        )
+        
+        try:
+            send_mail(
+                subject=email_subject,
+                message=email_body,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=["meera.ldrp.7@gmail.com"],
+                fail_silently=False,
+            )
+            return Response({"message": "Bug report submitted successfully."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": f"Failed to send email: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -18,7 +18,7 @@ import {
 
 const menuItems = [
   {
-    name: "Dashboard",
+    name: "Home",
     icon: <FaHome />,
     path: "/dashboard",
   },
@@ -61,11 +61,6 @@ const menuItems = [
     name: "Profile",
     icon: <FaUser />,
     path: "/profile",
-  },
-  {
-    name: "Settings",
-    icon: <FaCog />,
-    path: "/settings",
   },
 ];
 

@@ -23,7 +23,6 @@ import ResumeAnalysis from "./pages/ResumeAnalysis/ResumeAnalysis";
 import SkillMatcher from "./pages/SkillMatcher/SkillMatcher";
 import JobRecommendation from "./pages/JobRecommendation/JobRecommendation";
 import Profile from "./pages/Profile/Profile";
-import Settings from "./pages/Settings/Settings";
 import Roadmap from "./pages/Roadmap/Roadmap";
 import CareerInsights from "./pages/CareerInsights/CareerInsights";
 import NotFound from "./pages/NotFound/NotFound";
@@ -104,7 +103,6 @@ function App() {
           <Route path="/skill-matcher" element={<SkillMatcher />} />
           <Route path="/jobs" element={<JobRecommendation />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/settings" element={<Settings />} />
           <Route path="/roadmap" element={<Roadmap />} />
           <Route path="/career-insights" element={<CareerInsights />} />
         </Route>

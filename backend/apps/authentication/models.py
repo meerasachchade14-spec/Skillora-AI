@@ -18,6 +18,22 @@ class MongoUser:
         self.github_id = data.get('github_id')
         self.phone_number = data.get('phone_number')
         
+        # Profile fields
+        self.dob = data.get('dob')
+        self.linkedin = data.get('linkedin')
+        self.github = data.get('github')
+        self.bio = data.get('bio')
+        self.role = data.get('role', 'Student')
+        self.profile_picture = data.get('profile_picture')
+        
+        # Profile details list/dict
+        self.education = data.get('education', {})
+        self.experience = data.get('experience', [])
+        self.projects = data.get('projects', [])
+        self.skills = data.get('skills', [])
+        self.resume = data.get('resume', {})
+        self.certifications = data.get('certifications', [])
+        
         # Timestamps
         self.created_at = data.get('created_at')
         self.updated_at = data.get('updated_at')
@@ -49,6 +65,18 @@ class MongoUser:
             'google_id': self.google_id,
             'github_id': self.github_id,
             'phone_number': self.phone_number,
+            'dob': self.dob,
+            'linkedin': self.linkedin,
+            'github': self.github,
+            'bio': self.bio,
+            'role': self.role,
+            'profile_picture': self.profile_picture,
+            'education': self.education,
+            'experience': self.experience,
+            'projects': self.projects,
+            'skills': self.skills,
+            'resume': self.resume,
+            'certifications': self.certifications,
             'created_at': self.created_at or datetime.utcnow(),
             'updated_at': self.updated_at or datetime.utcnow()
         }

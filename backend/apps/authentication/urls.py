@@ -8,7 +8,10 @@ from apps.authentication.views import (
     VerifyResetOtpView,
     ResetPasswordView,
     GoogleAuthView,
-    GithubAuthView
+    GithubAuthView,
+    ProfileView,
+    DeleteAccountView,
+    ReportBugView
 )
 
 urlpatterns = [
@@ -21,4 +24,7 @@ urlpatterns = [
     path('reset-password/', ResetPasswordView.as_view(), name='reset-password'),
     path('google/', GoogleAuthView.as_view(), name='google-auth'),
     path('github/', GithubAuthView.as_view(), name='github-auth'),
+    path('profile/', ProfileView.as_view(), name='profile'),
+    path('delete-account/', DeleteAccountView.as_view(), name='delete-account'),
+    path('report-bug/', ReportBugView.as_view(), name='report-bug'),
 ]

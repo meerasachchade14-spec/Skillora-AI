@@ -13,7 +13,6 @@ import {
   FaExclamationTriangle,
   FaBalanceScale,
   FaChartLine,
-  FaCog,
 } from "react-icons/fa";
 
 const menuItems = [
@@ -251,17 +250,7 @@ function AnalysisSidebar({
 
         </div>
 
-        {/* Settings */}
 
-        <button className="mt-4 flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-slate-500 transition hover:bg-slate-50 hover:text-sky-600">
-
-          <FaCog />
-
-          <span className="font-medium">
-            Analysis Settings
-          </span>
-
-        </button>
 
       </div>
 
