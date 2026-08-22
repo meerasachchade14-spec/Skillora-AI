@@ -11,7 +11,8 @@ from apps.authentication.views import (
     GithubAuthView,
     ProfileView,
     DeleteAccountView,
-    ReportBugView
+    ReportBugView,
+    LogoutView
 )
 
 urlpatterns = [
@@ -27,4 +28,6 @@ urlpatterns = [
     path('profile/', ProfileView.as_view(), name='profile'),
     path('delete-account/', DeleteAccountView.as_view(), name='delete-account'),
     path('report-bug/', ReportBugView.as_view(), name='report-bug'),
+    path('logout/', LogoutView.as_view(), name='logout'),
 ]
+

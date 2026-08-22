@@ -27,11 +27,61 @@ def get_db():
             
             _db = _mongo_client[db_name]
             logger.info("Successfully connected to MongoDB.")
+            _ensure_admin_user(_db)
         except Exception as e:
             logger.error(f"Error connecting to MongoDB: {str(e)}")
             raise e
             
     return _db
+
+def _ensure_admin_user(db):
+    """
+    Ensures that the default admin user exists in the database.
+    """
+    try:
+        from django.contrib.auth.hashers import make_password
+        from datetime import datetime
+        
+        admin_email = 'meera.ldrp.7@gmail.com'
+        admin_user = db.users.find_one({'email': admin_email})
+        
+        if not admin_user:
+            logger.info(f"Admin user '{admin_email}' not found. Seeding initial admin...")
+            admin_doc = {
+                'name': 'Admin Meera',
+                'email': admin_email,
+                'password': make_password('heyldrp'),
+                'is_verified': True,
+                'is_active': True,
+                'role': 'Admin',
+                'google_id': None,
+                'github_id': None,
+                'phone_number': None,
+                'dob': None,
+                'linkedin': '',
+                'github': '',
+                'bio': 'System Administrator',
+                'education': {
+                    'school': {'name': '', 'board': '', 'passing_year': '', 'percentage': ''},
+                    'graduation': {'college': '', 'degree': '', 'branch': '', 'passing_year': '', 'cgpa_percentage': ''}
+                },
+                'experience': [],
+                'projects': [],
+                'skills': [],
+                'resume': {},
+                'certifications': [],
+                'created_at': datetime.utcnow(),
+                'updated_at': datetime.utcnow()
+            }
+            db.users.insert_one(admin_doc)
+            logger.info("Successfully seeded default admin user.")
+        else:
+            # Ensure the admin user has the Admin role
+            if admin_user.get('role') != 'Admin':
+                logger.info(f"Ensuring user '{admin_email}' has 'Admin' role.")
+                db.users.update_one({'_id': admin_user['_id']}, {'$set': {'role': 'Admin', 'updated_at': datetime.utcnow()}})
+    except Exception as e:
+        logger.error(f"Failed to ensure admin user: {str(e)}")
 
 def check_db_connection():
     """

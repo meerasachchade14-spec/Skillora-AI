@@ -1,3 +1,7 @@
+import { useState, useEffect } from "react";
+import resumeService from "../../services/resumeService";
+import { toast } from "react-hot-toast";
+import useAuth from "../../hooks/useAuth";
 import {
   FaFilePdf,
   FaCalendarAlt,
@@ -7,7 +11,8 @@ import {
   FaTrash,
 } from "react-icons/fa";
 
-const resumes = [
+
+const mockResumes = [
   {
     name: "Resume_2025.pdf",
     date: "15 July 2025",
@@ -29,6 +34,66 @@ const resumes = [
 ];
 
 function ResumeHistory() {
+  const { user, updateUser } = useAuth();
+  const [resumes, setResumes] = useState(mockResumes);
+  const [loading, setLoading] = useState(false);
+
+  const fetchResumes = async () => {
+    setLoading(true);
+    try {
+      const data = await resumeService.getResumes();
+      if (data && data.length > 0) {
+        setResumes(data);
+      } else {
+        setResumes([]);
+      }
+    } catch (err) {
+      console.log("Using fallback mock resumes:", err.message);
+      setResumes(mockResumes);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchResumes();
+  }, [user]);
+
+  const handleDelete = async (resume) => {
+    if (!resume.id) {
+      // It's a mock resume
+      setResumes(resumes.filter((r) => r !== resume));
+      toast.success("Mock resume removed.");
+      return;
+    }
+    
+    try {
+      await resumeService.deleteResume(resume.id);
+      toast.success("Resume deleted successfully.");
+      
+      // If deleted active resume, refresh user context
+      if (user?.resume?.id === resume.id) {
+        updateUser({
+          ...user,
+          resume: {}
+        });
+      } else {
+        fetchResumes();
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete resume.");
+    }
+  };
+
+  const handleOpen = (resume) => {
+    if (resume.fileUrl) {
+      window.open(resume.fileUrl, "_blank");
+    } else {
+      toast.error("File download link not available for demo resume.");
+    }
+  };
+
   return (
     <div className="bg-white rounded-3xl shadow-xl p-6">
 
@@ -55,11 +120,14 @@ function ResumeHistory() {
       {/* Resume Cards */}
 
       <div className="space-y-5">
-
-        {resumes.map((resume, index) => (
+        {loading && <p className="text-center text-slate-500 text-sm">Loading resumes...</p>}
+        {!loading && resumes.length === 0 && (
+          <p className="text-center text-slate-400 text-sm py-4">No uploaded resumes found.</p>
+        )}
+        {!loading && resumes.map((resume, index) => (
 
           <div
-            key={index}
+            key={resume.id || index}
             className="bg-slate-50 rounded-2xl p-5 hover:shadow-lg transition"
           >
 
@@ -132,7 +200,10 @@ function ResumeHistory() {
 
             <div className="grid grid-cols-3 gap-3 mt-6">
 
-              <button className="flex items-center justify-center gap-2 py-3 rounded-xl bg-sky-100 text-sky-700 hover:bg-sky-200 transition">
+              <button 
+                onClick={() => handleOpen(resume)}
+                className="flex items-center justify-center gap-2 py-3 rounded-xl bg-sky-100 text-sky-700 hover:bg-sky-200 transition cursor-pointer"
+              >
 
                 <FaEye />
 
@@ -140,7 +211,10 @@ function ResumeHistory() {
 
               </button>
 
-              <button className="flex items-center justify-center gap-2 py-3 rounded-xl bg-green-100 text-green-700 hover:bg-green-200 transition">
+              <button 
+                onClick={() => handleOpen(resume)}
+                className="flex items-center justify-center gap-2 py-3 rounded-xl bg-green-100 text-green-700 hover:bg-green-200 transition cursor-pointer"
+              >
 
                 <FaDownload />
 
@@ -148,7 +222,10 @@ function ResumeHistory() {
 
               </button>
 
-              <button className="flex items-center justify-center gap-2 py-3 rounded-xl bg-red-100 text-red-600 hover:bg-red-200 transition">
+              <button 
+                onClick={() => handleDelete(resume)}
+                className="flex items-center justify-center gap-2 py-3 rounded-xl bg-red-100 text-red-600 hover:bg-red-200 transition cursor-pointer"
+              >
 
                 <FaTrash />
 

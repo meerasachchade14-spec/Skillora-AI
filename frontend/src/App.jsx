@@ -27,6 +27,20 @@ import Roadmap from "./pages/Roadmap/Roadmap";
 import CareerInsights from "./pages/CareerInsights/CareerInsights";
 import NotFound from "./pages/NotFound/NotFound";
 
+/* ---------------- Admin Panel ---------------- */
+import AdminLogin from "./pages/Admin/AdminLogin";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
+import ManageUsers from "./pages/Admin/ManageUsers";
+import ManageResumes from "./pages/Admin/ManageResumes";
+import ManageJobs from "./pages/Admin/ManageJobs";
+import ManageSkills from "./pages/Admin/ManageSkills";
+import ManageResources from "./pages/Admin/ManageResources";
+import Reports from "./pages/Admin/Reports";
+import Analytics from "./pages/Admin/Analytics";
+import AdminSettings from "./pages/Admin/AdminSettings";
+import AdminLayout from "./layouts/AdminLayout";
+import AdminProtectedRoute from "./routes/AdminProtectedRoute";
+
 /* ---------------- Splash Screen ---------------- */
 import SplashScreen from "./components/splash/SplashScreen";
 
@@ -105,6 +119,32 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/roadmap" element={<Roadmap />} />
           <Route path="/career-insights" element={<CareerInsights />} />
+        </Route>
+
+        {/* Admin Login */}
+        <Route
+          path="/admin/login"
+          element={<AdminLogin />}
+        />
+
+        {/* Protected Admin Console Routes */}
+        <Route
+          element={
+            <AdminProtectedRoute>
+              <AdminLayout />
+            </AdminProtectedRoute>
+          }
+        >
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<ManageUsers />} />
+          <Route path="/admin/resumes" element={<ManageResumes />} />
+          <Route path="/admin/jobs" element={<ManageJobs />} />
+          <Route path="/admin/skills" element={<ManageSkills />} />
+          <Route path="/admin/resources" element={<ManageResources />} />
+          <Route path="/admin/bugs" element={<Reports />} />
+          <Route path="/admin/analytics" element={<Analytics />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
         </Route>
 
         {/* 404 Page */}

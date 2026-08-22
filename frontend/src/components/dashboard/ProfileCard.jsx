@@ -7,9 +7,11 @@ import {
   FaArrowRight,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
 
 function ProfileCard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   return (
     <motion.section
@@ -33,11 +35,11 @@ function ProfileCard() {
             </p>
 
             <h2 className="text-2xl font-black text-slate-900 mt-1">
-              Jhanvi
+              {user?.name || "User"}
             </h2>
 
             <p className="text-sm text-slate-500 mt-1">
-              Computer Engineering Student
+              {user?.education?.graduation?.branch ? `${user.education.graduation.branch} Student` : "Computer Engineering Student"}
             </p>
           </div>
 

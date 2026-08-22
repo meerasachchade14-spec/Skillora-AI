@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import careerService from "../../services/careerService";
 import useAuth from "../../hooks/useAuth";
 import CareerOverview from "../../components/career-insights/CareerOverview";
 import CareerReadinessScore from "../../components/career-insights/CareerReadinessScore";
@@ -13,6 +15,32 @@ import AICareerAdvisor from "../../components/career-insights/AICareerAdvisor";
 
 function CareerInsights() {
   const { user } = useAuth();
+  const [insights, setInsights] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchInsights = async () => {
+      setLoading(true);
+      try {
+        const data = await careerService.getCareerInsights();
+        setInsights(data);
+      } catch (err) {
+        console.error("Failed to load career insights:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInsights();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[500px] space-y-4">
+        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-slate-500 font-bold text-lg animate-pulse">Loading career insights...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -57,16 +85,17 @@ function CareerInsights() {
 
       <div className="grid lg:grid-cols-2 gap-6">
 
-        <CareerReadinessScore />
-        <SalaryPrediction />
+        <CareerReadinessScore score={insights?.readinessScore} />
+        <SalaryPrediction salaryPrediction={insights?.salaryPrediction} />
 
       </div>
 
-      <CareerTimeline />
+
+      <CareerTimeline timeline={insights?.timeline} />
 
       <RecommendedCareerPaths />
 
-      <IndustryDemand />
+      <IndustryDemand demandTrend={insights?.demandTrend} />
 
       <SkillsImpact />
 

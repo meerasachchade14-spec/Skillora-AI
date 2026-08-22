@@ -30,7 +30,7 @@ const recommendations = [
 
 function AIProfileInsights() {
   return (
-    <div className="bg-white rounded-3xl shadow-xl p-8">
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 transition-all duration-300 hover:shadow-md">
 
       {/* Header */}
 

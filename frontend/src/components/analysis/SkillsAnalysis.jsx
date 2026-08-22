@@ -6,14 +6,22 @@ import {
 } from "react-icons/fa";
 
 function SkillsAnalysis({ skills = [] }) {
-  const skillData = [
-    { name: "React.js", level: 95, category: "Frontend" },
-    { name: "JavaScript", level: 92, category: "Programming" },
-    { name: "Python", level: 88, category: "Programming" },
-    { name: "Tailwind CSS", level: 90, category: "Frontend" },
-    { name: "MongoDB", level: 82, category: "Database" },
-    { name: "Git & GitHub", level: 86, category: "Tools" },
-  ];
+  const skillData = skills && skills.length > 0 
+    ? skills.map((name, index) => ({
+        name,
+        level: index === 0 ? 95 : index === 1 ? 92 : index === 2 ? 88 : Math.max(70, 95 - index * 6),
+        category: name.toLowerCase().includes("python") || name.toLowerCase().includes("javascript") ? "Programming" : 
+                  name.toLowerCase().includes("react") || name.toLowerCase().includes("tailwind") || name.toLowerCase().includes("css") || name.toLowerCase().includes("html") ? "Frontend" : "Technical"
+      }))
+    : [
+        { name: "React.js", level: 95, category: "Frontend" },
+        { name: "JavaScript", level: 92, category: "Programming" },
+        { name: "Python", level: 88, category: "Programming" },
+        { name: "Tailwind CSS", level: 90, category: "Frontend" },
+        { name: "MongoDB", level: 82, category: "Database" },
+        { name: "Git & GitHub", level: 86, category: "Tools" },
+      ];
+
 
   return (
     <div className="bg-white rounded-[28px] border border-slate-200 shadow-sm p-6 md:p-8">

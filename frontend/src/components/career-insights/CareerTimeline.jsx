@@ -7,7 +7,7 @@ import {
   FaCheckCircle,
 } from "react-icons/fa";
 
-const timeline = [
+const DEFAULT_TIMELINE = [
   {
     year: "Now",
     title: "Build Strong Foundation",
@@ -55,7 +55,23 @@ const timeline = [
   },
 ];
 
-function CareerTimeline() {
+function CareerTimeline({ timeline: apiTimeline }) {
+  const displayTimeline = apiTimeline && apiTimeline.length > 0
+    ? apiTimeline.map((item, index) => {
+        const icons = [<FaUserGraduate />, <FaLaptopCode />, <FaBriefcase />, <FaRocket />, <FaBuilding />];
+        const colors = ["bg-green-500", "bg-sky-500", "bg-blue-600", "bg-indigo-600", "bg-slate-800"];
+        
+        return {
+          year: item.date || "Upcoming",
+          title: item.milestone || item.title || "",
+          icon: icons[index % icons.length],
+          status: item.date === "Completed" ? "Completed" : "Upcoming",
+          color: colors[index % colors.length],
+          description: item.description || ""
+        };
+      })
+    : DEFAULT_TIMELINE;
+
   return (
     <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden">
 
@@ -83,7 +99,7 @@ function CareerTimeline() {
 
           <div className="space-y-10">
 
-            {timeline.map((item, index) => (
+            {displayTimeline.map((item, index) => (
 
               <div
                 key={index}

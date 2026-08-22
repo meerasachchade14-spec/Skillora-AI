@@ -8,7 +8,17 @@ const skills = [
   { name: "System Design", demand: "Very High" },
 ];
 
-function MissingSkills() {
+function MissingSkills({ skills = [] }) {
+  const displaySkills = skills && skills.length > 0
+    ? skills.map((name) => ({ name, demand: "High" }))
+    : [
+        { name: "Docker", demand: "Very High" },
+        { name: "AWS", demand: "High" },
+        { name: "Redis", demand: "High" },
+        { name: "CI/CD", demand: "Medium" },
+        { name: "System Design", demand: "Very High" },
+      ];
+
   return (
     <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8">
 
@@ -32,7 +42,8 @@ function MissingSkills() {
 
       <div className="space-y-4">
 
-        {skills.map((skill,index)=>(
+        {displaySkills.map((skill,index)=>(
+
           <div
             key={index}
             className="flex justify-between items-center border border-slate-200 rounded-2xl p-5 hover:border-red-300 transition"

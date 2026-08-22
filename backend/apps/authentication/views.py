@@ -184,6 +184,10 @@ class LoginView(APIView):
             if not user or not check_password(password, user['password']):
                 return Response({"error": "Invalid email or password."}, status=status.HTTP_400_BAD_REQUEST)
             
+            # Check if account is active
+            if not user.get('is_active', True):
+                return Response({"error": "This account has been deactivated. Please contact support."}, status=status.HTTP_403_FORBIDDEN)
+            
             # Verify account status
             if not user.get('is_verified', False):
                 # Check rate limit before resending registration OTP
@@ -663,7 +667,10 @@ class ProfileView(APIView):
         if 'bio' in data:
             update_fields['bio'] = data['bio']
         if 'role' in data:
-            update_fields['role'] = data['role']
+            new_role = data['role']
+            if str(new_role).strip().lower() == 'admin' and user_data.get('email', '').lower().strip() != 'meera.ldrp.7@gmail.com':
+                return Response({"error": "Cannot assign Admin role."}, status=status.HTTP_400_BAD_REQUEST)
+            update_fields['role'] = new_role
         if 'profile_picture' in data:
             update_fields['profile_picture'] = data['profile_picture']
             
@@ -758,6 +765,31 @@ class ReportBugView(APIView):
             f"Description:\n{description}\n"
         )
         
+        db_saved = False
+        # Save to MongoDB bug_reports collection
+        from bson import ObjectId
+        try:
+            db = get_db()
+            user_id = None
+            if hasattr(request.user, 'id') and request.user.id:
+                try:
+                    user_id = ObjectId(request.user.id)
+                except Exception:
+                    pass
+            
+            bug_doc = {
+                'user_id': user_id,
+                'email': email,
+                'subject': subject,
+                'description': description,
+                'status': 'Open',  # Open, In Progress, Resolved
+                'created_at': datetime.utcnow()
+            }
+            db.bug_reports.insert_one(bug_doc)
+            db_saved = True
+        except Exception as db_err:
+            print(f"Failed to save bug report to MongoDB: {str(db_err)}")
+            
         try:
             send_mail(
                 subject=email_subject,
@@ -768,4 +800,22 @@ class ReportBugView(APIView):
             )
             return Response({"message": "Bug report submitted successfully."}, status=status.HTTP_200_OK)
         except Exception as e:
+            if db_saved:
+                return Response({
+                    "message": "Bug report submitted successfully.",
+                    "warning": f"Email notifications failed to send: {str(e)}"
+                }, status=status.HTTP_200_OK)
             return Response({"error": f"Failed to send email: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class LogoutView(APIView):
+    """
+    POST /api/auth/logout/
+    Logs out the authenticated user.
+    Stateless JWT means client-side just discards the token.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        return Response({"message": "Logged out successfully."}, status=status.HTTP_200_OK)
+

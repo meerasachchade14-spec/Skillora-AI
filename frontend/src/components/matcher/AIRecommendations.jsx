@@ -22,7 +22,30 @@ const recommendations = [
   },
 ];
 
-function AIRecommendations() {
+function AIRecommendations({ recommendations = [] }) {
+  const displayRecommendations = recommendations && recommendations.length > 0
+    ? recommendations.map((rec) => ({
+        title: rec.startsWith("Add ") ? rec : `Recommendation`,
+        description: rec
+      }))
+    : [
+        {
+          title: "Learn Docker",
+          description:
+            "Docker is required in nearly 82% of Full Stack job openings.",
+        },
+        {
+          title: "Complete AWS Cloud Practitioner",
+          description:
+            "Cloud certifications significantly improve hiring chances.",
+        },
+        {
+          title: "Improve System Design",
+          description:
+            "Essential for Software Engineer & SDE-2 interviews.",
+        },
+      ];
+
   return (
     <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8">
 
@@ -46,7 +69,8 @@ function AIRecommendations() {
 
       <div className="space-y-5">
 
-        {recommendations.map((item,index)=>(
+        {displayRecommendations.map((item,index)=>(
+
 
           <div
             key={index}

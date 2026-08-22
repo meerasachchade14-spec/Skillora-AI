@@ -94,6 +94,10 @@ class JWTAuthentication(BaseAuthentication):
         if not user_data.get('is_verified', False):
             raise AuthenticationFailed('Account is not verified. Please verify your OTP.')
 
+        # Check active status
+        if not user_data.get('is_active', True):
+            raise AuthenticationFailed('This account has been deactivated. Please contact support.')
+
         # Return (User, Auth) tuple
         return (MongoUser(user_data), token)
 

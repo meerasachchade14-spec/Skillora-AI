@@ -4,7 +4,7 @@ import {
   FaFire,
 } from "react-icons/fa";
 
-const industries = [
+const DEFAULT_INDUSTRIES = [
   {
     name: "Artificial Intelligence",
     growth: "High",
@@ -31,7 +31,24 @@ const industries = [
   },
 ];
 
-function IndustryDemand() {
+function IndustryDemand({ demandTrend }) {
+  const displayIndustries = demandTrend && demandTrend.length > 0
+    ? demandTrend.map((item, index) => {
+        const colors = [
+          "bg-blue-50 text-blue-600",
+          "bg-sky-50 text-sky-600",
+          "bg-indigo-50 text-indigo-600",
+          "bg-purple-50 text-purple-600"
+        ];
+        return {
+          name: item.skill,
+          growth: item.demandLevel,
+          jobs: "Growing Demand",
+          color: colors[index % colors.length]
+        };
+      })
+    : DEFAULT_INDUSTRIES;
+
   return (
     <div className="bg-white rounded-[32px] shadow-sm border border-slate-200 p-8">
 
@@ -53,7 +70,7 @@ function IndustryDemand() {
 
       <div className="space-y-5">
 
-        {industries.map((item,index)=>(
+        {displayIndustries.map((item,index)=>(
 
           <div
           key={index}

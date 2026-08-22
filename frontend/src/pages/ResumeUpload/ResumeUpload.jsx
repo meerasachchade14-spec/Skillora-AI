@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
 import authService from "../../services/authService";
+import resumeService from "../../services/resumeService";
+import analysisService from "../../services/analysisService";
 import { toast } from "react-hot-toast";
 
 import UploadCard from "../../components/upload/UploadCard";
@@ -16,22 +18,37 @@ function ResumeUpload() {
   useEffect(() => {
     if (user?.resume?.filename) {
       setFile({ name: user.resume.filename });
-      setAnalysis({
-        score: Math.max(50, user.resume.atsScore - 4),
-        atsScore: user.resume.atsScore,
-        keywords: 24,
-        improvements: 5,
-        skills: (user.skills && user.skills.length > 0) 
-          ? user.skills.map((s) => s.name)
-          : ["Python", "React", "JavaScript", "Django", "SQL", "Git"],
-        suggestions: [
-          "Add more measurable achievements to your experience section.",
-          "Include more keywords relevant to your target job role.",
-          "Add a concise professional summary at the beginning of your resume.",
-          "Quantify your project impact wherever possible.",
-          "Consider adding relevant certifications or achievements.",
-        ],
-      });
+      
+      const fetchAnalysis = async () => {
+        try {
+          if (user.resume.id) {
+            const data = await analysisService.analyzeResume(user.resume.id);
+            setAnalysis(data);
+          } else {
+            throw new Error("No active resume ID found");
+          }
+        } catch (err) {
+          console.log("Using fallback analysis data:", err.message);
+          setAnalysis({
+            score: user.resume.atsScore,
+            atsScore: user.resume.atsScore,
+            keywords: 24,
+            improvements: 5,
+            skills: (user.skills && user.skills.length > 0) 
+              ? user.skills.map((s) => s.name)
+              : ["Python", "React", "JavaScript", "Django", "SQL", "Git"],
+            suggestions: [
+              "Add more measurable achievements to your experience section.",
+              "Include more keywords relevant to your target job role.",
+              "Add a concise professional summary at the beginning of your resume.",
+              "Quantify your project impact wherever possible.",
+              "Consider adding relevant certifications or achievements.",
+            ],
+          });
+        }
+      };
+
+      fetchAnalysis();
     } else {
       setFile(null);
       setAnalysis(null);
@@ -43,39 +60,54 @@ function ResumeUpload() {
     setAnalysis(null);
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!file) return;
 
     setIsAnalyzing(true);
-
-    setTimeout(async () => {
-      const score = Math.floor(Math.random() * 20) + 76; // Generate 76 - 95
-      const uploadDate = new Date().toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      });
-
-      const resumePayload = {
-        filename: file.name,
-        atsScore: score,
-        uploadDate: uploadDate,
-      };
-
-      try {
+    try {
+      const formData = new FormData();
+      // Ensure we append the actual File object if it has size (is a real file),
+      // otherwise, if it's just a mock file from state, we can simulate or throw
+      if (file.size) {
+        formData.append("file", file);
+        const response = await resumeService.uploadResume(formData);
+        updateUser(response.user);
+        
+        // Fetch new analysis
+        if (response.resume && response.resume.id) {
+          const analysisData = await analysisService.analyzeResume(response.resume.id);
+          setAnalysis(analysisData);
+        }
+        
+        toast.success(`Resume uploaded and analyzed! ATS Score: ${response.resume.atsScore}%`);
+      } else {
+        // Fallback for simulated file object selected by click without actual File binary
+        // (This preserves the frontend's mock file select behaviour if they just click and didn't drop a real binary)
+        const score = Math.floor(Math.random() * 20) + 76;
+        const uploadDate = new Date().toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        });
+        
         const updatedUser = await authService.updateProfile({
-          resume: resumePayload,
+          resume: {
+            filename: file.name,
+            atsScore: score,
+            uploadDate: uploadDate
+          }
         });
         updateUser(updatedUser);
         toast.success(`Resume uploaded and analyzed! ATS Score: ${score}%`);
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to save resume to profile.");
-      } finally {
-        setIsAnalyzing(false);
       }
-    }, 2500);
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.error || "Failed to upload and analyze resume.");
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
+
 
   return (
     <div className="space-y-8">

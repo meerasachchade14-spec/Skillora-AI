@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import jobsService from "../../services/jobsService";
 import useAuth from "../../hooks/useAuth";
 import JobHeader from "../../components/jobs/JobHeader";
 import JobFilters from "../../components/jobs/JobFilters";
@@ -12,6 +14,23 @@ import JobsSidebar from "../../components/jobs/JobsSidebar";
 
 function JobRecommendation() {
   const { user } = useAuth();
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      setLoading(true);
+      try {
+        const data = await jobsService.getRecommendedJobs();
+        setJobs(data);
+      } catch (err) {
+        console.error("Failed to load recommended jobs:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJobs();
+  }, [user]);
 
   return (
     <div className="space-y-8">
@@ -63,7 +82,15 @@ function JobRecommendation() {
 
           <JobMatchScore />
 
-          <JobRecommendations />
+          {loading ? (
+            <div className="flex flex-col items-center justify-center p-8 bg-white rounded-[32px] border border-slate-200">
+              <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-slate-500 text-sm mt-3 font-semibold">Loading recommended jobs...</p>
+            </div>
+          ) : (
+            <JobRecommendations jobs={jobs} />
+          )}
+
 
           <SalaryInsights />
 

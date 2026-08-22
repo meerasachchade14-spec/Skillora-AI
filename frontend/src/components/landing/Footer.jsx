@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
 FaRobot,
 FaLinkedinIn,
@@ -423,6 +424,8 @@ className={`border-t transition-colors duration-500 ${
         >
           Terms
         </a>
+
+
 
       </div>
 

@@ -6,40 +6,39 @@ import {
   FaCloud,
 } from "react-icons/fa";
 
-const phases = [
-  {
-    title: "Frontend Development",
-    progress: 90,
-    icon: <FaBook />,
-    color: "bg-sky-500",
-  },
-  {
-    title: "React Ecosystem",
-    progress: 80,
-    icon: <FaCode />,
-    color: "bg-blue-600",
-  },
-  {
-    title: "Backend Development",
-    progress: 40,
-    icon: <FaServer />,
-    color: "bg-indigo-600",
-  },
-  {
-    title: "Cloud & DevOps",
-    progress: 15,
-    icon: <FaCloud />,
-    color: "bg-purple-600",
-  },
-];
+function RoadmapTimeline({ roadmap }) {
+  const steps = roadmap && roadmap.steps && roadmap.steps.length > 0
+    ? roadmap.steps
+    : [
+        { name: "Frontend Development", status: "completed" },
+        { name: "React Ecosystem", status: "completed" },
+        { name: "Backend Development", status: "in-progress" },
+        { name: "Cloud & DevOps", status: "todo" }
+      ];
 
-function RoadmapTimeline() {
+  const phases = steps.map((step, index) => {
+    const isCompleted = step.status === "completed";
+    const isInProgress = step.status === "in-progress";
+    const progress = isCompleted ? 100 : isInProgress ? 40 : 0;
+
+    const colors = ["bg-sky-500", "bg-blue-600", "bg-indigo-600", "bg-purple-600"];
+    const icons = [<FaBook />, <FaCode />, <FaServer />, <FaCloud />];
+
+    return {
+      title: step.name,
+      progress,
+      icon: icons[index % icons.length],
+      color: colors[index % colors.length]
+    };
+  });
+
   return (
     <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8">
 
       <h2 className="text-3xl font-black text-slate-900 mb-8">
         Learning Timeline
       </h2>
+
 
       <div className="space-y-8">
 

@@ -2,7 +2,6 @@ import {
   FaCertificate,
   FaTrophy,
   FaCheckCircle,
-  FaArrowUp,
   FaStar,
   FaRocket
 } from "react-icons/fa";

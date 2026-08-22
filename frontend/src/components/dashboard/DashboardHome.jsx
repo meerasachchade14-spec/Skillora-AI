@@ -3,8 +3,11 @@ import QuickActions from "./QuickActions";
 import AnalyticsChart from "./AnalyticsChart";
 import SkillRadar from "./SkillRadar";
 import ProfileCard from "./ProfileCard";
+import useAuth from "../../hooks/useAuth";
 
 function DashboardHome() {
+  const { user } = useAuth();
+
   return (
     <div className="max-w-[1500px] mx-auto space-y-8">
 
@@ -17,7 +20,7 @@ function DashboardHome() {
           </p>
 
           <h1 className="text-4xl font-extrabold text-slate-950 tracking-tight">
-            Welcome back, Jhanvi 👋
+            Welcome back, {user?.name || "User"} 👋
           </h1>
 
           <p className="text-sm text-slate-500 mt-2">

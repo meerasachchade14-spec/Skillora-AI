@@ -1,11 +1,25 @@
+import { useState } from "react";
 import {
   FaAward,
   FaBullseye,
   FaRocket,
   FaChartLine,
+  FaSearch,
 } from "react-icons/fa";
 
-function MatchSidebar() {
+
+function MatchSidebar({ matchResult, onCalculateMatch, isMatching }) {
+  const [jobTitle, setJobTitle] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
+
+  const score = matchResult ? matchResult.matchScore : 88;
+  const atsScore = matchResult ? (matchResult.atsScore || 85) : 94;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!jobDescription) return;
+    onCalculateMatch({ job_title: jobTitle, job_description: jobDescription });
+  };
 
   return (
 
@@ -20,14 +34,59 @@ function MatchSidebar() {
         </h2>
 
         <h1 className="text-6xl font-black mt-5">
-          88%
+          {score}%
         </h1>
 
         <p className="text-sky-100 mt-5 leading-7">
-          Excellent profile.
-          Only a few skills are required to become interview ready.
+          {score >= 85 
+            ? "Excellent profile. Only a few skills are required to become interview ready." 
+            : score >= 70 
+            ? "Good compatibility. Consider acquiring the missing skills to improve your match." 
+            : "Needs improvement. Review the missing skills list to align with target role."}
         </p>
 
+      </div>
+
+      {/* MATCH FORM */}
+      <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm p-6">
+        <h3 className="font-black text-xl mb-4 flex items-center gap-2">
+          <FaSearch className="text-sky-500 text-lg"/>
+          Analyze Compatibility
+        </h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+              Target Job Title
+            </label>
+            <input
+              type="text"
+              value={jobTitle}
+              onChange={(e) => setJobTitle(e.target.value)}
+              placeholder="e.g. Full Stack Developer"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-sky-500 text-slate-800"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+              Job Description *
+            </label>
+            <textarea
+              required
+              rows={4}
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              placeholder="Paste job details or requirements here..."
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-sky-500 text-slate-800 resize-none"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isMatching || !jobDescription}
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold text-sm shadow-md hover:scale-[1.02] active:scale-95 transition disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+          >
+            {isMatching ? "Calculating Match..." : "Match Skills"}
+          </button>
+        </form>
       </div>
 
       <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm p-6">
@@ -49,7 +108,7 @@ function MatchSidebar() {
             </div>
 
             <span className="font-bold">
-              88%
+              {score}%
             </span>
 
           </div>
@@ -65,7 +124,7 @@ function MatchSidebar() {
             </div>
 
             <span className="font-bold">
-              81%
+              {Math.min(98, Math.max(50, score - 7))}%
             </span>
 
           </div>
@@ -81,7 +140,7 @@ function MatchSidebar() {
             </div>
 
             <span className="font-bold">
-              94%
+              {atsScore}%
             </span>
 
           </div>
@@ -95,5 +154,6 @@ function MatchSidebar() {
   );
 
 }
+
 
 export default MatchSidebar;

@@ -4,7 +4,10 @@ import {
   FaBrain,
 } from "react-icons/fa";
 
-function SkillMatchScore() {
+function SkillMatchScore({ matchResult }) {
+  const score = matchResult ? matchResult.matchScore : 88;
+  const matchedCount = matchResult && matchResult.matchedSkills ? matchResult.matchedSkills.length : 42;
+  const missingCount = matchResult && matchResult.missingSkills ? matchResult.missingSkills.length : 9;
 
   return (
 
@@ -33,11 +36,11 @@ function SkillMatchScore() {
           <div className="w-56 h-56 rounded-full border-[16px] border-sky-500 flex flex-col justify-center items-center">
 
             <h1 className="text-6xl font-black text-sky-600">
-              88%
+              {score}%
             </h1>
 
             <p className="text-slate-500 mt-2">
-              Excellent Match
+              {score >= 85 ? "Excellent Match" : score >= 70 ? "Good Match" : "Needs Improvement"}
             </p>
 
           </div>
@@ -55,7 +58,7 @@ function SkillMatchScore() {
               </p>
 
               <h3 className="text-3xl font-black text-green-600">
-                42
+                {matchedCount}
               </h3>
 
             </div>
@@ -73,7 +76,7 @@ function SkillMatchScore() {
               </p>
 
               <h3 className="text-3xl font-black text-orange-500">
-                9
+                {missingCount}
               </h3>
 
             </div>
@@ -81,6 +84,7 @@ function SkillMatchScore() {
             <FaBrain className="text-orange-500 text-3xl"/>
 
           </div>
+
 
           <div className="rounded-3xl bg-blue-50 border border-blue-100 p-5 flex justify-between">
 

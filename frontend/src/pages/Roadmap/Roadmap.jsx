@@ -1,3 +1,7 @@
+import { useState, useEffect } from "react";
+import roadmapService from "../../services/roadmapService";
+import { toast } from "react-hot-toast";
+
 import useAuth from "../../hooks/useAuth";
 import RoadmapHeader from "../../components/roadmap/RoadmapHeader";
 import AIRecommendation from "../../components/roadmap/AIRecommendation";
@@ -14,6 +18,61 @@ import AIMentor from "../../components/roadmap/AIMentor";
 
 function Roadmap() {
   const { user } = useAuth();
+  const [roadmap, setRoadmap] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchRoadmap = async () => {
+      setLoading(true);
+      try {
+        const data = await roadmapService.getRoadmap();
+        setRoadmap(data);
+      } catch (err) {
+        console.error("Failed to load roadmap:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRoadmap();
+  }, [user]);
+
+  const handleToggleStep = async (stepId) => {
+    if (!roadmap) return;
+
+    const updatedSteps = roadmap.steps.map(step => {
+      if (step.id === stepId) {
+        return {
+          ...step,
+          status: step.status === 'completed' ? 'todo' : 'completed'
+        };
+      }
+      return step;
+    });
+
+    const completedCount = updatedSteps.filter(s => s.status === 'completed').length;
+    const progress = Math.round((completedCount / updatedSteps.length) * 100);
+
+    try {
+      const data = await roadmapService.updateRoadmap({
+        progress,
+        steps: updatedSteps
+      });
+      setRoadmap(data);
+      toast.success("Learning roadmap progress updated!");
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.error || "Failed to update roadmap.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[500px] space-y-4">
+        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-slate-500 font-bold text-lg animate-pulse">Loading your custom learning roadmap...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -61,10 +120,10 @@ function Roadmap() {
       <AIRecommendation />
 
       {/* Stats */}
-      <LearningStats />
+      <LearningStats roadmap={roadmap} />
 
       {/* Timeline */}
-      <RoadmapTimeline />
+      <RoadmapTimeline roadmap={roadmap} />
 
       {/* Skill Flow */}
       <SkillDependency />
@@ -73,7 +132,7 @@ function Roadmap() {
       <LearningResources />
 
       {/* Checklist */}
-      <LearningChecklist />
+      <LearningChecklist roadmap={roadmap} onToggleStep={handleToggleStep} />
 
       {/* Weekly Goals */}
       <WeeklyGoals />
@@ -93,5 +152,6 @@ function Roadmap() {
     </div>
   );
 }
+
 
 export default Roadmap;

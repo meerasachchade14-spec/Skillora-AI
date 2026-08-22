@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
+import analysisService from "../../services/analysisService";
 
 import AnalysisHeader from "../../components/analysis/AnalysisHeader";
 import ResumeScore from "../../components/analysis/ResumeScore";
@@ -9,6 +10,7 @@ import SkillsAnalysis from "../../components/analysis/SkillsAnalysis";
 import ExperienceAnalysis from "../../components/analysis/ExperienceAnalysis";
 import EducationAnalysis from "../../components/analysis/EducationAnalysis";
 import ProjectsAnalysis from "../../components/analysis/ProjectsAnalysis";
+import CertificationsAchievements from "../../components/analysis/CertificationsAchievements";
 import KeywordAnalysis from "../../components/analysis/KeywordAnalysis";
 import MissingSkills from "../../components/analysis/MissingSkills";
 import ProfileInsights from "../../components/analysis/ProfileInsights";
@@ -25,7 +27,7 @@ function ResumeAnalysis() {
   const latestExp = user?.experience?.[0];
   const graduation = user?.education?.graduation;
 
-  const analysis = {
+  const defaultAnalysis = {
     score: user?.resume?.atsScore || 87,
     summary: {
       name: user?.name || "Jhanvi Ramani",
@@ -58,7 +60,46 @@ function ResumeAnalysis() {
       "Weak Summary",
       "Missing Keywords",
     ],
+    improvementTips: [
+      "Add more measurable achievements to your experience section.",
+      "Include more keywords relevant to your target job role.",
+      "Add a concise professional summary at the beginning of your resume."
+    ]
   };
+
+  const [analysis, setAnalysis] = useState(defaultAnalysis);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user?.resume?.id) {
+      const getAnalysis = async () => {
+        setLoading(true);
+        try {
+          const data = await analysisService.analyzeResume(user.resume.id);
+          setAnalysis(data);
+        } catch (err) {
+          console.log("Using fallback analysis data:", err.message);
+          setAnalysis(defaultAnalysis);
+        } finally {
+          setLoading(false);
+        }
+      };
+      getAnalysis();
+    } else {
+      setAnalysis(defaultAnalysis);
+    }
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="resume-analysis-page flex flex-col items-center justify-center min-h-[500px] space-y-4 p-6">
+        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-slate-500 font-bold text-lg animate-pulse">Analyzing your resume...</p>
+      </div>
+    );
+  }
+
+
 
 
   const sections = {
@@ -115,6 +156,11 @@ function ResumeAnalysis() {
 
       <ProjectsAnalysis />
 
+    ),
+
+    "certifications-achievements": (
+      
+      <CertificationsAchievements />
     ),
 
 

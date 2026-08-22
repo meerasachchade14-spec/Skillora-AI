@@ -1,4 +1,8 @@
+import { useState, useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
+import matcherService from "../../services/matcherService";
+import { toast } from "react-hot-toast";
+
 import ResumeStatus from "../../components/matcher/ResumeStatus";
 import SkillMatchScore from "../../components/matcher/SkillMatchScore";
 import SkillOverview from "../../components/matcher/SkillOverview";
@@ -11,6 +15,43 @@ import MatchSidebar from "../../components/matcher/MatchSidebar";
 
 function SkillMatcher() {
   const { user } = useAuth();
+  const [matchResult, setMatchResult] = useState(null);
+  const [isMatching, setIsMatching] = useState(false);
+  const [historyVersion, setHistoryVersion] = useState(0);
+
+  useEffect(() => {
+    const fetchLatestMatch = async () => {
+      try {
+        const data = await matcherService.getMatchHistory();
+        if (data && data.length > 0) {
+          setMatchResult(data[0]);
+        }
+      } catch (err) {
+        console.error("Failed to load match history:", err);
+      }
+    };
+    if (user?.resume?.filename) {
+      fetchLatestMatch();
+    }
+  }, [user]);
+
+  const handleCalculateMatch = async ({ job_title, job_description }) => {
+    setIsMatching(true);
+    try {
+      const data = await matcherService.matchSkills({
+        job_title,
+        job_description
+      });
+      setMatchResult(data);
+      setHistoryVersion(prev => prev + 1);
+      toast.success(`Skill compatibility analyzed! Match score: ${data.matchScore}%`);
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.error || "Failed to analyze compatibility.");
+    } finally {
+      setIsMatching(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -66,25 +107,29 @@ function SkillMatcher() {
         <div className="col-span-8 space-y-8">
           <ResumeStatus />
 
-          <SkillMatchScore />
+          <SkillMatchScore matchResult={matchResult} />
 
-          <SkillOverview />
+          <SkillOverview matchResult={matchResult} />
 
-          <MissingSkills />
+          <MissingSkills skills={matchResult?.missingSkills} />
 
           <SkillDistribution />
 
           <IndustryBenchmark />
 
-          <AIRecommendations />
+          <AIRecommendations recommendations={matchResult?.recommendations} />
 
-          <SkillHistory />
+          <SkillHistory key={historyVersion} onSelectMatch={setMatchResult} />
 
         </div>
 
         <div className="col-span-4">
 
-          <MatchSidebar />
+          <MatchSidebar
+            matchResult={matchResult}
+            onCalculateMatch={handleCalculateMatch}
+            isMatching={isMatching}
+          />
 
         </div>
 
@@ -93,5 +138,6 @@ function SkillMatcher() {
     </div>
   );
 }
+
 
 export default SkillMatcher;

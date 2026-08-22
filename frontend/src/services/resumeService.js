@@ -15,6 +15,11 @@ const resumeService = {
     const response = await api.get('/resume');
     return response.data;
   },
+
+  deleteResume: async (resumeId) => {
+    const response = await api.delete(`/resume/${resumeId}`);
+    return response.data;
+  },
 };
 
 export default resumeService;

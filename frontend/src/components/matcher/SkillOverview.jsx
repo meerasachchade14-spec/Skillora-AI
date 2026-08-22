@@ -4,35 +4,35 @@ import {
   FaDatabase,
 } from "react-icons/fa";
 
-const cards = [
+function SkillOverview({ matchResult }) {
+  const displayTechnicalSkills = matchResult && matchResult.matchedSkills && matchResult.matchedSkills.length > 0
+    ? matchResult.matchedSkills
+    : ["React", "Python", "Java", "MongoDB"];
 
-  {
-    title: "Technical Skills",
-    score: "90%",
-    color: "blue",
-    icon: <FaCode />,
-    skills: ["React", "Python", "Java", "MongoDB"]
-  },
+  const cards = [
+    {
+      title: "Technical Skills",
+      score: matchResult ? `${matchResult.matchScore}%` : "90%",
+      color: "blue",
+      icon: <FaCode />,
+      skills: displayTechnicalSkills
+    },
+    {
+      title: "Soft Skills",
+      score: "82%",
+      color: "green",
+      icon: <FaUsers />,
+      skills: ["Communication", "Leadership", "Teamwork", "Problem Solving"]
+    },
+    {
+      title: "Domain Knowledge",
+      score: "76%",
+      color: "orange",
+      icon: <FaDatabase />,
+      skills: ["AI", "ML", "Cloud", "DBMS"]
+    }
+  ];
 
-  {
-    title: "Soft Skills",
-    score: "82%",
-    color: "green",
-    icon: <FaUsers />,
-    skills: ["Communication", "Leadership", "Teamwork", "Problem Solving"]
-  },
-
-  {
-    title: "Domain Knowledge",
-    score: "76%",
-    color: "orange",
-    icon: <FaDatabase />,
-    skills: ["AI", "ML", "Cloud", "DBMS"]
-  }
-
-];
-
-function SkillOverview() {
 
   return (
 

@@ -15,16 +15,19 @@ const checklist = [
   "Learn AWS Basics",
 ];
 
-function LearningChecklist() {
-
-  const [completed, setCompleted] = useState({});
-
-  const toggleItem = (item) => {
-    setCompleted((prev) => ({
-      ...prev,
-      [item]: !prev[item],
-    }));
-  };
+function LearningChecklist({ roadmap, onToggleStep }) {
+  const steps = roadmap && roadmap.steps && roadmap.steps.length > 0
+    ? roadmap.steps
+    : [
+        { id: "step-1", name: "Complete HTML & CSS", status: "completed" },
+        { id: "step-2", name: "Master JavaScript ES6+", status: "completed" },
+        { id: "step-3", name: "Build 5 React Projects", status: "todo" },
+        { id: "step-4", name: "Learn Node.js / Django", status: "todo" },
+        { id: "step-5", name: "Practice DSA Daily", status: "todo" },
+        { id: "step-6", name: "Deploy Full Stack Project", status: "todo" },
+        { id: "step-7", name: "Learn Docker", status: "todo" },
+        { id: "step-8", name: "Learn AWS Basics", status: "todo" }
+      ];
 
   return (
 
@@ -36,49 +39,29 @@ function LearningChecklist() {
 
       <div className="space-y-4">
 
-        {checklist.map((item) => (
-
-          <button
-
-            key={item}
-
-            onClick={() => toggleItem(item)}
-
-            className={`w-full flex items-center justify-between rounded-2xl border p-5 transition
-
-            ${
-              completed[item]
-                ? "bg-green-50 border-green-300"
-                : "hover:border-blue-400"
-            }
-
-            `}
-
-          >
-
-            <div className="flex items-center gap-4">
-
-              {completed[item] ? (
-                <FaCheckCircle className="text-green-500 text-xl" />
-              ) : (
-                <FaCircle className="text-slate-300" />
-              )}
-
-              <span
-                className={`font-semibold ${
-                  completed[item]
-                    ? "line-through text-green-700"
-                    : ""
-                }`}
-              >
-                {item}
-              </span>
-
-            </div>
-
-          </button>
-
-        ))}
+        {steps.map((step) => {
+          const isCompleted = step.status === "completed";
+          return (
+            <button
+              key={step.id || step.name}
+              onClick={() => onToggleStep && onToggleStep(step.id || step.name)}
+              className={`w-full flex items-center justify-between rounded-2xl border p-5 transition
+                ${isCompleted ? "bg-green-50 border-green-300" : "hover:border-blue-400"}
+              `}
+            >
+              <div className="flex items-center gap-4">
+                {isCompleted ? (
+                  <FaCheckCircle className="text-green-500 text-xl" />
+                ) : (
+                  <FaCircle className="text-slate-300" />
+                )}
+                <span className={`font-semibold ${isCompleted ? "line-through text-green-700" : ""}`}>
+                  {step.name}
+                </span>
+              </div>
+            </button>
+          );
+        })}
 
       </div>
 
@@ -87,5 +70,6 @@ function LearningChecklist() {
   );
 
 }
+
 
 export default LearningChecklist;

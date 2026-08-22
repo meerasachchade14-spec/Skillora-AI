@@ -12,6 +12,7 @@ class MongoUser:
         self.email = data.get('email')
         self.password = data.get('password')
         self.is_verified = data.get('is_verified', False)
+        self.is_active = data.get('is_active', True)
         
         # Social authentication fields
         self.google_id = data.get('google_id')
@@ -62,6 +63,7 @@ class MongoUser:
             'email': self.email,
             'password': self.password,
             'is_verified': self.is_verified,
+            'is_active': self.is_active,
             'google_id': self.google_id,
             'github_id': self.github_id,
             'phone_number': self.phone_number,

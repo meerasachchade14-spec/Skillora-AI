@@ -52,12 +52,18 @@ function MissingSkills({ skills = [] }) {
 
 
   const displayedSkills = skills.length
-
-    ? skillData.filter((skill) =>
-        skills.includes(skill.name)
-      )
-
+    ? skills.map((name) => {
+        const found = skillData.find((s) => s.name.toLowerCase() === name.toLowerCase());
+        if (found) return found;
+        return {
+          name,
+          demand: "High",
+          priority: 75,
+          color: "bg-blue-500",
+        };
+      })
     : skillData;
+
 
 
   return (

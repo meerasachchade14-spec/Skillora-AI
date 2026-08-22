@@ -1,9 +1,11 @@
+import { useState, useEffect } from "react";
+import matcherService from "../../services/matcherService";
 import {
   FaHistory,
   FaArrowUp,
 } from "react-icons/fa";
 
-const history = [
+const mockHistory = [
   {
     month: "April",
     score: 72,
@@ -22,7 +24,47 @@ const history = [
   },
 ];
 
-function SkillHistory() {
+function SkillHistory({ onSelectMatch }) {
+  const [history, setHistory] = useState(mockHistory);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const data = await matcherService.getMatchHistory();
+        if (data && data.length > 0) {
+          const formatted = data.map((item) => {
+            let displayLabel = item.jobTitle;
+            try {
+              if (item.createdAt) {
+                const cleanDate = item.createdAt.includes("T") ? item.createdAt : item.createdAt.replace(" ", "T");
+                const dateObj = new Date(cleanDate);
+                const monthName = dateObj.toLocaleString("en-US", { month: "long" });
+                displayLabel = `${item.jobTitle} (${monthName})`;
+              }
+            } catch (e) {
+              console.log(e);
+            }
+            return {
+              id: item.id,
+              month: displayLabel,
+              score: item.matchScore,
+              // Keep original structure so we can set it back as active matchResult
+              matchedSkills: item.matchedSkills,
+              missingSkills: item.missingSkills,
+              recommendations: item.recommendations,
+              jobTitle: item.jobTitle,
+              matchScore: item.matchScore
+            };
+          });
+          setHistory(formatted);
+        }
+      } catch (err) {
+        console.log("Using mock match history:", err.message);
+      }
+    };
+    fetchHistory();
+  }, []);
+
 
   return (
 
@@ -54,8 +96,10 @@ function SkillHistory() {
 
           <div
             key={index}
-            className="flex justify-between items-center rounded-2xl bg-slate-50 p-5"
+            onClick={() => onSelectMatch && onSelectMatch(item)}
+            className="flex justify-between items-center rounded-2xl bg-slate-50 p-5 cursor-pointer hover:bg-slate-100 transition-all duration-200"
           >
+
 
             <span className="font-semibold">
               {item.month}

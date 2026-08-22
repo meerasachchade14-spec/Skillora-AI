@@ -7,7 +7,7 @@ import {
   FaArrowUp,
 } from "react-icons/fa";
 
-function CareerReadiness() {
+function CareerReadiness({ score = 89 }) {
   return (
     <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden">
 
@@ -69,7 +69,7 @@ function CareerReadiness() {
                   fill="none"
                   strokeLinecap="round"
                   strokeDasharray={691}
-                  strokeDashoffset={691 - (691 * 89) / 100}
+                  strokeDashoffset={691 - (691 * score) / 100}
                 />
 
               </svg>
@@ -81,11 +81,11 @@ function CareerReadiness() {
                 </p>
 
                 <h1 className="text-6xl font-black text-slate-900">
-                  89%
+                  {score}%
                 </h1>
 
                 <span className="text-blue-600 font-bold">
-                  Excellent
+                  {score >= 85 ? "Excellent" : score >= 70 ? "Good" : "Needs Work"}
                 </span>
 
               </div>
@@ -93,6 +93,7 @@ function CareerReadiness() {
             </div>
 
           </div>
+
 
           <div>
 

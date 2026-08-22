@@ -5,39 +5,38 @@ FaClock,
 FaCode
 } from "react-icons/fa";
 
-const stats = [
+function LearningStats({ roadmap }) {
+  const total = roadmap && roadmap.steps ? roadmap.steps.length : 8;
+  const completed = roadmap && roadmap.steps ? roadmap.steps.filter(s => s.status === 'completed').length : 3;
+  const remaining = total - completed;
 
-{
-title:"Topics Completed",
-value:"32",
-icon:<FaCheckCircle/>,
-color:"green"
-},
+  const stats = [
+    {
+      title: "Topics Completed",
+      value: String(completed),
+      icon: <FaCheckCircle/>,
+      color: "green"
+    },
+    {
+      title: "Topics Remaining",
+      value: String(remaining),
+      icon: <FaBookOpen/>,
+      color: "blue"
+    },
+    {
+      title: "Hours Learned",
+      value: String(completed * 12 + 24),
+      icon: <FaClock/>,
+      color: "orange"
+    },
+    {
+      title: "Projects Built",
+      value: String(Math.max(1, Math.round(completed * 0.8))),
+      icon: <FaCode/>,
+      color: "purple"
+    }
+  ];
 
-{
-title:"Topics Remaining",
-value:"14",
-icon:<FaBookOpen/>,
-color:"blue"
-},
-
-{
-title:"Hours Learned",
-value:"156",
-icon:<FaClock/>,
-color:"orange"
-},
-
-{
-title:"Projects Built",
-value:"9",
-icon:<FaCode/>,
-color:"purple"
-}
-
-];
-
-function LearningStats(){
 
 return(
 

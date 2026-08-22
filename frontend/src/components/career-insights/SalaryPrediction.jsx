@@ -1,6 +1,9 @@
 import { FaMoneyBillWave } from "react-icons/fa";
 
-function SalaryPrediction() {
+function SalaryPrediction({ salaryPrediction }) {
+  const minLpa = salaryPrediction ? Math.round(salaryPrediction.min / 100000) : 6;
+  const avgLpa = salaryPrediction ? Math.round(salaryPrediction.average / 100000) : 12;
+  const maxLpa = salaryPrediction ? Math.round(salaryPrediction.max / 100000) : 25;
 
   return (
 
@@ -41,7 +44,7 @@ function SalaryPrediction() {
           </p>
 
           <h3 className="text-3xl font-black mt-3">
-            ₹6 LPA
+            ₹{minLpa} LPA
           </h3>
 
         </div>
@@ -53,7 +56,7 @@ function SalaryPrediction() {
           </p>
 
           <h3 className="text-3xl font-black text-blue-600 mt-3">
-            ₹12 LPA
+            ₹{avgLpa} LPA
           </h3>
 
         </div>
@@ -65,7 +68,7 @@ function SalaryPrediction() {
           </p>
 
           <h3 className="text-3xl font-black text-sky-700 mt-3">
-            ₹25+ LPA
+            ₹{maxLpa}+ LPA
           </h3>
 
         </div>
@@ -77,5 +80,6 @@ function SalaryPrediction() {
   );
 
 }
+
 
 export default SalaryPrediction;

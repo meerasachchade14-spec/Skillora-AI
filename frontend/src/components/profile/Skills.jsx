@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
 import authService from "../../services/authService";
 import { toast } from "react-hot-toast";
-import { FaCode, FaPlus, FaTrash, FaSave, FaTimes, FaEdit } from "react-icons/fa";
+import { FaCode, FaPlus, FaSave, FaTimes, FaEdit } from "react-icons/fa";
 
 const DEFAULT_SKILLS = [
   { name: "React.js", level: 95 },
@@ -75,7 +75,7 @@ function Skills() {
   };
 
   return (
-    <div className="bg-white rounded-[28px] border border-slate-200 shadow-sm p-8 transition-all duration-300 hover:shadow-md">
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 transition-all duration-300 hover:shadow-md">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
