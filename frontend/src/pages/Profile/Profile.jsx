@@ -1857,6 +1857,10 @@ function Profile() {
           {/* 3. AI Insights Card */}
           <AIProfileInsights />
 
+        </div>
+
+      </div>
+
           {/* 6. Security Settings Card */}
           <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 space-y-4 transition duration-300 hover:shadow-md">
             <div className="flex items-center gap-3 mb-2 text-left">
@@ -2145,10 +2149,6 @@ function Profile() {
             </div>
             
           </div>
-
-        </div>
-
-      </div>
 
       {/* Report Bug Modal */}
       {isBugModalOpen && (
