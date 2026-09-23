@@ -1,14 +1,40 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { toast } from "react-hot-toast";
+import resumeService from "../../services/resumeService";
+import { useNavigate } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
 
 import {
   FaDownload,
   FaPrint,
   FaFilePdf,
   FaBolt,
+  FaSave,
 } from "react-icons/fa";
 
-function DownloadResume() {
+function DownloadResume({ resumeData, isEditing, resumeId }) {
+  const navigate = useNavigate();
+  const { updateUser } = useAuth();
+
+  const generatePDFBlob = async () => {
+    const resume = document.getElementById("resume-preview");
+    if (!resume) {
+      toast.error("Resume Preview Not Found");
+      return null;
+    }
+    const canvas = await html2canvas(resume, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+    });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = (canvas.height * pageWidth) / canvas.width;
+    pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight);
+    return pdf.output("blob");
+  };
 
   const downloadPDF = async () => {
 
@@ -46,6 +72,40 @@ function DownloadResume() {
     pdf.save("Skillora_Resume.pdf");
   };
 
+  const saveResume = async () => {
+    toast.loading("Saving resume...", { id: "save-resume" });
+    try {
+      const pdfBlob = await generatePDFBlob();
+      if (!pdfBlob) {
+        toast.dismiss("save-resume");
+        return;
+      }
+      
+      const formData = new FormData();
+      formData.append("file", pdfBlob, "resume.pdf");
+      formData.append("resumeData", JSON.stringify(resumeData));
+      
+      let response;
+      if (isEditing && resumeId) {
+        response = await resumeService.updateResume(resumeId, formData);
+        toast.success("Resume updated successfully!", { id: "save-resume" });
+      } else {
+        response = await resumeService.uploadResume(formData);
+        toast.success("Resume saved successfully!", { id: "save-resume" });
+      }
+
+      if (response && response.user) {
+        updateUser(response.user);
+      }
+
+      // Navigate to analysis after saving
+      navigate("/resume-analysis");
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to save resume.", { id: "save-resume" });
+    }
+  };
 
   const printResume = () => {
     window.print();
@@ -85,7 +145,15 @@ function DownloadResume() {
       </div>
 
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
+
+        <button
+          onClick={saveResume}
+          className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs font-bold hover:shadow-lg hover:shadow-green-200 transition"
+        >
+          <FaSave />
+          {isEditing ? 'Update' : 'Save'}
+        </button>
 
         <button
           onClick={downloadPDF}

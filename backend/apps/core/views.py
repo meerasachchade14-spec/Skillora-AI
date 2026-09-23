@@ -9,7 +9,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 from config.db import get_db
 from apps.core.serializers import (
@@ -18,6 +18,8 @@ from apps.core.serializers import (
     RoadmapUpdateSerializer
 )
 from apps.authentication.views import get_user_profile_response_dict
+from apps.core.ai.resume_parser import extract_resume_text
+from apps.core.ai.information_extractor import extract_resume_information
 
 # Helpers for generating realistic career/resume mock-analyzed data
 def generate_ats_score(filename, user_skills):
@@ -184,6 +186,17 @@ class ResumeUploadView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
         file_obj = serializer.validated_data['file']
+        
+        import json
+        resume_data_input = request.data.get('resumeData')
+        if isinstance(resume_data_input, str):
+            try:
+                resume_data = json.loads(resume_data_input)
+            except Exception:
+                resume_data = None
+        else:
+            resume_data = resume_data_input
+            
         db = get_db()
         
         # Enforce directory existence
@@ -212,6 +225,9 @@ class ResumeUploadView(APIView):
             'file_url': full_url,
             'created_at': datetime.utcnow()
         }
+        if resume_data:
+            resume_doc['resumeData'] = resume_data
+            
         db.resumes.insert_one(resume_doc)
         resume_id = str(resume_doc['_id'])
         
@@ -275,10 +291,116 @@ class ResumeListView(APIView):
 
 class ResumeDetailView(APIView):
     """
+    GET /api/resume/<resume_id>
+    Retrieves the specific resume document along with its parsed JSON.
+    
+    PUT /api/resume/<resume_id>
+    Updates the resume data and PDF file.
+    
     DELETE /api/resume/<resume_id>
     Deletes the specific resume document. Scoped to authenticated user.
     """
     permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
+
+    def get(self, request, resume_id):
+        db = get_db()
+        try:
+            resume_obj_id = ObjectId(resume_id)
+        except Exception:
+            return Response({"error": "Invalid resume ID."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        resume = db.resumes.find_one({'_id': resume_obj_id})
+        if not resume:
+            return Response({"error": "Resume not found."}, status=status.HTTP_404_NOT_FOUND)
+            
+        if str(resume.get('user_id')) != request.user.id:
+            return Response({"error": "You do not have permission to view this resume."}, status=status.HTTP_403_FORBIDDEN)
+            
+        resume_data = resume.get('resumeData')
+        
+        # If resumeData doesn't exist, try to parse it from the saved PDF
+        if not resume_data and resume.get('file_path'):
+            file_path = resume.get('file_path')
+            full_disk_path = os.path.join(settings.MEDIA_ROOT, file_path)
+            if os.path.exists(full_disk_path):
+                try:
+                    raw_text = extract_resume_text(full_disk_path)
+                    resume_data = extract_resume_information(raw_text)
+                    # Save back to DB
+                    db.resumes.update_one({'_id': resume_obj_id}, {'$set': {'resumeData': resume_data}})
+                except Exception as e:
+                    print(f"Extraction error: {e}")
+                    resume_data = {}
+            else:
+                resume_data = {}
+                
+        return Response({
+            "id": str(resume['_id']),
+            "filename": resume.get('filename'),
+            "uploadDate": resume.get('uploadDate'),
+            "fileUrl": resume.get('file_url'),
+            "resumeData": resume_data or {}
+        }, status=status.HTTP_200_OK)
+
+    def put(self, request, resume_id):
+        import json
+        db = get_db()
+        try:
+            resume_obj_id = ObjectId(resume_id)
+        except Exception:
+            return Response({"error": "Invalid resume ID."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        resume = db.resumes.find_one({'_id': resume_obj_id})
+        if not resume:
+            return Response({"error": "Resume not found."}, status=status.HTTP_404_NOT_FOUND)
+            
+        if str(resume.get('user_id')) != request.user.id:
+            return Response({"error": "You do not have permission to update this resume."}, status=status.HTTP_403_FORBIDDEN)
+            
+        resume_data_input = request.data.get('resumeData')
+        if isinstance(resume_data_input, str):
+            try:
+                resume_data = json.loads(resume_data_input)
+            except Exception:
+                resume_data = None
+        else:
+            resume_data = resume_data_input
+            
+        update_fields = {'updated_at': datetime.utcnow()}
+        if resume_data:
+            update_fields['resumeData'] = resume_data
+            
+        file_obj = request.FILES.get('file')
+        if file_obj:
+            old_file_path = resume.get('file_path')
+            if old_file_path and default_storage.exists(old_file_path):
+                default_storage.delete(old_file_path)
+                
+            timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+            file_name = f"{timestamp}_{file_obj.name}"
+            # Ensure resumes directory exists
+            os.makedirs(os.path.join(settings.MEDIA_ROOT, 'resumes'), exist_ok=True)
+            file_path = os.path.join('resumes', file_name)
+            saved_path = default_storage.save(file_path, ContentFile(file_obj.read()))
+            full_url = request.build_absolute_uri(settings.MEDIA_URL + saved_path)
+            
+            update_fields['file_path'] = saved_path
+            update_fields['file_url'] = full_url
+            update_fields['filename'] = file_obj.name
+            
+            # Also update user's active resume if this is the active one
+            user_doc = db.users.find_one({'_id': ObjectId(request.user.id)})
+            if user_doc and user_doc.get('resume', {}).get('id') == resume_id:
+                db.users.update_one(
+                    {'_id': ObjectId(request.user.id)},
+                    {'$set': {'resume.filename': file_obj.name, 'updated_at': datetime.utcnow()}}
+                )
+            
+        db.resumes.update_one({'_id': resume_obj_id}, {'$set': update_fields})
+        
+        return Response({"message": "Resume updated successfully."}, status=status.HTTP_200_OK)
+
 
     def delete(self, request, resume_id):
         db = get_db()
@@ -335,6 +457,72 @@ class ResumeAnalysisView(APIView):
         exp_str = f"{latest_exp.get('role', '')} at {latest_exp.get('company', '')}" if latest_exp else "Fresher / No experience listed"
         return edu_str, exp_str
 
+    def _generate_analysis(self, request, resume, resume_obj_id, job_description=""):
+        db = get_db()
+        if not job_description:
+            job_description = "Software Engineer with experience in Python and React."
+            
+        from apps.core.ai.analysis_pipeline import analyze_resume_with_job
+        import os
+        from django.conf import settings
+        
+        full_disk_path = None
+        if resume.get('file_path'):
+            full_disk_path = os.path.join(settings.MEDIA_ROOT, resume.get('file_path'))
+            if not os.path.exists(full_disk_path):
+                full_disk_path = None
+                
+        resume_text = None
+        if not full_disk_path and resume.get('resumeData'):
+            import json
+            resume_text = json.dumps(resume.get('resumeData'))
+            
+        try:
+            analysis_result = analyze_resume_with_job(
+                resume_file_path=full_disk_path, 
+                job_description=job_description,
+                resume_text=resume_text
+            )
+            resume_analysis = analysis_result["resume_analysis"]
+            career_insights = analysis_result["career_insights"]
+            skill_gap = analysis_result["skill_gap_analysis"]
+            
+            edu_str, exp_str = self.get_user_details(request.user)
+            
+            analysis_data = {
+                "score": career_insights.get("match_score", 85),
+                "summary": {
+                    "name": request.user.name or "User",
+                    "email": request.user.email,
+                    "phone": request.user.phone_number or "",
+                    "education": edu_str,
+                    "experience": exp_str
+                },
+                "skills": resume_analysis.get("skills", []),
+                "missingSkills": [s["skill"] for s in skill_gap.get("missing_skills", [])],
+                "strengths": career_insights.get("strengths", []),
+                "weaknesses": [s["recommendation"] for s in career_insights.get("improvement_areas", [])],
+                "improvementTips": [s["recommendation"] for s in career_insights.get("improvement_areas", [])],
+                "resume_analysis": resume_analysis,
+                "job_analysis": analysis_result.get("job_analysis", {}),
+                "matching_result": analysis_result.get("matching_result", {}),
+                "skill_gap_analysis": skill_gap,
+                "career_insights": career_insights,
+                "learning_roadmap": analysis_result.get("learning_roadmap", {})
+            }
+        except Exception as e:
+            print(f"AI Pipeline Error: {e}")
+            return Response({"error": "Failed to analyze resume with AI."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        analysis_doc = {
+            'user_id': ObjectId(request.user.id),
+            'resume_id': resume_obj_id,
+            **analysis_data,
+            'created_at': datetime.utcnow()
+        }
+        db.resume_analyses.insert_one(analysis_doc)
+        return analysis_doc
+
     def get(self, request, resume_id):
         db = get_db()
         try:
@@ -354,24 +542,10 @@ class ResumeAnalysisView(APIView):
         analysis = db.resume_analyses.find_one({'resume_id': resume_obj_id})
         if not analysis:
             # Fallback to create analysis
-            edu_str, exp_str = self.get_user_details(request.user)
-            analysis_data = get_demo_analysis_data(
-                request.user.name, 
-                request.user.email, 
-                request.user.phone_number,
-                request.user.skills, 
-                edu_str, 
-                exp_str, 
-                resume.get('atsScore', 85)
-            )
-            analysis_doc = {
-                'user_id': ObjectId(request.user.id),
-                'resume_id': resume_obj_id,
-                **analysis_data,
-                'created_at': datetime.utcnow()
-            }
-            db.resume_analyses.insert_one(analysis_doc)
-            analysis = analysis_doc
+            job_description = request.query_params.get("jobDescription", "")
+            analysis = self._generate_analysis(request, resume, resume_obj_id, job_description)
+            if isinstance(analysis, Response):
+                return analysis
             
         # Format response
         return Response({
@@ -384,7 +558,13 @@ class ResumeAnalysisView(APIView):
             "missingSkills": analysis.get('missingSkills'),
             "strengths": analysis.get('strengths'),
             "weaknesses": analysis.get('weaknesses'),
-            "improvementTips": analysis.get('improvementTips')
+            "improvementTips": analysis.get('improvementTips'),
+            "resume_analysis": analysis.get("resume_analysis"),
+            "job_analysis": analysis.get("job_analysis"),
+            "matching_result": analysis.get("matching_result"),
+            "skill_gap_analysis": analysis.get("skill_gap_analysis"),
+            "career_insights": analysis.get("career_insights"),
+            "learning_roadmap": analysis.get("learning_roadmap")
         }, status=status.HTTP_200_OK)
 
     def post(self, request, resume_id):
@@ -406,23 +586,11 @@ class ResumeAnalysisView(APIView):
         db.resume_analyses.delete_many({'resume_id': resume_obj_id})
         
         # Generate fresh analysis
-        edu_str, exp_str = self.get_user_details(request.user)
-        analysis_data = get_demo_analysis_data(
-            request.user.name, 
-            request.user.email, 
-            request.user.phone_number,
-            request.user.skills, 
-            edu_str, 
-            exp_str, 
-            resume.get('atsScore', 85)
-        )
-        analysis_doc = {
-            'user_id': ObjectId(request.user.id),
-            'resume_id': resume_obj_id,
-            **analysis_data,
-            'created_at': datetime.utcnow()
-        }
-        db.resume_analyses.insert_one(analysis_doc)
+        job_description = request.data.get("jobDescription", "")
+        analysis_doc = self._generate_analysis(request, resume, resume_obj_id, job_description)
+        
+        if isinstance(analysis_doc, Response):
+            return analysis_doc
         
         return Response({
             "id": str(analysis_doc['_id']),
@@ -434,7 +602,13 @@ class ResumeAnalysisView(APIView):
             "missingSkills": analysis_doc.get('missingSkills'),
             "strengths": analysis_doc.get('strengths'),
             "weaknesses": analysis_doc.get('weaknesses'),
-            "improvementTips": analysis_doc.get('improvementTips')
+            "improvementTips": analysis_doc.get('improvementTips'),
+            "resume_analysis": analysis_doc.get("resume_analysis"),
+            "job_analysis": analysis_doc.get("job_analysis"),
+            "matching_result": analysis_doc.get("matching_result"),
+            "skill_gap_analysis": analysis_doc.get("skill_gap_analysis"),
+            "career_insights": analysis_doc.get("career_insights"),
+            "learning_roadmap": analysis_doc.get("learning_roadmap")
         }, status=status.HTTP_200_OK)
 
 
@@ -662,3 +836,41 @@ class CareerInsightsView(APIView):
             "timeline": insights_doc.get('timeline'),
             "demandTrend": insights_doc.get('demandTrend')
         }, status=status.HTTP_200_OK)
+
+
+class ResumeParseToBuilderView(APIView):
+    """
+    POST /api/resume/parse-to-builder
+    Parses a resume for the Resume Builder without saving as active.
+    """
+    permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request):
+        serializer = ResumeUploadSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        file_obj = serializer.validated_data['file']
+        
+        # Save file to a temporary location to process it
+        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'temp_resumes'), exist_ok=True)
+        timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+        file_name = f"temp_{timestamp}_{file_obj.name}"
+        file_path = os.path.join('temp_resumes', file_name)
+        saved_path = default_storage.save(file_path, ContentFile(file_obj.read()))
+        
+        full_disk_path = os.path.join(settings.MEDIA_ROOT, saved_path)
+        
+        try:
+            raw_text = extract_resume_text(full_disk_path)
+            structured_data = extract_resume_information(raw_text)
+        except Exception as e:
+            structured_data = {}
+            print(f"Extraction error: {e}")
+        finally:
+            # Clean up
+            if default_storage.exists(saved_path):
+                default_storage.delete(saved_path)
+                
+        return Response({"resumeData": structured_data}, status=status.HTTP_200_OK)

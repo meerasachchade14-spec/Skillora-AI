@@ -6,9 +6,11 @@ import {
   FaArrowUp,
 } from "react-icons/fa";
 
-function KeywordAnalysis() {
+function KeywordAnalysis({ matchingResult = {} }) {
 
-  const foundKeywords = [
+  const foundKeywords = matchingResult?.matched_skills?.length > 0 
+    ? matchingResult.matched_skills 
+    : [
     "React.js",
     "JavaScript",
     "Python",
@@ -19,7 +21,9 @@ function KeywordAnalysis() {
     "Tailwind CSS",
   ];
 
-  const missingKeywords = [
+  const missingKeywords = matchingResult?.missing_skills?.length > 0
+    ? matchingResult.missing_skills
+    : [
     "Docker",
     "AWS",
     "TypeScript",
@@ -28,7 +32,7 @@ function KeywordAnalysis() {
     "Redis",
   ];
 
-  const keywordScore = 82;
+  const keywordScore = Math.round(matchingResult?.skill_match_percentage || 82);
 
   return (
     <section className="bg-white rounded-[28px] border border-slate-200 shadow-sm p-6 md:p-8">

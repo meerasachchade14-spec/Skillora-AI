@@ -123,77 +123,53 @@ function ResumeAnalysis() {
 
 
     "ats-analysis": (
-
-      <ATSBreakdown />
-
+      <ATSBreakdown matchingResult={analysis.matching_result} />
     ),
 
-
     "skills": (
-
       <SkillsAnalysis
         skills={analysis.skills}
       />
-
     ),
-
 
     "experience": (
-
       <ExperienceAnalysis />
-
     ),
-
 
     "education": (
-
       <EducationAnalysis />
-
     ),
 
-
     "projects": (
-
       <ProjectsAnalysis />
-
     ),
 
     "certifications-achievements": (
-      
       <CertificationsAchievements />
     ),
 
-
     "keyword-match": (
-
-      <KeywordAnalysis />
-
+      <KeywordAnalysis matchingResult={analysis.matching_result} />
     ),
-
 
     "missing-skills": (
-
       <MissingSkills
         skills={analysis.missingSkills}
+        skillGapAnalysis={analysis.skill_gap_analysis}
+        learningRoadmap={analysis.learning_roadmap}
       />
-
     ),
 
-
     "profile-insights": (
-
       <ProfileInsights
         strengths={analysis.strengths}
         weaknesses={analysis.weaknesses}
+        careerInsights={analysis.career_insights}
       />
-
     ),
 
-
     "improvement-tips": (
-
       <ImprovementTips />
-
     ),
 
   };

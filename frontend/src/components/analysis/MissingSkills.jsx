@@ -8,61 +8,18 @@ import {
 } from "react-icons/fa";
 
 
-function MissingSkills({ skills = [] }) {
+function MissingSkills({ skills = [], skillGapAnalysis = {}, learningRoadmap = {} }) {
 
-
-  const skillData = [
-
-    {
-      name: "Docker",
-      demand: "Very High",
-      priority: 95,
-      color: "bg-red-500",
-    },
-
-    {
-      name: "AWS",
-      demand: "Very High",
-      priority: 92,
-      color: "bg-orange-500",
-    },
-
-    {
-      name: "TypeScript",
-      demand: "High",
-      priority: 88,
-      color: "bg-blue-500",
-    },
-
-    {
-      name: "Node.js",
-      demand: "High",
-      priority: 85,
-      color: "bg-green-500",
-    },
-
-    {
-      name: "CI/CD",
-      demand: "High",
-      priority: 80,
-      color: "bg-purple-500",
-    },
-
-  ];
-
-
-  const displayedSkills = skills.length
-    ? skills.map((name) => {
-        const found = skillData.find((s) => s.name.toLowerCase() === name.toLowerCase());
-        if (found) return found;
-        return {
-          name,
-          demand: "High",
-          priority: 75,
-          color: "bg-blue-500",
-        };
-      })
-    : skillData;
+  const missingSkillsData = skillGapAnalysis?.missing_skills || [];
+  
+  const displayedSkills = missingSkillsData.length
+    ? missingSkillsData.map((item) => ({
+        name: item.skill,
+        demand: item.category || "High",
+        priority: item.priority === "high" ? 95 : item.priority === "medium" ? 75 : 50,
+        color: item.priority === "high" ? "bg-red-500" : item.priority === "medium" ? "bg-orange-500" : "bg-blue-500",
+      }))
+    : [];
 
 
 
@@ -232,56 +189,24 @@ function MissingSkills({ skills = [] }) {
 
 
         <div className="grid md:grid-cols-2 gap-5">
-
-
-          <div className="rounded-3xl bg-slate-50 p-6">
-
-            <div className="flex items-center gap-3 mb-3">
-
-              <FaDocker className="text-blue-500 text-2xl" />
-
-              <h4 className="font-black">
-
-                Docker
-
-              </h4>
-
+          {(learningRoadmap?.roadmap || []).slice(0, 4).map((item, index) => (
+            <div key={index} className="rounded-3xl bg-slate-50 p-6">
+              <div className="flex items-center gap-3 mb-3">
+                <FaBookOpen className="text-blue-500 text-2xl" />
+                <h4 className="font-black capitalize">{item.skill}</h4>
+              </div>
+              <p className="text-slate-600 text-sm mb-2">Duration: {item.estimated_duration}</p>
+              <ul className="text-slate-500 text-xs list-disc list-inside">
+                {(item.topics || []).slice(0, 3).map((topic, i) => (
+                  <li key={i}>{topic}</li>
+                ))}
+              </ul>
             </div>
-
-            <p className="text-slate-600">
-
-              Learn containerization and deployment.
-
-            </p>
-
-          </div>
-
-
-          <div className="rounded-3xl bg-slate-50 p-6">
-
-            <div className="flex items-center gap-3 mb-3">
-
-              <FaCloud className="text-cyan-500 text-2xl" />
-
-              <h4 className="font-black">
-
-                Cloud Computing
-
-              </h4>
-
-            </div>
-
-            <p className="text-slate-600">
-
-              Learn cloud deployment and infrastructure.
-
-            </p>
-
-          </div>
-
-
+          ))}
+          {!(learningRoadmap?.roadmap?.length > 0) && (
+            <p className="text-slate-500">No learning roadmap available.</p>
+          )}
         </div>
-
       </div>
 
 

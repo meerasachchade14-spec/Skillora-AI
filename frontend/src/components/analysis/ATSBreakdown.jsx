@@ -4,39 +4,34 @@ import {
   FaChartLine,
 } from "react-icons/fa";
 
-function ATSBreakdown() {
+function ATSBreakdown({ matchingResult }) {
 
   const sections = [
     {
-      name: "Resume Formatting",
-      score: 20,
-      total: 20,
+      name: "TF-IDF Similarity",
+      score: matchingResult?.tfidf_similarity || 0,
+      total: 100,
     },
     {
-      name: "Skills Match",
-      score: 18,
-      total: 20,
+      name: "Skill Match",
+      score: matchingResult?.skill_match_percentage || 0,
+      total: 100,
     },
     {
-      name: "Experience",
-      score: 17,
-      total: 20,
+      name: "Semantic Similarity",
+      score: matchingResult?.semantic_similarity || 0,
+      total: 100,
     },
     {
-      name: "Projects",
-      score: 16,
-      total: 20,
+      name: "Skill Semantic Match",
+      score: matchingResult?.skill_semantic_similarity || 0,
+      total: 100,
     },
     {
-      name: "Education",
-      score: 10,
-      total: 10,
-    },
-    {
-      name: "Keywords",
-      score: 6,
-      total: 10,
-    },
+      name: "Final Score",
+      score: matchingResult?.final_match_score || 0,
+      total: 100,
+    }
   ];
 
   return (

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import resumeService from "../../services/resumeService";
 import { toast } from "react-hot-toast";
 import useAuth from "../../hooks/useAuth";
@@ -9,6 +10,7 @@ import {
   FaEye,
   FaDownload,
   FaTrash,
+  FaEdit,
 } from "react-icons/fa";
 
 
@@ -34,6 +36,7 @@ const mockResumes = [
 ];
 
 function ResumeHistory() {
+  const navigate = useNavigate();
   const { user, updateUser } = useAuth();
   const [resumes, setResumes] = useState(mockResumes);
   const [loading, setLoading] = useState(false);
@@ -91,6 +94,34 @@ function ResumeHistory() {
       window.open(resume.fileUrl, "_blank");
     } else {
       toast.error("File download link not available for demo resume.");
+    }
+  };
+
+  const handleEdit = async (resume) => {
+    if (!resume.id) {
+      toast.error("Cannot edit a mock resume.");
+      return;
+    }
+    try {
+      toast.loading("Loading resume data...", { id: "load-edit" });
+      const details = await resumeService.getResumeDetails(resume.id);
+      toast.dismiss("load-edit");
+      
+      if (details && details.resumeData) {
+        navigate('/resume-builder', {
+          state: {
+            resumeData: details.resumeData,
+            isEditing: true,
+            resumeId: resume.id
+          }
+        });
+      } else {
+        toast.error("Could not load resume data.");
+      }
+    } catch (err) {
+      toast.dismiss("load-edit");
+      console.error(err);
+      toast.error("Failed to load resume for editing.");
     }
   };
 
@@ -198,7 +229,7 @@ function ResumeHistory() {
 
             {/* Actions */}
 
-            <div className="grid grid-cols-3 gap-3 mt-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
 
               <button 
                 onClick={() => handleOpen(resume)}
@@ -208,6 +239,17 @@ function ResumeHistory() {
                 <FaEye />
 
                 View
+
+              </button>
+
+              <button 
+                onClick={() => handleEdit(resume)}
+                className="flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition cursor-pointer"
+              >
+
+                <FaEdit />
+
+                Edit
 
               </button>
 

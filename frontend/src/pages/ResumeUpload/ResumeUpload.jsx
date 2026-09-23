@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import authService from "../../services/authService";
 import resumeService from "../../services/resumeService";
@@ -7,13 +8,15 @@ import { toast } from "react-hot-toast";
 
 import UploadCard from "../../components/upload/UploadCard";
 import UploadArea from "../../components/upload/UploadArea";
-import UploadedResume from "../../components/upload/UploadedResume";
+import { FaSpinner } from "react-icons/fa";
 
 function ResumeUpload() {
   const { user, updateUser } = useAuth();
   const [file, setFile] = useState(null);
   const [analysis, setAnalysis] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user?.resume?.filename) {
@@ -55,9 +58,13 @@ function ResumeUpload() {
     }
   }, [user]);
 
-  const handleFileSelect = (selectedFile) => {
+  const handleFileSelect = async (selectedFile) => {
     setFile(selectedFile);
     setAnalysis(null);
+
+    if (selectedFile) {
+      await handleParseToBuilder(selectedFile);
+    }
   };
 
   const handleAnalyze = async () => {
@@ -108,21 +115,52 @@ function ResumeUpload() {
     }
   };
 
+  const handleParseToBuilder = async (fileToParse = file) => {
+    if (!fileToParse || !fileToParse.size) {
+      toast.error("Please upload a valid file first.");
+      return;
+    }
+
+    setIsParsing(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", fileToParse);
+      const response = await resumeService.parseToBuilder(formData);
+      
+      toast.success("Resume parsed successfully! Opening builder...");
+      navigate('/resume-builder', { state: { resumeData: response.resumeData } });
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.error || "Failed to parse resume.");
+    } finally {
+      setIsParsing(false);
+    }
+  };
+
 
   return (
     <div className="space-y-8">
       {/* TOP HERO */}
       <UploadCard />
 
-      {/* UPLOAD + ANALYSIS */}
-      <div className="grid lg:grid-cols-2 gap-8 items-start">
+      {/* UPLOAD AREA */}
+      <div className="max-w-3xl mx-auto">
         <UploadArea onFileSelect={handleFileSelect} />
-        <UploadedResume
-          file={file}
-          analysis={analysis}
-          isAnalyzing={isAnalyzing}
-          onAnalyze={handleAnalyze}
-        />
+        
+        {isParsing && (
+          <div className="mt-8 rounded-[24px] border border-violet-100 bg-violet-50 p-10 text-center">
+            <FaSpinner className="mx-auto text-4xl text-violet-600 animate-spin" />
+            <h3 className="font-black text-slate-800 mt-5">
+              Extracting your information...
+            </h3>
+            <p className="text-sm text-slate-500 mt-2">
+              Preparing data for the Resume Builder.
+            </p>
+            <div className="mt-6 h-2 bg-white rounded-full overflow-hidden">
+              <div className="h-full w-2/3 bg-gradient-to-r from-violet-500 to-blue-500 rounded-full animate-pulse" />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* HOW IT WORKS */}

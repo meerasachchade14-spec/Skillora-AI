@@ -11,8 +11,31 @@ const resumeService = {
     return response.data;
   },
 
+  parseToBuilder: async (formData) => {
+    const response = await api.post('/resume/parse-to-builder', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
   getResumes: async () => {
     const response = await api.get('/resume');
+    return response.data;
+  },
+
+  getResumeDetails: async (resumeId) => {
+    const response = await api.get(`/resume/${resumeId}`);
+    return response.data;
+  },
+
+  updateResume: async (resumeId, formData) => {
+    const response = await api.put(`/resume/${resumeId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   },
 

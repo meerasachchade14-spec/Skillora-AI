@@ -15,6 +15,8 @@ function UploadedResume({
   analysis,
   isAnalyzing,
   onAnalyze,
+  isParsing,
+  onParseToBuilder,
 }) {
   const isWordFile =
     file?.name?.toLowerCase().endsWith(".doc") ||
@@ -71,7 +73,7 @@ function UploadedResume({
 
       {/* FILE SELECTED BUT NOT ANALYZED */}
 
-      {file && !analysis && !isAnalyzing && (
+      {file && !analysis && !isAnalyzing && !isParsing && (
 
         <>
 
@@ -139,40 +141,45 @@ function UploadedResume({
 
           </div>
 
-          <button
-            type="button"
-            onClick={onAnalyze}
-            className="w-full mt-6 py-4 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white font-bold hover:from-violet-700 hover:to-blue-700 transition shadow-lg shadow-violet-500/20"
-          >
+          <div className="grid grid-cols-2 gap-3 mt-6">
+            <button
+              type="button"
+              onClick={onAnalyze}
+              className="w-full py-4 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white font-bold hover:from-violet-700 hover:to-blue-700 transition shadow-lg shadow-violet-500/20"
+            >
+              <span className="flex items-center justify-center gap-2">
+                <FaRobot />
+                Analyze Resume
+              </span>
+            </button>
 
-            <span className="flex items-center justify-center gap-2">
-
-              <FaRobot />
-
-              Analyze Resume with AI
-
-            </span>
-
-          </button>
-
+            <button
+              type="button"
+              onClick={onParseToBuilder}
+              className="w-full py-4 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 hover:border-slate-300 transition shadow-sm"
+            >
+              <span className="flex items-center justify-center gap-2">
+                Edit in Builder
+              </span>
+            </button>
+          </div>
         </>
-
       )}
 
       {/* LOADING */}
 
-      {isAnalyzing && (
+      {(isAnalyzing || isParsing) && (
 
         <div className="rounded-[24px] border border-violet-100 bg-violet-50 p-10 text-center">
 
           <FaSpinner className="mx-auto text-4xl text-violet-600 animate-spin" />
 
           <h3 className="font-black text-slate-800 mt-5">
-            AI is analyzing your resume...
+            {isParsing ? "Extracting your information..." : "AI is analyzing your resume..."}
           </h3>
 
           <p className="text-sm text-slate-500 mt-2">
-            Reviewing structure, skills, keywords and ATS compatibility.
+            {isParsing ? "Preparing data for the Resume Builder." : "Reviewing structure, skills, keywords and ATS compatibility."}
           </p>
 
           <div className="mt-6 h-2 bg-white rounded-full overflow-hidden">
@@ -187,7 +194,7 @@ function UploadedResume({
 
       {/* ANALYSIS RESULT */}
 
-      {analysis && !isAnalyzing && (
+      {analysis && !isAnalyzing && !isParsing && (
 
         <div className="space-y-5">
 

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 import Stepper from "../../components/resumebuilder/Stepper";
 import TemplateSelector from "../../components/resumebuilder/TemplateSelector";
@@ -18,7 +19,6 @@ import VolunteerForm from "../../components/resumebuilder/VolunteerForm";
 import CustomSectionForm from "../../components/resumebuilder/CustomSectionForm";
 
 import ResumePreview from "../../components/resumebuilder/ResumePreview";
-import AISuggestions from "../../components/resumebuilder/AISuggestions";
 import DownloadResume from "../../components/resumebuilder/DownloadResume";
 
 const steps = [
@@ -41,10 +41,11 @@ export default function ResumeBuilder() {
   const [theme, setTheme] = useState("blue");
   const [font, setFont] = useState("Poppins");
 
-  const [showInsights, setShowInsights] = useState(false);
   const [showDownload, setShowDownload] = useState(false);
 
-  const [resumeData, setResumeData] = useState({
+  const location = useLocation();
+
+  const defaultResumeData = {
     personal: {},
     education: [],
     experience: [],
@@ -55,6 +56,14 @@ export default function ResumeBuilder() {
     achievements: [],
     volunteer: [],
     customSections: [],
+  };
+
+  const [resumeData, setResumeData] = useState(() => {
+    if (location.state?.resumeData) {
+      // Merge with default to ensure all arrays exist even if parser missed them
+      return { ...defaultResumeData, ...location.state.resumeData };
+    }
+    return defaultResumeData;
   });
 
   const nextStep = () => {
@@ -385,52 +394,19 @@ export default function ResumeBuilder() {
 
 
             {/* =====================================================
-                ACTION BUTTONS
+                QUICK ACTIONS
             ====================================================== */}
 
-            <div className="grid grid-cols-2 gap-3 mt-4">
-
-              <button
-                type="button"
-                onClick={() => {
-                  setShowInsights(true);
-                  setShowDownload(false);
-                }}
-                className="
-                  group
-                  flex
-                  items-center
-                  justify-center
-                  gap-2
-                  px-4
-                  py-3.5
-                  rounded-2xl
-                  bg-gradient-to-r
-                  from-violet-600
-                  to-purple-600
-                  text-white
-                  text-sm
-                  font-bold
-                  shadow-lg
-                  shadow-purple-200
-                  transition
-                  hover:-translate-y-0.5
-                  hover:shadow-xl
-                "
-              >
-                <span className="text-lg">✦</span>
-                AI Insights
-              </button>
-
+            <div className="mt-4">
 
               <button
                 type="button"
                 onClick={() => {
                   setShowDownload(true);
-                  setShowInsights(false);
                 }}
                 className="
                   flex
+                  w-full
                   items-center
                   justify-center
                   gap-2
@@ -460,81 +436,6 @@ export default function ResumeBuilder() {
 
       </div>
 
-
-      {/* =====================================================
-          AI INSIGHTS MODAL
-      ====================================================== */}
-
-      {showInsights && (
-
-        <div
-          className="
-            fixed
-            inset-0
-            z-50
-            flex
-            items-center
-            justify-center
-            p-4
-            bg-slate-950/60
-            backdrop-blur-sm
-          "
-          onClick={() => setShowInsights(false)}
-        >
-
-          <div
-            className="
-              relative
-              w-full
-              max-w-2xl
-              max-h-[90vh]
-              overflow-y-auto
-              rounded-[28px]
-              bg-white
-              shadow-2xl
-            "
-            onClick={(e) => e.stopPropagation()}
-          >
-
-            {/* CLOSE BUTTON */}
-
-            <button
-              type="button"
-              onClick={() => setShowInsights(false)}
-              className="
-                absolute
-                top-4
-                right-4
-                z-10
-                w-10
-                h-10
-                rounded-xl
-                bg-slate-100
-                text-slate-500
-                flex
-                items-center
-                justify-center
-                text-xl
-                font-bold
-                hover:bg-red-50
-                hover:text-red-500
-                transition
-              "
-              aria-label="Close AI Insights"
-            >
-              ×
-            </button>
-
-
-            <AISuggestions
-              resumeData={resumeData}
-            />
-
-          </div>
-
-        </div>
-
-      )}
 
 
       {/* =====================================================
@@ -603,6 +504,8 @@ export default function ResumeBuilder() {
 
             <DownloadResume
               resumeData={resumeData}
+              isEditing={location.state?.isEditing}
+              resumeId={location.state?.resumeId}
             />
 
           </div>

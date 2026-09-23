@@ -12,6 +12,8 @@ function ProfileInsights({
   strengths = [],
 
   weaknesses = [],
+  
+  careerInsights = {},
 
 }) {
 
@@ -210,10 +212,7 @@ function ProfileInsights({
 
   <p className="text-blue-50 leading-8">
 
-    Your profile shows strong potential for software engineering roles.
-    Strengthening your technical depth, adding measurable achievements,
-    and building a consistent project portfolio can significantly improve
-    your overall career readiness.
+    {careerInsights?.career_recommendation || "Your profile shows strong potential for software engineering roles. Strengthening your technical depth, adding measurable achievements, and building a consistent project portfolio can significantly improve your overall career readiness."}
 
   </p>
 
@@ -234,7 +233,7 @@ function ProfileInsights({
 
           <span className="font-black text-blue-600">
 
-            86%
+            {careerInsights?.match_score || 86}%
 
           </span>
 
@@ -247,7 +246,7 @@ function ProfileInsights({
 
             className="h-full rounded-full bg-gradient-to-r from-blue-600 to-sky-400"
 
-            style={{ width: "86%" }}
+            style={{ width: `${careerInsights?.match_score || 86}%` }}
 
           />
 
