@@ -133,15 +133,15 @@ function ResumeAnalysis() {
     ),
 
     "experience": (
-      <ExperienceAnalysis />
+      <ExperienceAnalysis experience={analysis.extracted_info?.experience} />
     ),
 
     "education": (
-      <EducationAnalysis />
+      <EducationAnalysis education={analysis.extracted_info?.education} />
     ),
 
     "projects": (
-      <ProjectsAnalysis />
+      <ProjectsAnalysis projects={analysis.extracted_info?.projects} />
     ),
 
     "certifications-achievements": (

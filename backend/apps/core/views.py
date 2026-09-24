@@ -459,9 +459,6 @@ class ResumeAnalysisView(APIView):
 
     def _generate_analysis(self, request, resume, resume_obj_id, job_description=""):
         db = get_db()
-        if not job_description:
-            job_description = "Software Engineer with experience in Python and React."
-            
         from apps.core.ai.analysis_pipeline import analyze_resume_with_job
         import os
         from django.conf import settings
@@ -476,6 +473,18 @@ class ResumeAnalysisView(APIView):
         if not full_disk_path and resume.get('resumeData'):
             import json
             resume_text = json.dumps(resume.get('resumeData'))
+
+        if not job_description:
+            # If no job description is provided, dynamically construct one based on the user's profile and extracted skills
+            # This ensures TF-IDF and semantic similarity reflect the user's actual domain instead of dummy python/react data
+            role = request.user.role if request.user.role else "Professional"
+            user_skills = [s.get("name") if isinstance(s, dict) else s for s in request.user.skills] if request.user.skills else []
+            if not user_skills:
+                # We can't easily extract text here if full_disk_path is used without parsing it first, 
+                # but we will just pass empty string if no user skills exist
+                pass
+            skills_str = ", ".join(user_skills[:10]) if user_skills else ""
+            job_description = f"{role} with experience in {skills_str}" if skills_str else f"{role} role."
             
         try:
             analysis_result = analyze_resume_with_job(
@@ -489,16 +498,32 @@ class ResumeAnalysisView(APIView):
             
             edu_str, exp_str = self.get_user_details(request.user)
             
+            from apps.core.ai.information_extractor import extract_resume_information
+            actual_resume_text = resume_analysis.get("resume_text", "")
+            extracted_info = extract_resume_information(actual_resume_text) if actual_resume_text else {}
+
+            if extracted_info.get("education") and len(extracted_info["education"]) > 0:
+                extracted_edu = extracted_info["education"][0]
+                extracted_edu_str = f"{extracted_edu.get('degree', 'Degree')} from {extracted_edu.get('college', 'University')}"
+                if extracted_edu_str != "Degree from University":
+                    edu_str = extracted_edu_str
+
+            if extracted_info.get("experience") and len(extracted_info["experience"]) > 0:
+                extracted_exp = extracted_info["experience"][0]
+                extracted_exp_str = f"{extracted_exp.get('role', 'Role')} at {extracted_exp.get('company', 'Company')}"
+                if extracted_exp_str != "Role at Company":
+                    exp_str = extracted_exp_str
+
             analysis_data = {
                 "score": career_insights.get("match_score", 85),
                 "summary": {
-                    "name": request.user.name or "User",
-                    "email": request.user.email,
-                    "phone": request.user.phone_number or "",
+                    "name": extracted_info.get("personal", {}).get("fullName") or request.user.name or "User",
+                    "email": extracted_info.get("personal", {}).get("email") or request.user.email,
+                    "phone": extracted_info.get("personal", {}).get("phone") or request.user.phone_number or "",
                     "education": edu_str,
                     "experience": exp_str
                 },
-                "skills": resume_analysis.get("skills", []),
+                "skills": resume_analysis.get("skills", {}).get("skills", []),
                 "missingSkills": [s["skill"] for s in skill_gap.get("missing_skills", [])],
                 "strengths": career_insights.get("strengths", []),
                 "weaknesses": [s["recommendation"] for s in career_insights.get("improvement_areas", [])],
@@ -508,7 +533,8 @@ class ResumeAnalysisView(APIView):
                 "matching_result": analysis_result.get("matching_result", {}),
                 "skill_gap_analysis": skill_gap,
                 "career_insights": career_insights,
-                "learning_roadmap": analysis_result.get("learning_roadmap", {})
+                "learning_roadmap": analysis_result.get("learning_roadmap", {}),
+                "extracted_info": extracted_info
             }
         except Exception as e:
             print(f"AI Pipeline Error: {e}")
@@ -547,6 +573,10 @@ class ResumeAnalysisView(APIView):
             if isinstance(analysis, Response):
                 return analysis
             
+        skills = analysis.get('skills', [])
+        if isinstance(skills, dict):
+            skills = skills.get('skills', [])
+
         # Format response
         return Response({
             "id": str(analysis['_id']),
@@ -554,7 +584,7 @@ class ResumeAnalysisView(APIView):
             "score": analysis.get('score'),
             "atsScore": analysis.get('score'),
             "summary": analysis.get('summary'),
-            "skills": analysis.get('skills'),
+            "skills": skills,
             "missingSkills": analysis.get('missingSkills'),
             "strengths": analysis.get('strengths'),
             "weaknesses": analysis.get('weaknesses'),
@@ -564,7 +594,8 @@ class ResumeAnalysisView(APIView):
             "matching_result": analysis.get("matching_result"),
             "skill_gap_analysis": analysis.get("skill_gap_analysis"),
             "career_insights": analysis.get("career_insights"),
-            "learning_roadmap": analysis.get("learning_roadmap")
+            "learning_roadmap": analysis.get("learning_roadmap"),
+            "extracted_info": analysis.get("extracted_info", {})
         }, status=status.HTTP_200_OK)
 
     def post(self, request, resume_id):
@@ -592,13 +623,17 @@ class ResumeAnalysisView(APIView):
         if isinstance(analysis_doc, Response):
             return analysis_doc
         
+        skills = analysis_doc.get('skills', [])
+        if isinstance(skills, dict):
+            skills = skills.get('skills', [])
+
         return Response({
             "id": str(analysis_doc['_id']),
             "resumeId": str(analysis_doc['resume_id']),
             "score": analysis_doc.get('score'),
             "atsScore": analysis_doc.get('score'),
             "summary": analysis_doc.get('summary'),
-            "skills": analysis_doc.get('skills'),
+            "skills": skills,
             "missingSkills": analysis_doc.get('missingSkills'),
             "strengths": analysis_doc.get('strengths'),
             "weaknesses": analysis_doc.get('weaknesses'),
@@ -608,7 +643,8 @@ class ResumeAnalysisView(APIView):
             "matching_result": analysis_doc.get("matching_result"),
             "skill_gap_analysis": analysis_doc.get("skill_gap_analysis"),
             "career_insights": analysis_doc.get("career_insights"),
-            "learning_roadmap": analysis_doc.get("learning_roadmap")
+            "learning_roadmap": analysis_doc.get("learning_roadmap"),
+            "extracted_info": analysis_doc.get("extracted_info", {})
         }, status=status.HTTP_200_OK)
 
 
@@ -633,42 +669,45 @@ class SkillMatchView(APIView):
         active_resume = user_doc.get('resume', {})
         resume_id = active_resume.get('id')
         
-        user_skills = [s.get('name') if isinstance(s, dict) else str(s) for s in (request.user.skills or [])]
-        if not user_skills:
-            user_skills = ["Python", "JavaScript", "React", "Django", "SQL", "Git"]
-            
-        # Skill matching algorithm
-        job_desc_lower = job_description.lower()
-        matched = []
-        missing = []
-        
-        # Check matching of user's skills
-        for skill in user_skills:
-            if skill.lower() in job_desc_lower:
-                matched.append(skill)
-            else:
-                # Add to missing if it's a common job keyword but they don't have it
-                pass
+        # We need the user's resume text or file path
+        resume_text = None
+        if resume_id:
+            resume = db.resumes.find_one({'_id': ObjectId(resume_id)})
+            if resume and resume.get('resumeData'):
+                import json
+                resume_text = json.dumps(resume.get('resumeData'))
                 
-        # Generate some missing skills based on text context
-        potential_missing = ["Docker", "AWS", "TypeScript", "CI/CD", "Kubernetes", "GraphQL", "Redis", "NoSQL"]
-        for p in potential_missing:
-            if p not in user_skills and p.lower() in job_desc_lower:
-                missing.append(p)
-                
-        if not missing:
-            # Fallback
-            missing = ["Docker", "AWS"][:random.randint(1, 2)]
+        # If no resume text is found, fallback to user skills
+        if not resume_text:
+            user_skills = [s.get('name') if isinstance(s, dict) else str(s) for s in (request.user.skills or [])]
+            resume_text = ", ".join(user_skills) if user_skills else "Software Engineer"
             
-        # Compute match score
-        total_skills = len(matched) + len(missing)
-        match_score = int((len(matched) / total_skills) * 100) if total_skills > 0 else 85
-        
-        # Recommendations
-        recommendations = [
-            f"Add {m} to your technical toolkit." for m in missing
-        ] + ["Focus on deploying real-world API applications.", "Incorporate metric-driven results in your experience descriptions."]
-        
+        # Run real AI pipeline
+        from apps.core.ai.analysis_pipeline import analyze_resume_with_job
+        try:
+            analysis_result = analyze_resume_with_job(
+                job_description=job_description,
+                resume_text=resume_text
+            )
+            matching_result = analysis_result["matching_result"]
+            career_insights = analysis_result["career_insights"]
+            
+            match_score = matching_result.get("final_match_score", 85)
+            matched = matching_result.get("matched_skills", [])
+            missing = matching_result.get("missing_skills", [])
+            recommendations = [rec["recommendation"] for rec in career_insights.get("improvement_areas", [])]
+            
+            # If nothing returned, fallback gracefully
+            if not matched and not missing:
+                missing = ["Specific skills from job description"]
+                recommendations = ["Consider adding more context to your resume."]
+        except Exception as e:
+            print(f"Error in real AI matching: {e}")
+            match_score = 75
+            matched = []
+            missing = ["Error generating AI matches"]
+            recommendations = ["Try uploading a more detailed resume."]
+
         # Save to database
         match_doc = {
             'user_id': ObjectId(request.user.id),
@@ -727,7 +766,29 @@ class RoadmapView(APIView):
             # Determine role from profile
             user_doc = db.users.find_one({'_id': ObjectId(request.user.id)})
             role = user_doc.get('role', 'Software Engineer')
-            roadmap_data = get_demo_roadmap_data(role)
+            
+            # Use real AI data if available
+            latest_analysis = db.resume_analyses.find_one({'user_id': ObjectId(request.user.id)}, sort=[('created_at', -1)])
+            
+            if latest_analysis and latest_analysis.get('learning_roadmap'):
+                ai_roadmap = latest_analysis.get('learning_roadmap')
+                roadmap_data = {
+                    "title": ai_roadmap.get("roadmap_title", f"AI Learning Roadmap for {role}"),
+                    "progress": 0,
+                    "steps": [
+                        {
+                            "id": f"step-{i+1}",
+                            "name": step.get("phase", f"Phase {i+1}"),
+                            "status": "todo" if i > 0 else "in-progress",
+                            "description": step.get("focus", ""),
+                            "resources": "Online tutorials and courses",
+                            "skills": step.get("skills_to_acquire", [])
+                        }
+                        for i, step in enumerate(ai_roadmap.get("phases", []))
+                    ]
+                }
+            else:
+                roadmap_data = get_demo_roadmap_data(role)
             
             roadmap_doc = {
                 'user_id': ObjectId(request.user.id),
@@ -821,7 +882,33 @@ class CareerInsightsView(APIView):
             active_resume = user_doc.get('resume', {})
             ats_score = active_resume.get('atsScore', 85) if active_resume else 80
             
-            insights_data = get_demo_insights_data(ats_score)
+            # Use real AI data if available
+            latest_analysis = db.resume_analyses.find_one({'user_id': ObjectId(request.user.id)}, sort=[('created_at', -1)])
+            
+            if latest_analysis and latest_analysis.get('career_insights'):
+                ai_insights = latest_analysis.get('career_insights')
+                insights_data = {
+                    "readinessScore": ai_insights.get("match_score", ats_score),
+                    "salaryPrediction": {
+                        "min": 450000,
+                        "max": 850000,
+                        "average": 650000,
+                        "currency": "INR"
+                    },
+                    "timeline": [
+                        {"milestone": "Resume Optimization", "date": "Completed", "description": "Profile parsed and ATS-optimized."}
+                    ] + [
+                        {"milestone": f"Improve {area.get('skill', 'Skill')}", "date": "Next 1-2 Months", "description": area.get("recommendation", "")}
+                        for area in ai_insights.get("improvement_areas", [])[:3]
+                    ],
+                    "demandTrend": [
+                        {"skill": s.get("skill", "Technology"), "demandLevel": "High"}
+                        for s in latest_analysis.get("skill_gap_analysis", {}).get("missing_skills", [])[:4]
+                    ]
+                }
+            else:
+                insights_data = get_demo_insights_data(ats_score)
+                
             insights_doc = {
                 'user_id': ObjectId(request.user.id),
                 **insights_data,

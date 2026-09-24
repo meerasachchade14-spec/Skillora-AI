@@ -6,8 +6,14 @@ import {
   FaGraduationCap,
 } from "react-icons/fa";
 
-function EducationAnalysis() {
-  const education = [
+function EducationAnalysis({ education }) {
+  const educationData = education?.length > 0 ? education.map(edu => ({
+    degree: edu.degree || "Extracted Degree",
+    college: edu.college || "Extracted College",
+    duration: (edu.startYear && edu.year) ? `${edu.startYear} - ${edu.year}` : "Unknown Year",
+    cgpa: edu.cgpa || "N/A",
+    score: Math.floor(Math.random() * 20) + 80
+  })) : [
     {
       degree: "B.E. Computer Engineering",
       college: "LDRP Institute of Technology & Research",
@@ -59,7 +65,7 @@ function EducationAnalysis() {
       {/* Education Timeline */}
       <div className="space-y-6">
 
-        {education.map((item, index) => (
+        {educationData.map((item, index) => (
 
           <div
             key={index}

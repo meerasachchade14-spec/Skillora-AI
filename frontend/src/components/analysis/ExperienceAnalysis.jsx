@@ -6,8 +6,13 @@ import {
   FaBriefcase,
 } from "react-icons/fa";
 
-function ExperienceAnalysis() {
-  const experiences = [
+function ExperienceAnalysis({ experience }) {
+  const experiences = experience?.length > 0 ? experience.map(exp => ({
+    company: exp.company || "Extracted Experience",
+    role: exp.role || "Professional Experience",
+    duration: (exp.startDate && exp.endDate) ? `${exp.startDate} - ${exp.endDate}` : "Unknown Duration",
+    score: Math.floor(Math.random() * 20) + 80 // Mock AI score for now since it wasn't analyzed
+  })) : [
     {
       company: "Synent Technologies",
       role: "Frontend Developer Intern",

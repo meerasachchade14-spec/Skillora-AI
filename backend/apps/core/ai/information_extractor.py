@@ -9,13 +9,15 @@ def extract_resume_information(text):
     """
     data = {
         "personal": {
-            "firstName": "",
-            "lastName": "",
+            "fullName": "",
             "email": "",
             "phone": "",
-            "location": "",
-            "jobTitle": "",
-            "summary": ""
+            "address": "",
+            "title": "",
+            "summary": "",
+            "linkedin": "",
+            "github": "",
+            "portfolio": ""
         },
         "education": [],
         "experience": [],
@@ -49,17 +51,13 @@ def extract_resume_information(text):
     intro_doc = nlp(text[:200])
     for ent in intro_doc.ents:
         if ent.label_ == "PERSON":
-            name_parts = ent.text.split()
-            if len(name_parts) >= 1:
-                data["personal"]["firstName"] = name_parts[0]
-            if len(name_parts) >= 2:
-                data["personal"]["lastName"] = " ".join(name_parts[1:])
+            data["personal"]["fullName"] = ent.text
             break
 
     # 4. Extract Location
     for ent in intro_doc.ents:
         if ent.label_ in ["GPE", "LOC"]:
-            data["personal"]["location"] = ent.text
+            data["personal"]["address"] = ent.text
             break
 
     # 5. Extract Sections based on Keywords
@@ -86,12 +84,34 @@ def extract_resume_information(text):
         elif current_section:
             section_content[current_section].append(line.strip())
             
+    from sklearn.feature_extraction.text import TfidfVectorizer
+
+    def extract_keywords_tfidf(text, top_n=3):
+        if not text.strip():
+            return "Extracted Detail"
+        try:
+            vectorizer = TfidfVectorizer(stop_words='english', max_features=top_n)
+            tfidf_matrix = vectorizer.fit_transform([text])
+            feature_names = vectorizer.get_feature_names_out()
+            scores = tfidf_matrix.toarray()[0]
+            # sort features by score
+            sorted_indices = scores.argsort()[::-1]
+            top_features = [feature_names[i].title() for i in sorted_indices[:top_n] if scores[i] > 0]
+            if top_features:
+                return " ".join(top_features)
+        except Exception:
+            pass
+        return "Extracted Detail"
+            
     # Process Experience
     if section_content["experience"]:
         exp_text = " ".join(section_content["experience"])
+        role_keywords = extract_keywords_tfidf(exp_text, top_n=2)
+        company_keywords = extract_keywords_tfidf(exp_text[len(exp_text)//2:], top_n=2)
+        
         data["experience"].append({
-            "company": "Extracted Experience",
-            "role": "",
+            "company": company_keywords if company_keywords != "Extracted Detail" else "Company",
+            "role": role_keywords if role_keywords != "Extracted Detail" else "Role",
             "location": "",
             "startDate": "",
             "endDate": "",
@@ -101,22 +121,31 @@ def extract_resume_information(text):
     # Process Education
     if section_content["education"]:
         edu_text = " ".join(section_content["education"])
+        degree_keywords = extract_keywords_tfidf(edu_text, top_n=2)
+        college_keywords = extract_keywords_tfidf(edu_text[len(edu_text)//2:], top_n=2)
         data["education"].append({
-            "institution": "Extracted Education",
-            "degree": "",
+            "type": "College / University",
+            "college": college_keywords if college_keywords != "Extracted Detail" else "University",
+            "degree": degree_keywords if degree_keywords != "Extracted Detail" else "Degree",
             "fieldOfStudy": "",
-            "startDate": "",
-            "endDate": "",
+            "startYear": "",
+            "year": "",
+            "cgpa": "",
             "description": edu_text[:300] + ("..." if len(edu_text) > 300 else "")
         })
         
     # Process Projects
     if section_content["projects"]:
         proj_text = " ".join(section_content["projects"])
+        title_keywords = extract_keywords_tfidf(proj_text, top_n=3)
         data["projects"].append({
-            "name": "Extracted Project",
+            "title": title_keywords if title_keywords != "Extracted Detail" else "Project",
             "description": proj_text[:300] + ("..." if len(proj_text) > 300 else ""),
-            "link": ""
+            "live": "",
+            "github": "",
+            "technologies": "",
+            "projectType": "",
+            "role": ""
         })
 
     # Process Skills
@@ -126,9 +155,7 @@ def extract_resume_information(text):
         for s in raw_skills:
             clean_s = s.strip()
             if clean_s and len(clean_s) < 30:
-                data["skills"].append({
-                    "name": clean_s,
-                    "level": "Intermediate"
-                })
+                data["skills"].append(clean_s)
 
     return data
+
