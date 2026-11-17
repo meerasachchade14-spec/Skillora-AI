@@ -28,7 +28,7 @@ link: "https://github.com/NishaSatasiya",
 linkedin: [
 {
 name: "Meera Sachchade",
-link: "https://www.linkedin.com/in/meera-sachchade-208123395/",
+link: "https://www.linkedin.com/in/meera-sachchade/",
 },
 {
 name: "Jhanvi Ramani",
