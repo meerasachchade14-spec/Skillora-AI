@@ -21,13 +21,116 @@ from apps.authentication.views import get_user_profile_response_dict
 from apps.core.ai.resume_parser import extract_resume_text
 from apps.core.ai.information_extractor import extract_resume_information
 
-# Helpers for generating realistic career/resume mock-analyzed data
-def generate_ats_score(filename, user_skills):
-    # Base score on filename and skills length
-    base = 75
-    overlap_bonus = min(len(user_skills) * 2, 15)
-    random_variation = random.randint(0, 8)
-    return min(base + overlap_bonus + random_variation, 98)
+def text_from_resume_data(resume_data):
+    """
+    Reconstructs clean plain text from structured resumeData JSON.
+    Essential when resumes are created in Resume Builder (which exports canvas images).
+    """
+    if not isinstance(resume_data, dict):
+        return ""
+    parts = []
+    personal = resume_data.get("personal", {})
+    if isinstance(personal, dict):
+        for k in ["fullName", "title", "email", "phone", "address", "summary", "linkedin", "github", "portfolio"]:
+            if personal.get(k):
+                parts.append(str(personal[k]))
+                
+    skills = resume_data.get("skills", [])
+    if skills:
+        parts.append("Skills: " + ", ".join(str(s) for s in skills))
+        
+    for exp in resume_data.get("experience", []):
+        if isinstance(exp, dict):
+            parts.append(f"Experience: {exp.get('role', '')} at {exp.get('company', '')}. {exp.get('description', '')}")
+            
+    for edu in resume_data.get("education", []):
+        if isinstance(edu, dict):
+            parts.append(f"Education: {edu.get('degree', '')} at {edu.get('college', '')}. {edu.get('description', '')}")
+            
+    for proj in resume_data.get("projects", []):
+        if isinstance(proj, dict):
+            parts.append(f"Project: {proj.get('title', '')}. {proj.get('technologies', '')}. {proj.get('description', '')}")
+
+    for cert in resume_data.get("certifications", []):
+        if isinstance(cert, dict):
+            parts.append(f"Certification: {cert.get('name', cert.get('title', ''))} by {cert.get('issuer', '')}")
+            
+    return "\n".join(parts)
+
+
+def calculate_resume_quality_score(resume_text, skills_data, extracted_info):
+    """
+    Calculates a deterministic 0-100 ATS resume quality and completeness score
+    based strictly on the actual uploaded resume content (no random numbers, no fake job).
+    """
+    if not resume_text or not resume_text.strip():
+        return 0
+
+    score = 0
+    words = resume_text.split()
+    word_count = len(words)
+
+    personal = extracted_info.get("personal", {}) if isinstance(extracted_info, dict) else {}
+    education = extracted_info.get("education", []) if isinstance(extracted_info, dict) else []
+    experience = extracted_info.get("experience", []) if isinstance(extracted_info, dict) else []
+    projects = extracted_info.get("projects", []) if isinstance(extracted_info, dict) else []
+    skills = skills_data.get("skills", []) if isinstance(skills_data, dict) else []
+    categories = skills_data.get("categories", {}) if isinstance(skills_data, dict) else {}
+
+    # 1. Contact Information Completeness (up to 15 points)
+    if personal.get("fullName"):
+        score += 5
+    if personal.get("email"):
+        score += 5
+    if personal.get("phone"):
+        score += 5
+
+    # 2. Structural Section Coverage (up to 40 points)
+    if education and len(education) > 0:
+        score += 15
+    elif "education" in resume_text.lower():
+        score += 10
+
+    if experience and len(experience) > 0:
+        score += 15
+    elif "experience" in resume_text.lower() or "internship" in resume_text.lower():
+        score += 10
+
+    if projects and len(projects) > 0:
+        score += 10
+    elif "project" in resume_text.lower():
+        score += 7
+
+    # 3. Technical Skills Breadth & Taxonomy Coverage (up to 30 points)
+    skill_count = len(skills)
+    if skill_count >= 8:
+        score += 25
+    elif skill_count >= 5:
+        score += 20
+    elif skill_count >= 3:
+        score += 15
+    elif skill_count >= 1:
+        score += 10
+
+    if len(categories) >= 3:
+        score += 5
+    elif len(categories) >= 1:
+        score += 3
+
+    # 4. Content Volume & Substance (up to 15 points)
+    if word_count >= 250:
+        score += 10
+    elif word_count >= 100:
+        score += 6
+    elif word_count >= 50:
+        score += 3
+
+    import re
+    has_metrics = bool(re.search(r'\d+%', resume_text) or re.search(r'\$\d+', resume_text) or re.search(r'\b\d+\s*(?:users|clients|projects|features|x|times)\b', resume_text, re.IGNORECASE))
+    if has_metrics:
+        score += 5
+
+    return min(max(score, 10), 98)
 
 def get_demo_analysis_data(user_name, user_email, user_phone, user_skills, education_str, experience_str, score):
     skills_list = [s.get('name') if isinstance(s, dict) else str(s) for s in user_skills]
