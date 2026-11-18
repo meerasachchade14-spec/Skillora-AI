@@ -14,45 +14,24 @@ import {
 } from "react-icons/fa";
 
 
-const mockResumes = [
-  {
-    name: "Resume_2025.pdf",
-    date: "15 July 2025",
-    score: 92,
-    status: "Analyzed",
-  },
-  {
-    name: "Resume_React.pdf",
-    date: "28 June 2025",
-    score: 88,
-    status: "Analyzed",
-  },
-  {
-    name: "Resume_Internship.pdf",
-    date: "10 May 2025",
-    score: 80,
-    status: "Pending",
-  },
-];
-
 function ResumeHistory() {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
-  const [resumes, setResumes] = useState(mockResumes);
+  const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const fetchResumes = async () => {
     setLoading(true);
     try {
       const data = await resumeService.getResumes();
-      if (data && data.length > 0) {
+      if (Array.isArray(data)) {
         setResumes(data);
       } else {
         setResumes([]);
       }
     } catch (err) {
-      console.log("Using fallback mock resumes:", err.message);
-      setResumes(mockResumes);
+      console.error("Error fetching resumes:", err);
+      setResumes([]);
     } finally {
       setLoading(false);
     }
@@ -63,12 +42,7 @@ function ResumeHistory() {
   }, [user]);
 
   const handleDelete = async (resume) => {
-    if (!resume.id) {
-      // It's a mock resume
-      setResumes(resumes.filter((r) => r !== resume));
-      toast.success("Mock resume removed.");
-      return;
-    }
+    if (!resume?.id) return;
     
     try {
       await resumeService.deleteResume(resume.id);
@@ -80,9 +54,8 @@ function ResumeHistory() {
           ...user,
           resume: {}
         });
-      } else {
-        fetchResumes();
       }
+      fetchResumes();
     } catch (err) {
       console.error(err);
       toast.error("Failed to delete resume.");
@@ -90,16 +63,31 @@ function ResumeHistory() {
   };
 
   const handleOpen = (resume) => {
-    if (resume.fileUrl) {
+    if (resume?.fileUrl) {
       window.open(resume.fileUrl, "_blank");
     } else {
-      toast.error("File download link not available for demo resume.");
+      toast.error("File link not available for this resume.");
+    }
+  };
+
+  const handleDownload = (resume) => {
+    if (resume?.fileUrl) {
+      const link = document.createElement("a");
+      link.href = resume.fileUrl;
+      link.download = resume.name || resume.filename || "resume.pdf";
+      link.target = "_blank";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("Resume download initiated.");
+    } else {
+      toast.error("Download link not available for this resume.");
     }
   };
 
   const handleEdit = async (resume) => {
-    if (!resume.id) {
-      toast.error("Cannot edit a mock resume.");
+    if (!resume?.id) {
+      toast.error("Cannot edit resume without ID.");
       return;
     }
     try {
@@ -116,7 +104,7 @@ function ResumeHistory() {
           }
         });
       } else {
-        toast.error("Could not load resume data.");
+        toast.error("Could not load resume data for editing.");
       }
     } catch (err) {
       toast.dismiss("load-edit");
@@ -125,28 +113,26 @@ function ResumeHistory() {
     }
   };
 
+
   return (
-    <div className="bg-white rounded-3xl shadow-xl p-6">
+    <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
 
       {/* Header */}
-
-      <div className="flex items-center gap-3 mb-6">
-
-        <FaFilePdf className="text-3xl text-red-500" />
-
-        <div>
-
-          <h2 className="text-2xl font-bold text-slate-800">
-            Resume History
-          </h2>
-
-          <p className="text-gray-500">
-            Previously uploaded resumes.
-          </p>
-
+      <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 text-left">
+        <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg border border-purple-100 shadow-xs">
+          <FaFilePdf />
         </div>
 
+        <div>
+          <h2 className="text-sm font-bold text-slate-800 tracking-tight">
+            Resume History
+          </h2>
+          <p className="text-xs text-slate-400 font-medium mt-0.5">
+            View, download, edit, or delete previously uploaded and saved resumes
+          </p>
+        </div>
       </div>
+
 
       {/* Resume Cards */}
 
@@ -254,7 +240,7 @@ function ResumeHistory() {
               </button>
 
               <button 
-                onClick={() => handleOpen(resume)}
+                onClick={() => handleDownload(resume)}
                 className="flex items-center justify-center gap-2 py-3 rounded-xl bg-green-100 text-green-700 hover:bg-green-200 transition cursor-pointer"
               >
 

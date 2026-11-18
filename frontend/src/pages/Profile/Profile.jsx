@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import useAuth from "../../hooks/useAuth";
 import authService from "../../services/authService";
+import resumeService from "../../services/resumeService";
 import Skills from "../../components/profile/Skills";
 import AIProfileInsights from "../../components/profile/AIProfileInsights";
+import ResumeHistory from "../../components/profile/ResumeHistory";
 
 import {
   FaUser,
@@ -402,67 +404,77 @@ function Profile() {
   const handleResumeChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.type !== "application/pdf") {
-        toast.error("Please upload a PDF format resume.");
+      const allowedExtensions = [".pdf", ".docx", ".doc"];
+      const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
+      if (!allowedExtensions.includes(ext) && file.type !== "application/pdf") {
+        toast.error("Please upload a PDF or DOCX format resume.");
         return;
       }
       const loadToast = toast.loading("Uploading and analyzing resume...");
-      setTimeout(async () => {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        const response = await resumeService.uploadResume(formData);
         toast.dismiss(loadToast);
-        const score = Math.floor(Math.random() * 20) + 76; // Generate 76 - 95
-        const uploadDate = new Date().toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-        });
-        const resumePayload = {
-          filename: file.name,
-          atsScore: score,
-          uploadDate: uploadDate,
-        };
-        try {
-          const updatedUser = await authService.updateProfile({
-            resume: resumePayload,
-          });
-          updateUser(updatedUser);
-          toast.success(`Resume uploaded! ATS Score: ${score}%`);
-        } catch (err) {
-          console.error("Error uploading resume:", err);
-          toast.error("Failed to persist resume upload.");
+        if (response && response.user) {
+          updateUser(response.user);
         }
-      }, 2000);
+        const score = response?.resume?.atsScore || 85;
+        toast.success(`Resume uploaded! ATS Score: ${score}%`);
+      } catch (err) {
+        toast.dismiss(loadToast);
+        console.error("Error uploading resume:", err);
+        const errMsg = err?.response?.data?.error || err?.response?.data?.file?.[0] || "Failed to upload resume.";
+        toast.error(typeof errMsg === "string" ? errMsg : "Failed to upload resume.");
+      } finally {
+        if (resumeInputRef.current) {
+          resumeInputRef.current.value = "";
+        }
+      }
     }
   };
 
   const handleDownloadResume = () => {
-    if (!user?.resume?.filename) {
+    if (!user?.resume?.fileUrl && !user?.resume?.filename) {
       toast.error("No resume available to download.");
       return;
     }
-    // Simulate direct download
-    const element = document.createElement("a");
-    const file = new Blob(["Academic project resume file placeholder"], {
-      type: "text/plain",
-    });
-    element.href = URL.createObjectURL(file);
-    element.download = user.resume.filename;
-    document.body.appendChild(element);
-    element.click();
-    toast.success("Resume downloaded successfully!");
+    if (user?.resume?.fileUrl) {
+      const link = document.createElement("a");
+      link.href = user.resume.fileUrl;
+      link.download = user.resume.filename || "resume.pdf";
+      link.target = "_blank";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("Resume download initiated.");
+    } else {
+      toast.error("Resume file download link is not available.");
+    }
   };
 
   const handleDeleteResume = async () => {
+    if (!user?.resume?.id) {
+      updateUser({ ...user, resume: {} });
+      toast.success("Resume deleted successfully.");
+      return;
+    }
+    const loadToast = toast.loading("Deleting resume...");
     try {
-      const updatedUser = await authService.updateProfile({
-        resume: null,
+      await resumeService.deleteResume(user.resume.id);
+      toast.dismiss(loadToast);
+      updateUser({
+        ...user,
+        resume: {}
       });
-      updateUser(updatedUser);
       toast.success("Resume deleted successfully.");
     } catch (err) {
+      toast.dismiss(loadToast);
       console.error("Error deleting resume:", err);
       toast.error("Failed to delete resume.");
     }
   };
+
 
   // --- Security & Support Actions ---
   const handleReportBug = async (e) => {

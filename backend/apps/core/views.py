@@ -542,7 +542,8 @@ class ResumeUploadView(APIView):
                     'id': resume_id,
                     'filename': file_obj.name,
                     'atsScore': ats_score,
-                    'uploadDate': upload_date
+                    'uploadDate': upload_date,
+                    'fileUrl': full_url
                 },
                 'skills': updated_skills,
                 'updated_at': datetime.utcnow()
@@ -748,6 +749,8 @@ class ResumeDetailView(APIView):
             user_update['resume.atsScore'] = ats_score
             if file_obj:
                 user_update['resume.filename'] = file_obj.name
+                user_update['resume.fileUrl'] = full_url
+
 
         db.users.update_one({'_id': ObjectId(request.user.id)}, {'$set': user_update})
 
