@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
+import resumeService from "../../services/resumeService";
+import { toast } from "react-hot-toast";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import { FaBolt } from "react-icons/fa";
 
 import Stepper from "../../components/resumebuilder/Stepper";
 import TemplateSelector from "../../components/resumebuilder/TemplateSelector";
@@ -44,6 +50,12 @@ export default function ResumeBuilder() {
   const [showDownload, setShowDownload] = useState(false);
 
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, updateUser } = useAuth();
+
+  const [resumeId, setResumeId] = useState(location.state?.resumeId || null);
+  const [isEditing, setIsEditing] = useState(Boolean(location.state?.isEditing || location.state?.resumeId));
+  const [isSaving, setIsSaving] = useState(false);
 
   const defaultResumeData = {
     personal: {},
@@ -65,6 +77,76 @@ export default function ResumeBuilder() {
     }
     return defaultResumeData;
   });
+
+  useEffect(() => {
+    if (!location.state?.resumeData && !location.state?.newResume && user?.resume?.id) {
+      resumeService.getResumeDetails(user.resume.id)
+        .then((details) => {
+          if (details && details.resumeData && Object.keys(details.resumeData).length > 0) {
+            setResumeData((prev) => ({ ...defaultResumeData, ...details.resumeData }));
+            setResumeId(user.resume.id);
+            setIsEditing(true);
+          }
+        })
+        .catch((err) => {
+          console.log("Could not load user active resume into builder:", err.message);
+        });
+    }
+  }, [user]);
+
+  const handleSaveAndAnalyze = async () => {
+    setIsSaving(true);
+    toast.loading(isEditing ? "Updating resume..." : "Saving resume...", { id: "builder-save" });
+    try {
+      const resume = document.getElementById("resume-preview");
+      if (!resume) {
+        toast.error("Resume Preview Not Found", { id: "builder-save" });
+        setIsSaving(false);
+        return;
+      }
+      const canvas = await html2canvas(resume, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = (canvas.height * pageWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight);
+      const pdfBlob = pdf.output("blob");
+
+      const formData = new FormData();
+      formData.append("file", pdfBlob, "resume.pdf");
+      formData.append("resumeData", JSON.stringify(resumeData));
+
+      let response;
+      if (isEditing && resumeId) {
+        formData.append("resume_id", resumeId);
+        response = await resumeService.updateResume(resumeId, formData);
+        toast.success("Resume updated successfully!", { id: "builder-save" });
+      } else {
+        response = await resumeService.uploadResume(formData);
+        toast.success("Resume saved successfully!", { id: "builder-save" });
+        if (response?.resume?.id) {
+          setResumeId(response.resume.id);
+          setIsEditing(true);
+        }
+      }
+
+      if (response && response.user) {
+        updateUser(response.user);
+      }
+
+      navigate("/resume-analysis");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to save and analyze resume.", { id: "builder-save" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
 
   const nextStep = () => {
     if (currentStep < steps.length - 1) {
@@ -397,7 +479,39 @@ export default function ResumeBuilder() {
                 QUICK ACTIONS
             ====================================================== */}
 
-            <div className="mt-4">
+            <div className="mt-4 space-y-3">
+
+              <button
+                type="button"
+                onClick={handleSaveAndAnalyze}
+                disabled={isSaving}
+                className="
+                  flex
+                  w-full
+                  items-center
+                  justify-center
+                  gap-2
+                  px-4
+                  py-3.5
+                  rounded-2xl
+                  bg-gradient-to-r
+                  from-blue-600
+                  to-indigo-600
+                  text-white
+                  text-sm
+                  font-bold
+                  shadow-lg
+                  shadow-blue-200
+                  transition
+                  hover:-translate-y-0.5
+                  hover:shadow-xl
+                  disabled:opacity-50
+                  disabled:cursor-not-allowed
+                "
+              >
+                <FaBolt className="text-amber-300" />
+                {isSaving ? "Saving & Analyzing..." : (isEditing ? "Update & Analyze" : "Save & Analyze Resume")}
+              </button>
 
               <button
                 type="button"
@@ -425,7 +539,7 @@ export default function ResumeBuilder() {
                 "
               >
                 <span className="text-lg">↓</span>
-                Download
+                Download / Export Options
               </button>
 
             </div>
@@ -504,8 +618,12 @@ export default function ResumeBuilder() {
 
             <DownloadResume
               resumeData={resumeData}
-              isEditing={location.state?.isEditing}
-              resumeId={location.state?.resumeId}
+              isEditing={isEditing}
+              resumeId={resumeId}
+              onSaved={(newId) => {
+                setResumeId(newId);
+                setIsEditing(true);
+              }}
             />
 
           </div>

@@ -28,43 +28,25 @@ function ResumeAnalysis() {
   const graduation = user?.education?.graduation;
 
   const defaultAnalysis = {
-    score: user?.resume?.atsScore || 87,
+    score: user?.resume?.atsScore || 0,
     summary: {
-      name: user?.name || "Jhanvi Ramani",
-      email: user?.email || "jhanvi@gmail.com",
-      phone: user?.phone_number || "+91 9876543210",
+      name: user?.name || "User",
+      email: user?.email || "",
+      phone: user?.phone_number || "",
       education: graduation?.degree 
         ? `${graduation.degree} (${graduation.branch || ""})`
-        : "B.E Computer Engineering",
+        : "Not specified",
       experience: latestExp
         ? `${latestExp.role} at ${latestExp.company}`
-        : "Frontend Developer Intern",
+        : "Fresher / No experience listed",
     },
     skills: (user?.skills && user.skills.length > 0)
-      ? user.skills.map((s) => s.name)
-      : ["React", "JavaScript", "Tailwind", "Python", "MongoDB", "Git"],
-    missingSkills: [
-      "Docker",
-      "AWS",
-      "TypeScript",
-      "CI/CD",
-    ],
-    strengths: [
-      "Good Projects",
-      "Strong React Skills",
-      "Clean Resume",
-      "ATS Friendly",
-    ],
-    weaknesses: [
-      "No Certifications",
-      "Weak Summary",
-      "Missing Keywords",
-    ],
-    improvementTips: [
-      "Add more measurable achievements to your experience section.",
-      "Include more keywords relevant to your target job role.",
-      "Add a concise professional summary at the beginning of your resume."
-    ]
+      ? user.skills.map((s) => typeof s === 'object' ? s.name : s)
+      : [],
+    missingSkills: [],
+    strengths: [],
+    weaknesses: [],
+    improvementTips: []
   };
 
   const [analysis, setAnalysis] = useState(defaultAnalysis);
@@ -145,7 +127,10 @@ function ResumeAnalysis() {
     ),
 
     "certifications-achievements": (
-      <CertificationsAchievements />
+      <CertificationsAchievements
+        certifications={analysis.extracted_info?.certifications}
+        achievements={analysis.extracted_info?.achievements}
+      />
     ),
 
     "keyword-match": (
@@ -169,7 +154,7 @@ function ResumeAnalysis() {
     ),
 
     "improvement-tips": (
-      <ImprovementTips />
+      <ImprovementTips tips={analysis.improvementTips} />
     ),
 
   };

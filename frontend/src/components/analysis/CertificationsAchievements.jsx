@@ -7,41 +7,29 @@ import {
 } from "react-icons/fa";
 
 
-function CertificationsAchievements() {
+function CertificationsAchievements({ certifications: propCerts, achievements: propAchs }) {
+  const certifications = (propCerts && propCerts.length > 0)
+    ? propCerts.map((cert) => ({
+        title: cert.name || cert.title || "Certification",
+        issuer: cert.organization || cert.issuer || "Verified Issuer",
+        score: cert.score || 85,
+      }))
+    : [];
 
-
-  const certifications = [
-
-    {
-      title: "Python Programming Certification",
-      issuer: "Online Certification",
-      score: 88,
-    },
-
-    {
-      title: "Web Development Certification",
-      issuer: "Technical Certification",
-      score: 84,
-    },
-
-  ];
-
-
-  const achievements = [
-
-    "Completed multiple full-stack development projects",
-
-    "Participated in technical internships",
-
-    "Built AI-powered software projects",
-
-    "Strong academic performance",
-
-  ];
-
+  const achievements = (propAchs && propAchs.length > 0)
+    ? propAchs.map((ach) => {
+        if (typeof ach === "string") return ach;
+        if (typeof ach === "object" && ach !== null) {
+          const t = ach.title || "";
+          const o = ach.organization ? ` from ${ach.organization}` : "";
+          const d = ach.description ? `: ${ach.description}` : "";
+          return `${t}${o}${d}`.trim() || "Achievement listed";
+        }
+        return String(ach);
+      })
+    : [];
 
   return (
-
     <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm p-6 md:p-8">
 
 
@@ -106,77 +94,48 @@ function CertificationsAchievements() {
         </div>
 
 
-        <div className="grid md:grid-cols-2 gap-5">
-
-          {certifications.map((certificate, index) => (
-
-            <div
-
-              key={index}
-
-              className="rounded-3xl border border-slate-200 p-6 hover:border-purple-300 hover:shadow-lg transition-all"
-
-            >
-
-              <div className="flex justify-between gap-4">
-
-                <div>
-
-                  <h4 className="font-black text-slate-800">
-
-                    {certificate.title}
-
-                  </h4>
-
-                  <p className="text-slate-500 mt-2">
-
-                    {certificate.issuer}
-
-                  </p>
-
+        {certifications.length > 0 ? (
+          <div className="grid md:grid-cols-2 gap-5">
+            {certifications.map((certificate, index) => (
+              <div
+                key={index}
+                className="rounded-3xl border border-slate-200 p-6 hover:border-purple-300 hover:shadow-lg transition-all"
+              >
+                <div className="flex justify-between gap-4">
+                  <div>
+                    <h4 className="font-black text-slate-800">
+                      {certificate.title}
+                    </h4>
+                    <p className="text-slate-500 mt-2">
+                      {certificate.issuer}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-2xl font-black text-purple-600">
+                      {certificate.score}%
+                    </span>
+                    <p className="text-xs text-slate-500">
+                      Relevance
+                    </p>
+                  </div>
                 </div>
 
-
-                <div className="text-right">
-
-                  <span className="text-2xl font-black text-purple-600">
-
-                    {certificate.score}%
-
-                  </span>
-
-                  <p className="text-xs text-slate-500">
-
-                    Relevance
-
-                  </p>
-
+                <div className="mt-5 h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-purple-500 to-indigo-500"
+                    style={{
+                      width: `${certificate.score}%`,
+                    }}
+                  />
                 </div>
-
               </div>
-
-
-              <div className="mt-5 h-2 bg-slate-100 rounded-full overflow-hidden">
-
-                <div
-
-                  className="h-full rounded-full bg-gradient-to-r from-purple-500 to-indigo-500"
-
-                  style={{
-
-                    width: `${certificate.score}%`,
-
-                  }}
-
-                />
-
-              </div>
-
-            </div>
-
-          ))}
-
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100 text-slate-500 text-sm font-medium">
+            No certifications found in this resume. Adding verified credentials (e.g. AWS, Meta, Google) can improve your ATS score.
+          </div>
+        )}
 
       </div>
 
@@ -198,31 +157,25 @@ function CertificationsAchievements() {
         </div>
 
 
-        <div className="grid md:grid-cols-2 gap-4">
-
-          {achievements.map((achievement, index) => (
-
-            <div
-
-              key={index}
-
-              className="flex items-start gap-3 rounded-2xl bg-emerald-50 border border-emerald-100 p-5"
-
-            >
-
-              <FaCheckCircle className="text-emerald-500 mt-1" />
-
-              <span className="text-slate-700 font-medium">
-
-                {achievement}
-
-              </span>
-
-            </div>
-
-          ))}
-
-        </div>
+        {achievements.length > 0 ? (
+          <div className="grid md:grid-cols-2 gap-4">
+            {achievements.map((achievement, index) => (
+              <div
+                key={index}
+                className="flex items-start gap-3 rounded-2xl bg-emerald-50 border border-emerald-100 p-5"
+              >
+                <FaCheckCircle className="text-emerald-500 mt-1" />
+                <span className="text-slate-700 font-medium">
+                  {achievement}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100 text-slate-500 text-sm font-medium">
+            No specific achievements listed. Consider adding milestones, competition rankings, or awards.
+          </div>
+        )}
 
       </div>
 

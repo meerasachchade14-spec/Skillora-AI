@@ -24,38 +24,171 @@ from apps.core.ai.information_extractor import extract_resume_information
 def text_from_resume_data(resume_data):
     """
     Reconstructs clean plain text from structured resumeData JSON.
-    Essential when resumes are created in Resume Builder (which exports canvas images).
+    Essential when resumes are created or edited in Resume Builder (which exports canvas images).
+    Ensures structured data (personal, education, experience, skills, projects, certifications,
+    languages, achievements, volunteer, custom sections) is converted into readable text for AI analysis.
     """
     if not isinstance(resume_data, dict):
         return ""
     parts = []
+    
+    # 1. Personal Information (support both builder schema and standard json-resume basics)
     personal = resume_data.get("personal", {})
-    if isinstance(personal, dict):
-        for k in ["fullName", "title", "email", "phone", "address", "summary", "linkedin", "github", "portfolio"]:
-            if personal.get(k):
-                parts.append(str(personal[k]))
-                
-    skills = resume_data.get("skills", [])
-    if skills:
-        parts.append("Skills: " + ", ".join(str(s) for s in skills))
+    if not personal and isinstance(resume_data.get("basics"), dict):
+        personal = resume_data.get("basics")
         
-    for exp in resume_data.get("experience", []):
-        if isinstance(exp, dict):
-            parts.append(f"Experience: {exp.get('role', '')} at {exp.get('company', '')}. {exp.get('description', '')}")
+    if isinstance(personal, dict):
+        for k in ["fullName", "name", "title", "label", "email", "phone", "address", "summary", "linkedin", "github", "portfolio"]:
+            val = personal.get(k)
+            if val:
+                parts.append(str(val))
+                
+    # 2. Skills
+    skills = resume_data.get("skills", [])
+    if skills and isinstance(skills, list):
+        cleaned_skills = []
+        for s in skills:
+            if isinstance(s, dict):
+                skill_name = s.get("name") or s.get("skill")
+                if skill_name:
+                    cleaned_skills.append(str(skill_name))
+            elif s:
+                cleaned_skills.append(str(s))
+        if cleaned_skills:
+            parts.append("Skills: " + ", ".join(cleaned_skills))
+        
+    # 3. Experience (support both 'experience' and 'work')
+    experience = resume_data.get("experience") or resume_data.get("work") or []
+    if isinstance(experience, list):
+        for exp in experience:
+            if isinstance(exp, dict):
+                role = exp.get("role") or exp.get("position", "")
+                company = exp.get("company", "")
+                desc = exp.get("description", "")
+                loc = exp.get("location", "")
+                dur = f"{exp.get('startDate', '')} - {exp.get('endDate', 'Present')}" if exp.get('startDate') else exp.get('duration', '')
+                exp_line = f"Experience: {role} at {company}".strip()
+                if dur:
+                    exp_line += f" ({dur})"
+                if loc:
+                    exp_line += f", {loc}"
+                if desc:
+                    exp_line += f". {desc}"
+                parts.append(exp_line)
             
-    for edu in resume_data.get("education", []):
-        if isinstance(edu, dict):
-            parts.append(f"Education: {edu.get('degree', '')} at {edu.get('college', '')}. {edu.get('description', '')}")
+    # 4. Education
+    education = resume_data.get("education", [])
+    if isinstance(education, list):
+        for edu in education:
+            if isinstance(edu, dict):
+                degree = edu.get("degree", "")
+                field = edu.get("fieldOfStudy") or edu.get("branch", "")
+                school = edu.get("college") or edu.get("school", "") or edu.get("institution", "")
+                year = edu.get("year") or edu.get("endYear", "")
+                cgpa = edu.get("cgpa") or edu.get("grade", "")
+                desc = edu.get("description", "")
+                edu_line = f"Education: {degree}"
+                if field:
+                    edu_line += f" in {field}"
+                if school:
+                    edu_line += f" at {school}"
+                if year:
+                    edu_line += f" ({year})"
+                if cgpa:
+                    edu_line += f", CGPA/Grade: {cgpa}"
+                if desc:
+                    edu_line += f". {desc}"
+                parts.append(edu_line)
             
-    for proj in resume_data.get("projects", []):
-        if isinstance(proj, dict):
-            parts.append(f"Project: {proj.get('title', '')}. {proj.get('technologies', '')}. {proj.get('description', '')}")
+    # 5. Projects
+    projects = resume_data.get("projects", [])
+    if isinstance(projects, list):
+        for proj in projects:
+            if isinstance(proj, dict):
+                title = proj.get("title") or proj.get("name", "")
+                tech = proj.get("technologies") or proj.get("techStack", "")
+                if isinstance(tech, list):
+                    tech = ", ".join(tech)
+                desc = proj.get("description", "")
+                role = proj.get("role", "")
+                proj_line = f"Project: {title}"
+                if role:
+                    proj_line += f" ({role})"
+                if tech:
+                    proj_line += f". Technologies: {tech}"
+                if desc:
+                    proj_line += f". {desc}"
+                parts.append(proj_line)
 
-    for cert in resume_data.get("certifications", []):
-        if isinstance(cert, dict):
-            parts.append(f"Certification: {cert.get('name', cert.get('title', ''))} by {cert.get('issuer', '')}")
+    # 6. Certifications
+    certifications = resume_data.get("certifications", [])
+    if isinstance(certifications, list):
+        for cert in certifications:
+            if isinstance(cert, dict):
+                name = cert.get("name") or cert.get("title", "")
+                issuer = cert.get("organization") or cert.get("issuer", "")
+                date = cert.get("issueDate") or cert.get("date", "")
+                cert_line = f"Certification: {name}"
+                if issuer:
+                    cert_line += f" by {issuer}"
+                if date:
+                    cert_line += f" ({date})"
+                parts.append(cert_line)
+
+    # 7. Languages
+    languages = resume_data.get("languages", [])
+    if isinstance(languages, list):
+        lang_strs = []
+        for lang in languages:
+            if isinstance(lang, dict):
+                name = lang.get("language") or lang.get("name", "")
+                prof = lang.get("proficiency", "")
+                lang_strs.append(f"{name} ({prof})" if prof else name)
+            elif lang:
+                lang_strs.append(str(lang))
+        if lang_strs:
+            parts.append("Languages: " + ", ".join(lang_strs))
+
+    # 8. Achievements
+    achievements = resume_data.get("achievements", [])
+    if isinstance(achievements, list):
+        for ach in achievements:
+            if isinstance(ach, dict):
+                title = ach.get("title", "")
+                org = ach.get("organization", "")
+                desc = ach.get("description", "")
+                ach_line = f"Achievement: {title}"
+                if org:
+                    ach_line += f" from {org}"
+                if desc:
+                    ach_line += f". {desc}"
+                parts.append(ach_line)
+
+    # 9. Volunteer
+    volunteer = resume_data.get("volunteer", [])
+    if isinstance(volunteer, list):
+        for vol in volunteer:
+            if isinstance(vol, dict):
+                role = vol.get("role", "")
+                org = vol.get("organization", "")
+                desc = vol.get("description", "")
+                vol_line = f"Volunteer: {role} at {org}"
+                if desc:
+                    vol_line += f". {desc}"
+                parts.append(vol_line)
+
+    # 10. Custom Sections
+    custom_sections = resume_data.get("customSections", [])
+    if isinstance(custom_sections, list):
+        for cs in custom_sections:
+            if isinstance(cs, dict):
+                title = cs.get("title", "")
+                content = cs.get("content") or cs.get("description", "")
+                if title or content:
+                    parts.append(f"{title}: {content}")
             
     return "\n".join(parts)
+
 
 
 def calculate_resume_quality_score(resume_text, skills_data, extracted_info):
@@ -302,6 +435,15 @@ class ResumeUploadView(APIView):
             
         db = get_db()
         
+        # Check if updating an existing resume to avoid duplicates
+        existing_resume_id = request.data.get('resume_id') or request.data.get('resumeId')
+        existing_resume = None
+        if existing_resume_id:
+            try:
+                existing_resume = db.resumes.find_one({'_id': ObjectId(existing_resume_id), 'user_id': ObjectId(request.user.id)})
+            except Exception:
+                existing_resume = None
+
         # Enforce directory existence
         os.makedirs(os.path.join(settings.MEDIA_ROOT, 'resumes'), exist_ok=True)
         
@@ -311,30 +453,88 @@ class ResumeUploadView(APIView):
         file_path = os.path.join('resumes', file_name)
         
         saved_path = default_storage.save(file_path, ContentFile(file_obj.read()))
+        full_disk_path = os.path.join(settings.MEDIA_ROOT, saved_path)
         full_url = request.build_absolute_uri(settings.MEDIA_URL + saved_path)
+
+        # Clean old file if updating
+        if existing_resume and existing_resume.get('file_path'):
+            old_path = existing_resume.get('file_path')
+            if default_storage.exists(old_path):
+                default_storage.delete(old_path)
+
+        # 1. Text extraction - Do not depend on image-only PDF extraction!
+        raw_text = ""
+        if resume_data:
+            raw_text = text_from_resume_data(resume_data)
         
-        # Calculate simulated ATS score
-        user_skills = request.user.skills or []
-        ats_score = generate_ats_score(file_obj.name, user_skills)
+        if not raw_text.strip() and os.path.exists(full_disk_path):
+            try:
+                raw_text = extract_resume_text(full_disk_path)
+            except Exception as e:
+                print(f"File text extraction warning: {e}")
+                raw_text = ""
+
+        # 2. Structured information extraction
+        if resume_data:
+            extracted_info = resume_data
+        else:
+            extracted_info = extract_resume_information(raw_text) if raw_text.strip() else {}
+
+        # 3. Skills extraction
+        from apps.core.ai.skill_extractor import extract_skills
+        skills_data = extract_skills(raw_text) if raw_text.strip() else {"skills": [], "categories": {}}
+        if resume_data and isinstance(resume_data.get('skills'), list):
+            for s in resume_data['skills']:
+                s_name = s.get('name') if isinstance(s, dict) else str(s)
+                if s_name and s_name.strip() and s_name.lower() not in [x.lower() for x in skills_data['skills']]:
+                    skills_data['skills'].append(s_name.strip())
+
+        # 4. ATS Quality Score calculation
+        ats_score = calculate_resume_quality_score(raw_text, skills_data, extracted_info)
         upload_date = datetime.utcnow().strftime('%d %B %Y')
         
-        # Save resume document to MongoDB
-        resume_doc = {
-            'user_id': ObjectId(request.user.id),
-            'filename': file_obj.name,
-            'atsScore': ats_score,
-            'uploadDate': upload_date,
-            'file_path': saved_path,
-            'file_url': full_url,
-            'created_at': datetime.utcnow()
-        }
-        if resume_data:
-            resume_doc['resumeData'] = resume_data
-            
-        db.resumes.insert_one(resume_doc)
-        resume_id = str(resume_doc['_id'])
+        if existing_resume:
+            resume_id = str(existing_resume['_id'])
+            db.resumes.update_one(
+                {'_id': existing_resume['_id']},
+                {'$set': {
+                    'filename': file_obj.name,
+                    'atsScore': ats_score,
+                    'uploadDate': upload_date,
+                    'file_path': saved_path,
+                    'file_url': full_url,
+                    'resumeData': extracted_info,
+                    'updated_at': datetime.utcnow()
+                }}
+            )
+            # Invalidate old cached analysis so fresh analysis is generated
+            db.resume_analyses.delete_many({'resume_id': existing_resume['_id']})
+        else:
+            # Save new resume document to MongoDB
+            resume_doc = {
+                'user_id': ObjectId(request.user.id),
+                'filename': file_obj.name,
+                'atsScore': ats_score,
+                'uploadDate': upload_date,
+                'file_path': saved_path,
+                'file_url': full_url,
+                'resumeData': extracted_info,
+                'created_at': datetime.utcnow()
+            }
+            db.resumes.insert_one(resume_doc)
+            resume_id = str(resume_doc['_id'])
         
-        # Set active resume on user profile
+        # Update user's active resume and merge skills
+        user_doc = db.users.find_one({'_id': ObjectId(request.user.id)})
+        current_skills = user_doc.get('skills', []) if user_doc else []
+        current_skill_names = [s.get('name', '').lower() if isinstance(s, dict) else str(s).lower() for s in current_skills]
+        
+        updated_skills = list(current_skills)
+        for s in skills_data.get('skills', []):
+            if s and s.lower() not in current_skill_names:
+                updated_skills.append({'name': s})
+                current_skill_names.append(s.lower())
+
         db.users.update_one(
             {'_id': ObjectId(request.user.id)},
             {'$set': {
@@ -344,6 +544,7 @@ class ResumeUploadView(APIView):
                     'atsScore': ats_score,
                     'uploadDate': upload_date
                 },
+                'skills': updated_skills,
                 'updated_at': datetime.utcnow()
             }}
         )
@@ -351,17 +552,20 @@ class ResumeUploadView(APIView):
         # Get updated user profile dict
         updated_user_doc = db.users.find_one({'_id': ObjectId(request.user.id)})
         
+        status_code = status.HTTP_200_OK if existing_resume else status.HTTP_201_CREATED
         return Response({
-            "message": "Resume uploaded successfully.",
+            "message": "Resume updated successfully." if existing_resume else "Resume uploaded successfully.",
             "resume": {
                 "id": resume_id,
                 "filename": file_obj.name,
                 "atsScore": ats_score,
                 "uploadDate": upload_date,
-                "fileUrl": full_url
+                "fileUrl": full_url,
+                "resumeData": extracted_info
             },
             "user": get_user_profile_response_dict(updated_user_doc)
-        }, status=status.HTTP_201_CREATED)
+        }, status=status_code)
+
 
 
 class ResumeListView(APIView):
@@ -492,17 +696,76 @@ class ResumeDetailView(APIView):
             update_fields['file_url'] = full_url
             update_fields['filename'] = file_obj.name
             
-            # Also update user's active resume if this is the active one
-            user_doc = db.users.find_one({'_id': ObjectId(request.user.id)})
-            if user_doc and user_doc.get('resume', {}).get('id') == resume_id:
-                db.users.update_one(
-                    {'_id': ObjectId(request.user.id)},
-                    {'$set': {'resume.filename': file_obj.name, 'updated_at': datetime.utcnow()}}
-                )
-            
+        # Recalculate score and extract skills from the latest saved resume data
+        from apps.core.ai.skill_extractor import extract_skills
+        effective_resume_data = resume_data or resume.get('resumeData')
+        raw_text = ""
+        if effective_resume_data:
+            raw_text = text_from_resume_data(effective_resume_data)
+
+        if not raw_text.strip():
+            target_path = update_fields.get('file_path') or resume.get('file_path')
+            if target_path:
+                full_disk = os.path.join(settings.MEDIA_ROOT, target_path)
+                if os.path.exists(full_disk):
+                    try:
+                        raw_text = extract_resume_text(full_disk)
+                    except Exception:
+                        raw_text = ""
+
+        skills_data = extract_skills(raw_text) if raw_text.strip() else {"skills": [], "categories": {}}
+        if effective_resume_data and isinstance(effective_resume_data.get('skills'), list):
+            for s in effective_resume_data['skills']:
+                s_name = s.get('name') if isinstance(s, dict) else str(s)
+                if s_name and s_name.strip() and s_name.lower() not in [x.lower() for x in skills_data['skills']]:
+                    skills_data['skills'].append(s_name.strip())
+
+        extracted_info = effective_resume_data or (extract_resume_information(raw_text) if raw_text.strip() else {})
+        ats_score = calculate_resume_quality_score(raw_text, skills_data, extracted_info)
+        update_fields['atsScore'] = ats_score
+
         db.resumes.update_one({'_id': resume_obj_id}, {'$set': update_fields})
         
-        return Response({"message": "Resume updated successfully."}, status=status.HTTP_200_OK)
+        # Invalidate old cached analysis so next analysis call uses the latest saved data
+        db.resume_analyses.delete_many({'resume_id': resume_obj_id})
+
+        # Update user active resume and merge skills
+        user_doc = db.users.find_one({'_id': ObjectId(request.user.id)})
+        current_skills = user_doc.get('skills', []) if user_doc else []
+        current_skill_names = [s.get('name', '').lower() if isinstance(s, dict) else str(s).lower() for s in current_skills]
+        
+        updated_skills = list(current_skills)
+        for s in skills_data.get('skills', []):
+            if s and s.lower() not in current_skill_names:
+                updated_skills.append({'name': s})
+                current_skill_names.append(s.lower())
+
+        user_update = {
+            'skills': updated_skills,
+            'updated_at': datetime.utcnow()
+        }
+        if user_doc and user_doc.get('resume', {}).get('id') == resume_id:
+            user_update['resume.atsScore'] = ats_score
+            if file_obj:
+                user_update['resume.filename'] = file_obj.name
+
+        db.users.update_one({'_id': ObjectId(request.user.id)}, {'$set': user_update})
+
+        updated_user_doc = db.users.find_one({'_id': ObjectId(request.user.id)})
+        updated_resume = db.resumes.find_one({'_id': resume_obj_id})
+
+        return Response({
+            "message": "Resume updated successfully.",
+            "resume": {
+                "id": resume_id,
+                "filename": updated_resume.get('filename'),
+                "atsScore": updated_resume.get('atsScore'),
+                "uploadDate": updated_resume.get('uploadDate'),
+                "fileUrl": updated_resume.get('file_url'),
+                "resumeData": updated_resume.get('resumeData', {})
+            },
+            "user": get_user_profile_response_dict(updated_user_doc)
+        }, status=status.HTTP_200_OK)
 
 
     def delete(self, request, resume_id):
@@ -563,85 +826,164 @@ class ResumeAnalysisView(APIView):
     def _generate_analysis(self, request, resume, resume_obj_id, job_description=""):
         db = get_db()
         from apps.core.ai.analysis_pipeline import analyze_resume_with_job
+        from apps.core.ai.skill_extractor import extract_skills
+        from apps.core.ai.information_extractor import extract_resume_information
         import os
         from django.conf import settings
         
+        structured_data = resume.get('resumeData') or {}
+        structured_text = text_from_resume_data(structured_data) if structured_data else ""
+        
+        disk_text = ""
         full_disk_path = None
         if resume.get('file_path'):
             full_disk_path = os.path.join(settings.MEDIA_ROOT, resume.get('file_path'))
-            if not os.path.exists(full_disk_path):
-                full_disk_path = None
-                
-        resume_text = None
-        if not full_disk_path and resume.get('resumeData'):
-            import json
-            resume_text = json.dumps(resume.get('resumeData'))
+            if os.path.exists(full_disk_path):
+                try:
+                    disk_text = extract_resume_text(full_disk_path)
+                except Exception as e:
+                    print(f"Error reading disk resume file: {e}")
+                    disk_text = ""
 
-        if not job_description:
-            # If no job description is provided, dynamically construct one based on the user's profile and extracted skills
-            # This ensures TF-IDF and semantic similarity reflect the user's actual domain instead of dummy python/react data
-            role = request.user.role if request.user.role else "Professional"
-            user_skills = [s.get("name") if isinstance(s, dict) else s for s in request.user.skills] if request.user.skills else []
-            if not user_skills:
-                # We can't easily extract text here if full_disk_path is used without parsing it first, 
-                # but we will just pass empty string if no user skills exist
-                pass
-            skills_str = ", ".join(user_skills[:10]) if user_skills else ""
-            job_description = f"{role} with experience in {skills_str}" if skills_str else f"{role} role."
-            
-        try:
-            analysis_result = analyze_resume_with_job(
-                resume_file_path=full_disk_path, 
-                job_description=job_description,
-                resume_text=resume_text
-            )
-            resume_analysis = analysis_result["resume_analysis"]
-            career_insights = analysis_result["career_insights"]
-            skill_gap = analysis_result["skill_gap_analysis"]
-            
-            edu_str, exp_str = self.get_user_details(request.user)
-            
-            from apps.core.ai.information_extractor import extract_resume_information
-            actual_resume_text = resume_analysis.get("resume_text", "")
-            extracted_info = extract_resume_information(actual_resume_text) if actual_resume_text else {}
+        # DO NOT DEPEND ON IMAGE-ONLY PDF TEXT EXTRACTION!
+        # If disk_text has substantial extractable text (> 50 chars), use it. Otherwise, use structured_text from resumeData!
+        if len(disk_text.strip()) > 50:
+            resume_text = disk_text
+        elif structured_text.strip():
+            resume_text = structured_text
+        else:
+            resume_text = disk_text or structured_text or ""
 
-            if extracted_info.get("education") and len(extracted_info["education"]) > 0:
-                extracted_edu = extracted_info["education"][0]
-                extracted_edu_str = f"{extracted_edu.get('degree', 'Degree')} from {extracted_edu.get('college', 'University')}"
-                if extracted_edu_str != "Degree from University":
-                    edu_str = extracted_edu_str
+        # Extract structured info
+        if structured_data and (structured_data.get('education') or structured_data.get('experience') or structured_data.get('personal') or structured_data.get('skills') or structured_data.get('basics') or structured_data.get('work')):
+            extracted_info = structured_data
+        elif resume_text.strip():
+            extracted_info = extract_resume_information(resume_text)
+        else:
+            extracted_info = {}
 
-            if extracted_info.get("experience") and len(extracted_info["experience"]) > 0:
-                extracted_exp = extracted_info["experience"][0]
-                extracted_exp_str = f"{extracted_exp.get('role', 'Role')} at {extracted_exp.get('company', 'Company')}"
-                if extracted_exp_str != "Role at Company":
-                    exp_str = extracted_exp_str
+        # Extract skills
+        resume_skills_dict = extract_skills(resume_text) if resume_text.strip() else {"skills": [], "categories": {}}
+        if structured_data and isinstance(structured_data.get('skills'), list):
+            for s in structured_data['skills']:
+                s_name = s.get('name') if isinstance(s, dict) else str(s)
+                if s_name and s_name.strip() and s_name.lower() not in [x.lower() for x in resume_skills_dict['skills']]:
+                    resume_skills_dict['skills'].append(s_name.strip())
 
-            analysis_data = {
-                "score": career_insights.get("match_score", 85),
-                "summary": {
-                    "name": extracted_info.get("personal", {}).get("fullName") or request.user.name or "User",
-                    "email": extracted_info.get("personal", {}).get("email") or request.user.email,
-                    "phone": extracted_info.get("personal", {}).get("phone") or request.user.phone_number or "",
-                    "education": edu_str,
-                    "experience": exp_str
-                },
-                "skills": resume_analysis.get("skills", {}).get("skills", []),
-                "missingSkills": [s["skill"] for s in skill_gap.get("missing_skills", [])],
-                "strengths": career_insights.get("strengths", []),
-                "weaknesses": [s["recommendation"] for s in career_insights.get("improvement_areas", [])],
-                "improvementTips": [s["recommendation"] for s in career_insights.get("improvement_areas", [])],
-                "resume_analysis": resume_analysis,
-                "job_analysis": analysis_result.get("job_analysis", {}),
-                "matching_result": analysis_result.get("matching_result", {}),
-                "skill_gap_analysis": skill_gap,
-                "career_insights": career_insights,
-                "learning_roadmap": analysis_result.get("learning_roadmap", {}),
-                "extracted_info": extracted_info
+        # If job_description is provided, run full matching engine
+        if job_description and job_description.strip():
+            try:
+                analysis_result = analyze_resume_with_job(
+                    resume_file_path=full_disk_path if len(disk_text.strip()) > 50 else None,
+                    job_description=job_description.strip(),
+                    resume_text=resume_text
+                )
+                resume_analysis = analysis_result["resume_analysis"]
+                career_insights = analysis_result["career_insights"]
+                skill_gap = analysis_result["skill_gap_analysis"]
+                job_analysis = analysis_result.get("job_analysis", {})
+                matching_result = analysis_result.get("matching_result", {})
+                learning_roadmap = analysis_result.get("learning_roadmap", {})
+                score = career_insights.get("match_score", resume.get("atsScore") or 85)
+            except Exception as e:
+                print(f"AI Pipeline Error with job description: {e}")
+                return Response({"error": "Failed to analyze resume with job description."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            # NO job description: NEVER INVENT ONE! (Requirement 7)
+            # Evaluate resume quality and completeness directly from actual resume content
+            score = resume.get('atsScore') or calculate_resume_quality_score(resume_text, resume_skills_dict, extracted_info)
+            resume_analysis = {
+                "resume_text": resume_text,
+                "processed_text": resume_text.lower(),
+                "skills": resume_skills_dict
             }
-        except Exception as e:
-            print(f"AI Pipeline Error: {e}")
-            return Response({"error": "Failed to analyze resume with AI."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            job_analysis = None
+            matching_result = None
+            skill_gap = {"missing_skills": [], "skill_coverage": 100}
+            learning_roadmap = None
+            
+            # Content-derived career insights & improvement tips
+            strengths = []
+            weaknesses = []
+            improvement_tips = []
+            
+            if len(resume_skills_dict.get('skills', [])) >= 5:
+                strengths.append(f"Strong skill base detected across {len(resume_skills_dict.get('skills', []))} technical competencies.")
+            if extracted_info.get('experience') and len(extracted_info['experience']) > 0:
+                strengths.append("Structured work experience section included.")
+            if extracted_info.get('projects') and len(extracted_info['projects']) > 0:
+                strengths.append("Demonstrated project portfolio with technical stack details.")
+            if not strengths:
+                strengths.append("Valid resume structure established.")
+
+            if len(resume_skills_dict.get('skills', [])) < 5:
+                weaknesses.append("Add more specific technical and domain skills to improve visibility.")
+                improvement_tips.append("Expand the skills section with technologies and tools relevant to your target industry.")
+            if not extracted_info.get('certifications') or len(extracted_info.get('certifications', [])) == 0:
+                weaknesses.append("No industry certifications detected.")
+                improvement_tips.append("Add relevant professional or cloud certifications to validate your expertise.")
+            
+            import re
+            has_metrics = bool(re.search(r'\d+%', resume_text) or re.search(r'\$\d+', resume_text) or re.search(r'\b\d+\s*(?:users|clients|projects|features|x|times)\b', resume_text, re.IGNORECASE))
+            if not has_metrics:
+                weaknesses.append("Bullet points lack quantifiable metrics and outcomes.")
+                improvement_tips.append("Incorporate quantifiable metrics (e.g. 'improved performance by 25%', 'served 10,000+ users').")
+            
+            if not improvement_tips:
+                improvement_tips.append("Tailor your resume against target job descriptions to identify role-specific keywords.")
+
+            career_insights = {
+                "match_score": score,
+                "strengths": strengths,
+                "improvement_areas": [{"recommendation": w} for w in weaknesses],
+                "readiness_summary": "Resume quality evaluated based on section completeness, technical skill depth, and presentation."
+            }
+
+        # Resolve user education / experience strings
+        edu_str, exp_str = self.get_user_details(request.user)
+        if extracted_info.get("education") and len(extracted_info["education"]) > 0:
+            extracted_edu = extracted_info["education"][0]
+            deg = extracted_edu.get('degree', '')
+            col = extracted_edu.get('college') or extracted_edu.get('school', '')
+            if deg or col:
+                edu_str = f"{deg} from {col}".strip(" from ")
+                
+        if extracted_info.get("experience") and len(extracted_info["experience"]) > 0:
+            extracted_exp = extracted_info["experience"][0]
+            pos = extracted_exp.get('role') or extracted_exp.get('position', '')
+            cmp = extracted_exp.get('company', '')
+            if pos or cmp:
+                exp_str = f"{pos} at {cmp}".strip(" at ")
+        elif extracted_info.get("work") and len(extracted_info["work"]) > 0:
+            extracted_exp = extracted_info["work"][0]
+            pos = extracted_exp.get('role') or extracted_exp.get('position', '')
+            cmp = extracted_exp.get('company', '')
+            if pos or cmp:
+                exp_str = f"{pos} at {cmp}".strip(" at ")
+
+        analysis_data = {
+            "score": score,
+            "summary": {
+                "name": extracted_info.get("personal", {}).get("fullName") or extracted_info.get("personal", {}).get("name") or extracted_info.get("basics", {}).get("name") or request.user.name or "User",
+                "email": extracted_info.get("personal", {}).get("email") or extracted_info.get("basics", {}).get("email") or request.user.email,
+                "phone": extracted_info.get("personal", {}).get("phone") or extracted_info.get("basics", {}).get("phone") or request.user.phone_number or "",
+                "education": edu_str,
+                "experience": exp_str
+            },
+            "skills": resume_skills_dict.get("skills", []),
+            "missingSkills": [s["skill"] if isinstance(s, dict) else s for s in skill_gap.get("missing_skills", [])],
+            "strengths": career_insights.get("strengths", []),
+            "weaknesses": [s["recommendation"] if isinstance(s, dict) else str(s) for s in career_insights.get("improvement_areas", [])],
+            "improvementTips": improvement_tips if not (job_description and job_description.strip()) else [s["recommendation"] if isinstance(s, dict) else str(s) for s in career_insights.get("improvement_areas", [])],
+            "resume_analysis": resume_analysis,
+            "job_analysis": job_analysis,
+            "matching_result": matching_result,
+            "skill_gap_analysis": skill_gap,
+            "career_insights": career_insights,
+            "learning_roadmap": learning_roadmap,
+            "extracted_info": extracted_info
+        }
+
 
         analysis_doc = {
             'user_id': ObjectId(request.user.id),
@@ -777,8 +1119,14 @@ class SkillMatchView(APIView):
         if resume_id:
             resume = db.resumes.find_one({'_id': ObjectId(resume_id)})
             if resume and resume.get('resumeData'):
-                import json
-                resume_text = json.dumps(resume.get('resumeData'))
+                resume_text = text_from_resume_data(resume.get('resumeData'))
+            elif resume and resume.get('file_path'):
+                full_disk = os.path.join(settings.MEDIA_ROOT, resume.get('file_path'))
+                if os.path.exists(full_disk):
+                    try:
+                        resume_text = extract_resume_text(full_disk)
+                    except Exception:
+                        resume_text = None
                 
         # If no resume text is found, fallback to user skills
         if not resume_text:
@@ -796,8 +1144,8 @@ class SkillMatchView(APIView):
             career_insights = analysis_result["career_insights"]
             
             match_score = matching_result.get("final_match_score", 85)
-            matched = matching_result.get("matched_skills", [])
-            missing = matching_result.get("missing_skills", [])
+            matched = [s.title() for s in matching_result.get("matched_skills", [])]
+            missing = [s.title() for s in matching_result.get("missing_skills", [])]
             recommendations = [rec["recommendation"] for rec in career_insights.get("improvement_areas", [])]
             
             # If nothing returned, fallback gracefully

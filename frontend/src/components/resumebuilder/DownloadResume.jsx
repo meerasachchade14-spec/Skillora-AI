@@ -13,7 +13,7 @@ import {
   FaSave,
 } from "react-icons/fa";
 
-function DownloadResume({ resumeData, isEditing, resumeId }) {
+function DownloadResume({ resumeData, isEditing, resumeId, onSaved }) {
   const navigate = useNavigate();
   const { updateUser } = useAuth();
 
@@ -87,11 +87,16 @@ function DownloadResume({ resumeData, isEditing, resumeId }) {
       
       let response;
       if (isEditing && resumeId) {
+        formData.append("resume_id", resumeId);
         response = await resumeService.updateResume(resumeId, formData);
         toast.success("Resume updated successfully!", { id: "save-resume" });
       } else {
         response = await resumeService.uploadResume(formData);
         toast.success("Resume saved successfully!", { id: "save-resume" });
+      }
+
+      if (response?.resume?.id && onSaved) {
+        onSaved(response.resume.id);
       }
 
       if (response && response.user) {

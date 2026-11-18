@@ -6,8 +6,8 @@ import {
   FaBolt,
 } from "react-icons/fa";
 
-function ImprovementTips() {
-  const tips = [
+function ImprovementTips({ tips: propTips }) {
+  const defaultTips = [
     {
       title: "Add Quantifiable Achievements",
       description:
@@ -25,7 +25,7 @@ function ImprovementTips() {
     {
       title: "Improve ATS Keywords",
       description:
-        "Add relevant keywords such as Docker, AWS, CI/CD, REST API, TypeScript and Node.js.",
+        "Add relevant technical keywords and tools aligned with your target domain.",
       priority: "High Impact",
       impact: "+7 ATS Points",
     },
@@ -36,21 +36,17 @@ function ImprovementTips() {
       priority: "High Impact",
       impact: "+6 ATS Points",
     },
-    {
-      title: "Keep Resume One Page",
-      description:
-        "A clean, concise and focused one-page resume is ideal for students and freshers.",
-      priority: "Medium",
-      impact: "+3 ATS Points",
-    },
-    {
-      title: "Customize For Every Job",
-      description:
-        "Match your resume skills, keywords and projects with the requirements of each job description.",
-      priority: "High Impact",
-      impact: "+9 ATS Points",
-    },
   ];
+
+  const tips = (propTips && propTips.length > 0)
+    ? propTips.map((tip, idx) => ({
+        title: `Recommendation ${idx + 1}`,
+        description: typeof tip === 'string' ? tip : (tip.recommendation || tip.title || JSON.stringify(tip)),
+        priority: idx === 0 ? "High Impact" : "Actionable",
+        impact: `+${Math.max(8 - idx * 2, 3)} ATS Points`,
+      }))
+    : defaultTips;
+
 
   const checklist = [
     "Improve ATS Keywords",
