@@ -1858,10 +1858,13 @@ function Profile() {
               type="file"
               ref={resumeInputRef}
               onChange={handleResumeChange}
-              accept=".pdf"
+              accept=".pdf,.docx,.doc"
               className="hidden"
             />
           </div>
+
+          {/* 1.1 Resume History Card */}
+          <ResumeHistory />
 
           {/* 2. Skills Overview Card */}
           <Skills />
