@@ -15,6 +15,7 @@ import KeywordAnalysis from "../../components/analysis/KeywordAnalysis";
 import MissingSkills from "../../components/analysis/MissingSkills";
 import ProfileInsights from "../../components/analysis/ProfileInsights";
 import ImprovementTips from "../../components/analysis/ImprovementTips";
+import QualityAnalysis from "../../components/analysis/QualityAnalysis";
 
 import AnalysisNavigation from "../../components/analysis/AnalysisNavigation";
 
@@ -52,16 +53,44 @@ function ResumeAnalysis() {
   const [analysis, setAnalysis] = useState(defaultAnalysis);
   const [loading, setLoading] = useState(false);
 
+  const handleRerunAnalysis = async () => {
+    if (!user?.resume?.id) return;
+    setLoading(true);
+    try {
+      const data = await analysisService.analyzeResume(user.resume.id);
+      setAnalysis(data);
+      if (data?.quality_analysis) {
+        sessionStorage.setItem("skillora_quality_hints", JSON.stringify(data.quality_analysis));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (user?.resume?.id) {
       const getAnalysis = async () => {
         setLoading(true);
         try {
-          const data = await analysisService.analyzeResume(user.resume.id);
+          // Try GET first (cached result) — only triggers fresh analysis on backend if no cache
+          const data = await analysisService.getAnalysis(user.resume.id);
           setAnalysis(data);
+          // Persist quality hints for the AI Hint Panel in the Resume Builder
+          if (data?.quality_analysis) {
+            sessionStorage.setItem("skillora_quality_hints", JSON.stringify(data.quality_analysis));
+          }
         } catch (err) {
-          console.log("Using fallback analysis data:", err.message);
-          setAnalysis(defaultAnalysis);
+          try {
+            // Fallback: POST to generate fresh analysis
+            const data = await analysisService.analyzeResume(user.resume.id);
+            setAnalysis(data);
+            if (data?.quality_analysis) {
+              sessionStorage.setItem("skillora_quality_hints", JSON.stringify(data.quality_analysis));
+            }
+          } catch (err2) {
+            console.log("Using fallback analysis data:", err2.message);
+            setAnalysis(defaultAnalysis);
+          }
         } finally {
           setLoading(false);
         }
@@ -154,7 +183,19 @@ function ResumeAnalysis() {
     ),
 
     "improvement-tips": (
-      <ImprovementTips tips={analysis.improvementTips} />
+      <ImprovementTips
+        tips={analysis.improvementTips}
+        score={analysis.score}
+        qualityAnalysis={analysis.quality_analysis}
+      />
+    ),
+
+    "quality-analysis": (
+      <QualityAnalysis
+        qualityAnalysis={analysis.quality_analysis}
+        resumeId={user?.resume?.id}
+        onRerun={handleRerunAnalysis}
+      />
     ),
 
   };

@@ -31,6 +31,14 @@ from apps.core.ai.learning_roadmap import (
     generate_learning_roadmap,
 )
 
+from apps.core.ai.resume_quality_analyzer import (
+    generate_quality_report,
+)
+
+from apps.core.ai.information_extractor import (
+    extract_resume_information,
+)
+
 
 def analyze_resume_with_job(
     resume_file_path=None,
@@ -154,6 +162,20 @@ def analyze_resume_with_job(
     )
 
     # -------------------------------------------------
+    # Step 9: Resume Quality Analysis
+    # -------------------------------------------------
+
+    # Extract full structured information so detect_missing_sections()
+    # can use both structured data AND keyword scanning (not just keywords).
+    extracted_info_for_quality = extract_resume_information(resume_text) if resume_text.strip() else {}
+
+    quality_analysis = generate_quality_report(
+        resume_text=resume_text,
+        extracted_info=extracted_info_for_quality,
+        skills_data=resume_skills,
+    )
+
+    # -------------------------------------------------
     # Complete Result
     # -------------------------------------------------
 
@@ -173,4 +195,6 @@ def analyze_resume_with_job(
         "career_insights": career_insights,
 
         "learning_roadmap": learning_roadmap,
+
+        "quality_analysis": quality_analysis,
     }

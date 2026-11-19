@@ -11,7 +11,7 @@ import {
   FaExclamationTriangle,
   FaBalanceScale,
   FaLightbulb,
-  FaChartLine,
+  FaMagic,
 } from "react-icons/fa";
 
 
@@ -90,9 +90,9 @@ const navigationItems = [
   },
 
   {
-    id: "analytics",
-    title: "Analytics",
-    icon: <FaChartLine />,
+    id: "quality-analysis",
+    title: "Quality",
+    icon: <FaMagic />,
   },
 
 ];

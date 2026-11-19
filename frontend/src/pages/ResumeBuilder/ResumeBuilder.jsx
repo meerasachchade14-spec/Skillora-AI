@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import resumeService from "../../services/resumeService";
+import analysisService from "../../services/analysisService";
 import { toast } from "react-hot-toast";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { FaBolt } from "react-icons/fa";
+import { FaBolt, FaMagic } from "react-icons/fa";
 
 import Stepper from "../../components/resumebuilder/Stepper";
 import TemplateSelector from "../../components/resumebuilder/TemplateSelector";
@@ -26,6 +27,7 @@ import CustomSectionForm from "../../components/resumebuilder/CustomSectionForm"
 
 import ResumePreview from "../../components/resumebuilder/ResumePreview";
 import DownloadResume from "../../components/resumebuilder/DownloadResume";
+import AIHintPanel from "../../components/resumebuilder/AIHintPanel";
 
 const steps = [
   "Personal",
@@ -41,21 +43,44 @@ const steps = [
 ];
 
 export default function ResumeBuilder() {
-  const [currentStep, setCurrentStep] = useState(0);
+  // ── Router + auth hooks first (must precede any useState that reads location.state) ──
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, updateUser } = useAuth();
+
+  const [currentStep, setCurrentStep] = useState(() => {
+    // Respect startStep from navigation state (e.g. from QualityAnalysis "Edit in Builder" button)
+    const start = location.state?.startStep;
+    return (typeof start === "number" && start >= 0 && start < steps.length) ? start : 0;
+  });
 
   const [template, setTemplate] = useState("modern");
   const [theme, setTheme] = useState("blue");
   const [font, setFont] = useState("Poppins");
 
   const [showDownload, setShowDownload] = useState(false);
-
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { user, updateUser } = useAuth();
+  // Track whether AI quality hints are available in sessionStorage
+  const [hasQualityHints, setHasQualityHints] = useState(() => {
+    return Boolean(sessionStorage.getItem("skillora_quality_hints"));
+  });
 
   const [resumeId, setResumeId] = useState(location.state?.resumeId || null);
   const [isEditing, setIsEditing] = useState(Boolean(location.state?.isEditing || location.state?.resumeId));
   const [isSaving, setIsSaving] = useState(false);
+
+  // Show a contextual toast when arriving from the QualityAnalysis page via "Edit in Builder"
+  useEffect(() => {
+    if (location.state?.fromQualityHint) {
+      const pending = JSON.parse(sessionStorage.getItem("skillora_pending_rewrite") || "[]");
+      if (pending.length > 0) {
+        toast(
+          `💡 Suggested rewrite ready — paste it into your experience description below.`,
+          { duration: 6000, icon: "✏️" }
+        );
+      }
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   const defaultResumeData = {
     personal: {},
@@ -137,6 +162,13 @@ export default function ResumeBuilder() {
       if (response && response.user) {
         updateUser(response.user);
       }
+
+      // Persist quality_analysis hints for the AI Hint Panel in the builder
+      // (the full analysis is run server-side after save; hints returned in response if present)
+      // We navigate to analysis page and hints will be loaded there.
+      // Also clear any stale hints so the panel re-populates after next analysis.
+      sessionStorage.removeItem("skillora_quality_hints");
+      setHasQualityHints(false);
 
       navigate("/resume-analysis");
     } catch (err) {
@@ -513,6 +545,48 @@ export default function ResumeBuilder() {
                 {isSaving ? "Saving & Analyzing..." : (isEditing ? "Update & Analyze" : "Save & Analyze Resume")}
               </button>
 
+              {/* Refresh AI Quality Hints — available when a resume is already saved */}
+              {resumeId && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    toast.loading("Scanning resume for AI quality hints…", { id: "hint-scan" });
+                    try {
+                      const data = await analysisService.getAnalysis(resumeId);
+                      if (data?.quality_analysis) {
+                        sessionStorage.setItem("skillora_quality_hints", JSON.stringify(data.quality_analysis));
+                        setHasQualityHints(true);
+                        toast.success("AI quality hints updated!", { id: "hint-scan" });
+                      } else {
+                        toast("No quality hints found. Try saving first.", { id: "hint-scan", icon: "ℹ️" });
+                      }
+                    } catch {
+                      toast.error("Could not fetch hints. Try saving first.", { id: "hint-scan" });
+                    }
+                  }}
+                  className="
+                    flex
+                    w-full
+                    items-center
+                    justify-center
+                    gap-2
+                    px-4
+                    py-3
+                    rounded-2xl
+                    bg-indigo-50
+                    text-indigo-700
+                    text-sm
+                    font-bold
+                    border border-indigo-100
+                    transition
+                    hover:bg-indigo-100
+                  "
+                >
+                  <FaMagic className="text-indigo-500" />
+                  Refresh AI Quality Hints
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={() => {
@@ -631,6 +705,9 @@ export default function ResumeBuilder() {
         </div>
 
       )}
+
+      {/* AI QUALITY HINT PANEL (floating, step-aware, auto-fetches when resumeId is available) */}
+      <AIHintPanel currentStep={currentStep} resumeId={resumeId || null} />
 
     </div>
   );

@@ -20,6 +20,7 @@ from apps.core.serializers import (
 from apps.authentication.views import get_user_profile_response_dict
 from apps.core.ai.resume_parser import extract_resume_text
 from apps.core.ai.information_extractor import extract_resume_information
+from apps.core.ai.resume_quality_analyzer import generate_quality_report
 
 def text_from_resume_data(resume_data):
     """
@@ -266,40 +267,35 @@ def calculate_resume_quality_score(resume_text, skills_data, extracted_info):
     return min(max(score, 10), 98)
 
 def get_demo_analysis_data(user_name, user_email, user_phone, user_skills, education_str, experience_str, score):
+    """
+    Returns minimal scaffolded analysis data when no resume file is present.
+    Does NOT inject dummy strengths, weaknesses, or improvement tips — those
+    must be derived from the actual uploaded resume by the AI quality analyzer.
+    """
     skills_list = [s.get('name') if isinstance(s, dict) else str(s) for s in user_skills]
-    if not skills_list:
-        skills_list = ["Python", "JavaScript", "React", "Django", "SQL", "Git"]
-        
-    all_potential_missing = ["Docker", "AWS", "TypeScript", "CI/CD", "Kubernetes", "GraphQL", "Redis", "NoSQL"]
-    missing = [s for s in all_potential_missing if s not in skills_list][:4]
-    
+
     return {
         "score": score,
         "summary": {
             "name": user_name or "User",
             "email": user_email,
-            "phone": user_phone or "+91 9999999999",
-            "education": education_str or "Degree Not Listed",
+            "phone": user_phone or "",
+            "education": education_str or "Not specified",
             "experience": experience_str or "Fresher / No experience listed"
         },
         "skills": skills_list,
-        "missingSkills": missing,
-        "strengths": [
-            "Clear section organization and flow",
-            "Strong foundation in core developer tools",
-            "Quantifiable metrics in projects",
-            "ATS-friendly layout and font hierarchy"
-        ],
-        "weaknesses": [
-            "Limited cloud deployment/DevOps visibility",
-            "Missing certifications in target areas",
-            "Resume summary could be more impact-driven"
-        ],
-        "improvementTips": [
-            "Add measurable achievements for your top project contributions.",
-            "Incorporate keywords from cloud technologies (e.g., Docker, AWS).",
-            "Refine the professional summary to highlight your specific career goal."
-        ]
+        "missingSkills": [],
+        "strengths": [],
+        "weaknesses": [],
+        "improvementTips": [],
+        "quality_analysis": {
+            "weak_bullets": [],
+            "missing_sections": [],
+            "quality_issues": [],
+            "overall_grade": "Insufficient Data",
+            "total_issues": 0,
+            "has_issues": False,
+        }
     }
 
 def get_demo_roadmap_data(role="Software Engineer"):
@@ -874,6 +870,13 @@ class ResumeAnalysisView(APIView):
                     resume_skills_dict['skills'].append(s_name.strip())
 
         # If job_description is provided, run full matching engine
+        # Run quality analysis on the actual resume content (both paths)
+        quality_analysis = generate_quality_report(
+            resume_text=resume_text,
+            extracted_info=extracted_info,
+            skills_data=resume_skills_dict,
+        )
+
         if job_description and job_description.strip():
             try:
                 analysis_result = analyze_resume_with_job(
@@ -888,12 +891,18 @@ class ResumeAnalysisView(APIView):
                 matching_result = analysis_result.get("matching_result", {})
                 learning_roadmap = analysis_result.get("learning_roadmap", {})
                 score = career_insights.get("match_score", resume.get("atsScore") or 85)
+                # Enrich pipeline quality_analysis with full extracted_info
+                from apps.core.ai.resume_quality_analyzer import generate_quality_report as _qr
+                quality_analysis = _qr(
+                    resume_text=resume_text,
+                    extracted_info=extracted_info,
+                    skills_data=resume_skills_dict,
+                )
             except Exception as e:
                 print(f"AI Pipeline Error with job description: {e}")
                 return Response({"error": "Failed to analyze resume with job description."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            # NO job description: NEVER INVENT ONE! (Requirement 7)
-            # Evaluate resume quality and completeness directly from actual resume content
+            # NO job description — evaluate resume quality directly from actual resume content
             score = resume.get('atsScore') or calculate_resume_quality_score(resume_text, resume_skills_dict, extracted_info)
             resume_analysis = {
                 "resume_text": resume_text,
@@ -904,42 +913,43 @@ class ResumeAnalysisView(APIView):
             matching_result = None
             skill_gap = {"missing_skills": [], "skill_coverage": 100}
             learning_roadmap = None
-            
-            # Content-derived career insights & improvement tips
+
+            # Derive strengths / weaknesses from the actual resume content
             strengths = []
             weaknesses = []
             improvement_tips = []
-            
-            if len(resume_skills_dict.get('skills', [])) >= 5:
-                strengths.append(f"Strong skill base detected across {len(resume_skills_dict.get('skills', []))} technical competencies.")
+
+            skill_count = len(resume_skills_dict.get('skills', []))
+            if skill_count >= 5:
+                strengths.append(f"Strong skill base detected across {skill_count} technical competencies.")
             if extracted_info.get('experience') and len(extracted_info['experience']) > 0:
                 strengths.append("Structured work experience section included.")
             if extracted_info.get('projects') and len(extracted_info['projects']) > 0:
                 strengths.append("Demonstrated project portfolio with technical stack details.")
+            if extracted_info.get('certifications') and len(extracted_info['certifications']) > 0:
+                strengths.append("Professional certifications listed, boosting ATS keyword match.")
             if not strengths:
                 strengths.append("Valid resume structure established.")
 
-            if len(resume_skills_dict.get('skills', [])) < 5:
-                weaknesses.append("Add more specific technical and domain skills to improve visibility.")
-                improvement_tips.append("Expand the skills section with technologies and tools relevant to your target industry.")
-            if not extracted_info.get('certifications') or len(extracted_info.get('certifications', [])) == 0:
-                weaknesses.append("No industry certifications detected.")
-                improvement_tips.append("Add relevant professional or cloud certifications to validate your expertise.")
-            
-            import re
-            has_metrics = bool(re.search(r'\d+%', resume_text) or re.search(r'\$\d+', resume_text) or re.search(r'\b\d+\s*(?:users|clients|projects|features|x|times)\b', resume_text, re.IGNORECASE))
-            if not has_metrics:
-                weaknesses.append("Bullet points lack quantifiable metrics and outcomes.")
-                improvement_tips.append("Incorporate quantifiable metrics (e.g. 'improved performance by 25%', 'served 10,000+ users').")
-            
+            # Derive actionable tips from quality analysis findings
+            for issue in quality_analysis.get('quality_issues', []):
+                if issue.get('priority') == 'High':
+                    weaknesses.append(issue['title'])
+                    improvement_tips.append(issue['description'])
+            for ms in quality_analysis.get('missing_sections', []):
+                if ms.get('priority') == 'High':
+                    weaknesses.append(f"Missing {ms['label']} section.")
+                    improvement_tips.append(ms['description'])
             if not improvement_tips:
-                improvement_tips.append("Tailor your resume against target job descriptions to identify role-specific keywords.")
+                improvement_tips.append(
+                    "Tailor your resume against target job descriptions to identify role-specific keywords."
+                )
 
             career_insights = {
                 "match_score": score,
                 "strengths": strengths,
                 "improvement_areas": [{"recommendation": w} for w in weaknesses],
-                "readiness_summary": "Resume quality evaluated based on section completeness, technical skill depth, and presentation."
+                "readiness_summary": "Resume quality evaluated based on section completeness, technical skill depth, and content quality."
             }
 
         # Resolve user education / experience strings
@@ -984,7 +994,8 @@ class ResumeAnalysisView(APIView):
             "skill_gap_analysis": skill_gap,
             "career_insights": career_insights,
             "learning_roadmap": learning_roadmap,
-            "extracted_info": extracted_info
+            "extracted_info": extracted_info,
+            "quality_analysis": quality_analysis,
         }
 
 
@@ -1020,7 +1031,46 @@ class ResumeAnalysisView(APIView):
             analysis = self._generate_analysis(request, resume, resume_obj_id, job_description)
             if isinstance(analysis, Response):
                 return analysis
-            
+
+        # Back-fill quality_analysis for cached docs that pre-date this feature,
+        # or for any cached doc where quality_analysis is empty / missing.
+        existing_qa = analysis.get("quality_analysis") or {}
+        if not existing_qa or existing_qa.get("overall_grade") in (None, "", "Insufficient Data"):
+            try:
+                from apps.core.ai.resume_quality_analyzer import generate_quality_report as _qr
+                from apps.core.ai.skill_extractor import extract_skills as _es
+                # Prefer cached resume_text, fall back to structured_data reconstruction
+                cached_text = (analysis.get("resume_analysis") or {}).get("resume_text", "")
+                if not cached_text:
+                    structured_data = resume.get("resumeData") or {}
+                    cached_text = text_from_resume_data(structured_data) if structured_data else ""
+                    if not cached_text and resume.get("file_path"):
+                        import os as _os
+                        from django.conf import settings as _settings
+                        full_path = _os.path.join(_settings.MEDIA_ROOT, resume.get("file_path"))
+                        if _os.path.exists(full_path):
+                            try:
+                                cached_text = extract_resume_text(full_path)
+                            except Exception:
+                                cached_text = ""
+                cached_extracted = analysis.get("extracted_info") or {}
+                if not cached_extracted and cached_text.strip():
+                    cached_extracted = extract_resume_information(cached_text)
+                cached_skills = _es(cached_text) if cached_text.strip() else {"skills": [], "categories": {}}
+                fresh_qa = _qr(
+                    resume_text=cached_text,
+                    extracted_info=cached_extracted,
+                    skills_data=cached_skills,
+                )
+                # Patch the cached document in-place so the next GET is instant
+                db.resume_analyses.update_one(
+                    {"_id": analysis["_id"]},
+                    {"$set": {"quality_analysis": fresh_qa}}
+                )
+                analysis["quality_analysis"] = fresh_qa
+            except Exception as _e:
+                print(f"[QualityAnalysis backfill] Error: {_e}")
+
         skills = analysis.get('skills', [])
         if isinstance(skills, dict):
             skills = skills.get('skills', [])
@@ -1043,7 +1093,8 @@ class ResumeAnalysisView(APIView):
             "skill_gap_analysis": analysis.get("skill_gap_analysis"),
             "career_insights": analysis.get("career_insights"),
             "learning_roadmap": analysis.get("learning_roadmap"),
-            "extracted_info": analysis.get("extracted_info", {})
+            "extracted_info": analysis.get("extracted_info", {}),
+            "quality_analysis": analysis.get("quality_analysis", {}),
         }, status=status.HTTP_200_OK)
 
     def post(self, request, resume_id):
@@ -1092,7 +1143,8 @@ class ResumeAnalysisView(APIView):
             "skill_gap_analysis": analysis_doc.get("skill_gap_analysis"),
             "career_insights": analysis_doc.get("career_insights"),
             "learning_roadmap": analysis_doc.get("learning_roadmap"),
-            "extracted_info": analysis_doc.get("extracted_info", {})
+            "extracted_info": analysis_doc.get("extracted_info", {}),
+            "quality_analysis": analysis_doc.get("quality_analysis", {}),
         }, status=status.HTTP_200_OK)
 
 
