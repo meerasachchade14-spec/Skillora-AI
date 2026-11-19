@@ -11,7 +11,7 @@ import IndustryDemand from "../../components/career-insights/IndustryDemand";
 import SkillsImpact from "../../components/career-insights/SkillsImpact";
 import TopCompanies from "../../components/career-insights/TopCompanies";
 import RecommendedCertifications from "../../components/career-insights/RecommendedCertifications";
-import InterviewReadiness from "../../components/career-insights/InterviewReadiness";
+import InterviewQuestions from "../../components/career-insights/InterviewQuestions";
 import AICareerAdvisor from "../../components/career-insights/AICareerAdvisor";
 
 function CareerInsights() {
@@ -111,7 +111,7 @@ function CareerInsights() {
 
       <RecommendedCertifications />
 
-      <InterviewReadiness />
+      <InterviewQuestions />
 
       <AICareerAdvisor />
 

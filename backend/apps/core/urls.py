@@ -9,7 +9,8 @@ from apps.core.views import (
     JobRecommendationsView,
     CareerInsightsView,
     ResumeParseToBuilderView,
-    BulletImproveView
+    BulletImproveView,
+    InterviewQuestionsView
 )
 from apps.core.admin_views import (
     AdminStatsView,
@@ -33,6 +34,7 @@ urlpatterns = [
     path('jobs/recommended', JobRecommendationsView.as_view(), name='job-recommendations'),
     path('roadmap', RoadmapView.as_view(), name='roadmap'),
     path('career-insights', CareerInsightsView.as_view(), name='career-insights'),
+    path('interview-questions', InterviewQuestionsView.as_view(), name='interview-questions'),
 
     # Admin Panel APIs
     path('admin/stats', AdminStatsView.as_view(), name='admin-stats'),

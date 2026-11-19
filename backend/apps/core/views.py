@@ -21,6 +21,8 @@ from apps.authentication.views import get_user_profile_response_dict
 from apps.core.ai.resume_parser import extract_resume_text
 from apps.core.ai.information_extractor import extract_resume_information
 from apps.core.ai.resume_quality_analyzer import generate_quality_report, improve_single_bullet
+from apps.core.ai.interview_question_engine import generate_interview_questions
+from apps.core.ai.job_role_taxonomy import JOB_ROLE_TAXONOMY
 
 def text_from_resume_data(resume_data):
     """
@@ -1651,6 +1653,130 @@ class ResumeParseToBuilderView(APIView):
                 default_storage.delete(saved_path)
                 
         return Response({"resumeData": structured_data}, status=status.HTTP_200_OK)
+
+
+# ---------------------------------------------------------------------------
+# Interview Questions View
+# POST /api/interview-questions
+# Body: { job_role?: str, job_description?: str }
+# Generates dynamic technical interview questions based on the user's
+# actual resume skills and the selected target role or job description.
+# ---------------------------------------------------------------------------
+
+class InterviewQuestionsView(APIView):
+    """
+    POST /api/interview-questions
+    Accepts an optional job_role (taxonomy key) and/or job_description.
+    Reads the user's real resume skills from DB, runs the matching
+    pipeline to derive matched/missing skills, then generates
+    Beginner / Intermediate / Advanced questions via the AI engine.
+    """
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
+
+    def get(self, request):
+        """Return the list of available job roles from the taxonomy."""
+        roles = [
+            {"key": key, "label": key.title()}
+            for key in sorted(JOB_ROLE_TAXONOMY.keys())
+        ]
+        return Response({"roles": roles}, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        job_role        = (request.data.get("job_role") or "").strip()
+        job_description = (request.data.get("job_description") or "").strip()
+
+        if not job_role and not job_description:
+            return Response(
+                {"error": "Provide at least one of 'job_role' or 'job_description'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        db = get_db()
+        user_doc     = db.users.find_one({"_id": ObjectId(request.user.id)})
+        active_resume = user_doc.get("resume", {}) if user_doc else {}
+        resume_id    = active_resume.get("id")
+
+        # ------------------------------------------------------------------
+        # 1. Build resume text (same pattern as SkillMatchView)
+        # ------------------------------------------------------------------
+        resume_text = None
+        if resume_id:
+            resume = db.resumes.find_one({"_id": ObjectId(resume_id)})
+            if resume and resume.get("resumeData"):
+                resume_text = text_from_resume_data(resume.get("resumeData"))
+            elif resume and resume.get("file_path"):
+                full_disk = os.path.join(settings.MEDIA_ROOT, resume.get("file_path"))
+                if os.path.exists(full_disk):
+                    try:
+                        resume_text = extract_resume_text(full_disk)
+                    except Exception:
+                        resume_text = None
+
+        # Fallback to user profile skills when no resume text is available
+        if not resume_text:
+            user_skills = [
+                s.get("name") if isinstance(s, dict) else str(s)
+                for s in (user_doc.get("skills") or [] if user_doc else [])
+            ]
+            resume_text = ", ".join(user_skills) if user_skills else "Software Engineer"
+
+        # ------------------------------------------------------------------
+        # 2. Build a job description string to run against the AI pipeline
+        # ------------------------------------------------------------------
+        role_name = job_role or "Software Engineer"
+        if job_role and job_role in JOB_ROLE_TAXONOMY:
+            role_data = JOB_ROLE_TAXONOMY[job_role]
+            # Enrich the description with taxonomy skills so the matcher
+            # has richer signal even if the user typed no JD.
+            jd_for_pipeline = (
+                job_description
+                or (
+                    role_data.get("description", "")
+                    + " Required skills: "
+                    + ", ".join(role_data.get("required_skills", []))
+                    + ". Preferred skills: "
+                    + ", ".join(role_data.get("preferred_skills", []))
+                )
+            )
+        else:
+            jd_for_pipeline = job_description or role_name
+
+        # ------------------------------------------------------------------
+        # 3. Run the AI analysis pipeline to get matched / missing skills
+        # ------------------------------------------------------------------
+        try:
+            from apps.core.ai.analysis_pipeline import analyze_resume_with_job
+            analysis = analyze_resume_with_job(
+                job_description=jd_for_pipeline,
+                resume_text=resume_text,
+            )
+            matching = analysis.get("matching_result", {})
+            resume_skills_raw = analysis.get("resume_analysis", {}).get("skills", {})
+            resume_skills  = resume_skills_raw.get("skills", [])
+            matched_skills = matching.get("matched_skills", [])
+            missing_skills = matching.get("missing_skills", [])
+        except Exception as exc:
+            print(f"[InterviewQuestionsView] pipeline error: {exc}")
+            # Graceful fallback: use user profile skills only
+            from apps.core.ai.skill_extractor import extract_skills
+            skills_data   = extract_skills(resume_text)
+            resume_skills = skills_data.get("skills", [])
+            matched_skills = resume_skills
+            missing_skills = []
+
+        # ------------------------------------------------------------------
+        # 4. Generate interview questions
+        # ------------------------------------------------------------------
+        result = generate_interview_questions(
+            resume_skills  = resume_skills,
+            role_name      = role_name,
+            matched_skills = matched_skills,
+            missing_skills = missing_skills,
+            questions_per_level = 4,
+        )
+
+        return Response(result, status=status.HTTP_200_OK)
 
 
 # ---------------------------------------------------------------------------
