@@ -22,6 +22,7 @@ from apps.core.ai.resume_parser import extract_resume_text
 from apps.core.ai.information_extractor import extract_resume_information
 from apps.core.ai.resume_quality_analyzer import generate_quality_report, improve_single_bullet
 from apps.core.ai.interview_question_engine import generate_interview_questions
+from apps.core.ai.hr_question_engine import generate_hr_questions
 from apps.core.ai.job_role_taxonomy import JOB_ROLE_TAXONOMY
 
 def text_from_resume_data(resume_data):
@@ -1766,7 +1767,7 @@ class InterviewQuestionsView(APIView):
             missing_skills = []
 
         # ------------------------------------------------------------------
-        # 4. Generate interview questions
+        # 4. Generate technical interview questions
         # ------------------------------------------------------------------
         result = generate_interview_questions(
             resume_skills  = resume_skills,
@@ -1775,6 +1776,42 @@ class InterviewQuestionsView(APIView):
             missing_skills = missing_skills,
             questions_per_level = 4,
         )
+
+        # ------------------------------------------------------------------
+        # 5. Load structured resume data for HR question personalisation
+        # ------------------------------------------------------------------
+        resume_data_struct = {}
+        if resume_id:
+            resume_doc = db.resumes.find_one({"_id": ObjectId(resume_id)})
+            if resume_doc and resume_doc.get("resumeData"):
+                resume_data_struct = resume_doc["resumeData"]
+
+        personal   = resume_data_struct.get("personal",   {})
+        projects   = resume_data_struct.get("projects",   [])
+        education  = resume_data_struct.get("education",  [])
+        experience = resume_data_struct.get("experience", [])
+
+        # ------------------------------------------------------------------
+        # 6. Generate HR & behavioral questions
+        # ------------------------------------------------------------------
+        try:
+            hr_result = generate_hr_questions(
+                role_name             = role_name,
+                personal              = personal,
+                projects              = projects,
+                education             = education,
+                experience            = experience,
+                matched_skills        = matched_skills,
+                questions_per_category = 2,
+            )
+        except Exception as exc:
+            print(f"[InterviewQuestionsView] HR engine error: {exc}")
+            hr_result = {"questions": [], "total": 0, "resume_context": {}}
+
+        # Merge HR data into the technical result
+        result["hr_behavioral"]    = hr_result.get("questions", [])
+        result["resume_context"]   = hr_result.get("resume_context", {})
+        result["summary"]["total_questions"] += hr_result.get("total", 0)
 
         return Response(result, status=status.HTTP_200_OK)
 

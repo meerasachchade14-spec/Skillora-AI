@@ -769,3 +769,237 @@ class JobRoleTaxonomyAPITests(TestCase):
         self.assertIsNotNone(sql_res)
         required = set(get_required_skills("sql developer intern"))
         self.assertEqual(set(sql_res["missing_required"]), required)
+
+
+# ---------------------------------------------------------------------------
+# HR Question Engine Unit Tests
+# ---------------------------------------------------------------------------
+
+from apps.core.ai.hr_question_engine import generate_hr_questions
+
+class HRQuestionEngineTests(CoreAPITests):
+    """
+    Unit tests for generate_hr_questions().
+    These tests run the AI engine directly (no HTTP layer) to verify the
+    output contract and personalisation logic.
+    """
+
+    # ── Sample resume fixtures ──────────────────────────────────────────────
+
+    PERSONAL = {
+        "fullName": "Meera Sachchade",
+        "summary": "Passionate software engineer interested in full-stack development.",
+    }
+
+    PROJECTS = [
+        {
+            "title": "Skillora AI",
+            "technologies": ["React", "Django", "MongoDB"],
+            "description": "AI-powered career platform.",
+        },
+        {
+            "title": "Smart Resume Builder",
+            "techStack": "Python, NLP",
+            "description": "Resume builder with NLP scoring.",
+        },
+    ]
+
+    EDUCATION = [
+        {
+            "degree": "Bachelor of Engineering",
+            "fieldOfStudy": "Computer Science",
+            "college": "VCET Mumbai",
+        }
+    ]
+
+    EXPERIENCE = [
+        {
+            "role": "Full Stack Intern",
+            "company": "TechCorp Solutions",
+        }
+    ]
+
+    MATCHED_SKILLS = ["python", "react", "django", "mongodb"]
+
+    # ── Helper ──────────────────────────────────────────────────────────────
+
+    def _generate(self, **overrides):
+        defaults = dict(
+            role_name="full stack developer",
+            personal=self.PERSONAL,
+            projects=self.PROJECTS,
+            education=self.EDUCATION,
+            experience=self.EXPERIENCE,
+            matched_skills=self.MATCHED_SKILLS,
+            questions_per_category=2,
+        )
+        defaults.update(overrides)
+        return generate_hr_questions(**defaults)
+
+    # ── Output contract ─────────────────────────────────────────────────────
+
+    def test_hr_output_top_level_keys(self):
+        """Result must contain role, resume_context, questions, total."""
+        result = self._generate()
+        self.assertIn("role", result)
+        self.assertIn("resume_context", result)
+        self.assertIn("questions", result)
+        self.assertIn("total", result)
+
+    def test_hr_total_matches_questions_length(self):
+        """result['total'] must equal len(result['questions'])."""
+        result = self._generate()
+        self.assertEqual(result["total"], len(result["questions"]))
+
+    def test_hr_produces_questions(self):
+        """At least one question should be generated from a full resume."""
+        result = self._generate()
+        self.assertGreater(result["total"], 0)
+
+    def test_hr_question_entry_structure(self):
+        """Every question dict must have the expected keys."""
+        required_keys = {
+            "question", "category", "category_emoji",
+            "answer_framework", "context_used",
+        }
+        result = self._generate()
+        for q in result["questions"]:
+            self.assertEqual(
+                set(q.keys()) & required_keys, required_keys,
+                msg=f"Question missing required keys: {q}",
+            )
+
+    def test_hr_answer_framework_structure(self):
+        """answer_framework must have 'name' (str) and 'steps' (non-empty list)."""
+        result = self._generate()
+        for q in result["questions"]:
+            fw = q["answer_framework"]
+            self.assertIn("name", fw)
+            self.assertIn("steps", fw)
+            self.assertIsInstance(fw["name"], str)
+            self.assertIsInstance(fw["steps"], list)
+            self.assertGreater(len(fw["steps"]), 0, msg=f"Empty steps for: {q['question']}")
+
+    # ── Personalisation ─────────────────────────────────────────────────────
+
+    def test_hr_project_name_appears_in_project_deepdive(self):
+        """At least one project deep-dive question must reference a real project title."""
+        result = self._generate()
+        project_titles = {p["title"].lower() for p in self.PROJECTS}
+        project_questions = [
+            q for q in result["questions"] if "project" in q["category"].lower()
+        ]
+        self.assertGreater(len(project_questions), 0, "No project deep-dive questions generated")
+        found = any(
+            any(title in q["question"].lower() for title in project_titles)
+            for q in project_questions
+        )
+        self.assertTrue(found, "No project deep-dive question contains a real project name")
+
+    def test_hr_role_appears_in_questions(self):
+        """The target role name should appear in at least one generated question."""
+        result = self._generate(role_name="junior backend developer")
+        role_lc = "junior backend developer"
+        found = any(role_lc in q["question"].lower() for q in result["questions"])
+        self.assertTrue(found, "Target role name not found in any generated question")
+
+    def test_hr_resume_context_populated(self):
+        """resume_context should include name, top_project, education, top_skill."""
+        result = self._generate()
+        ctx = result["resume_context"]
+        self.assertIn("name", ctx)
+        self.assertIn("top_project", ctx)
+        self.assertIn("education", ctx)
+        self.assertIn("top_skill", ctx)
+
+    def test_hr_resume_context_name_is_first_name(self):
+        """resume_context.name should be the candidate's first name."""
+        result = self._generate()
+        self.assertEqual(result["resume_context"]["name"], "Meera")
+
+    def test_hr_resume_context_top_project(self):
+        """resume_context.top_project should equal the first project title."""
+        result = self._generate()
+        self.assertEqual(result["resume_context"]["top_project"], "Skillora AI")
+
+    def test_hr_resume_context_education_string(self):
+        """resume_context.education should include the degree and field."""
+        result = self._generate()
+        edu = result["resume_context"]["education"] or ""
+        self.assertIn("Bachelor of Engineering", edu)
+        self.assertIn("Computer Science", edu)
+
+    # ── Graceful degradation ────────────────────────────────────────────────
+
+    def test_hr_empty_resume_still_generates(self):
+        """With no resume data, the engine should still produce HR questions."""
+        result = generate_hr_questions(
+            role_name="software engineer",
+            personal={},
+            projects=[],
+            education=[],
+            experience=[],
+            matched_skills=[],
+            questions_per_category=1,
+        )
+        self.assertGreater(result["total"], 0)
+
+    def test_hr_empty_resume_fallback_role(self):
+        """With an empty role_name, default role is used in questions."""
+        result = generate_hr_questions(
+            role_name="",
+            personal={},
+            projects=[],
+            education=[],
+            experience=[],
+            matched_skills=[],
+            questions_per_category=1,
+        )
+        self.assertEqual(result["role"], "Software Engineer")
+
+    def test_hr_no_duplicate_questions(self):
+        """No two questions in the output should have identical text."""
+        result = self._generate(questions_per_category=3)
+        texts = [q["question"] for q in result["questions"]]
+        self.assertEqual(len(texts), len(set(texts)), "Duplicate questions found")
+
+    # ── Category coverage ───────────────────────────────────────────────────
+
+    def test_hr_all_expected_categories_present(self):
+        """
+        With questions_per_category=2 and a full resume, questions should
+        span at least 5 distinct HR categories.
+        """
+        result = self._generate(questions_per_category=2)
+        categories = {q["category"] for q in result["questions"]}
+        self.assertGreaterEqual(
+            len(categories), 5,
+            msg=f"Expected at least 5 categories, got: {categories}",
+        )
+
+    def test_hr_self_intro_category_present(self):
+        """Self-Introduction category should always appear."""
+        result = self._generate()
+        categories = {q["category"] for q in result["questions"]}
+        self.assertIn("Self-Introduction", categories)
+
+    def test_hr_project_deepdive_category_present(self):
+        """Project Deep-Dive category should appear when projects are provided."""
+        result = self._generate()
+        categories = {q["category"] for q in result["questions"]}
+        self.assertIn("Project Deep-Dive", categories)
+
+    # ── questions_per_category scaling ─────────────────────────────────────
+
+    def test_hr_questions_per_category_1_fewer_total(self):
+        """questions_per_category=1 should produce fewer questions than =2."""
+        r1 = self._generate(questions_per_category=1)
+        r2 = self._generate(questions_per_category=2)
+        self.assertLess(r1["total"], r2["total"])
+
+    def test_hr_category_emoji_is_string(self):
+        """category_emoji must be a non-empty string."""
+        result = self._generate()
+        for q in result["questions"]:
+            self.assertIsInstance(q["category_emoji"], str)
+            self.assertGreater(len(q["category_emoji"]), 0)
