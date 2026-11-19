@@ -28,7 +28,7 @@ import CustomSectionForm from "../../components/resumebuilder/CustomSectionForm"
 import ResumePreview from "../../components/resumebuilder/ResumePreview";
 import DownloadResume from "../../components/resumebuilder/DownloadResume";
 import AIHintPanel from "../../components/resumebuilder/AIHintPanel";
-
+import { FaBars } from "react-icons/fa";
 const steps = [
   "Personal",
   "Education",
@@ -291,6 +291,14 @@ export default function ResumeBuilder() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+        {/* Mobile Preview Toggle */}
+        <button
+          className="md:hidden p-2 m-2 rounded-md bg-white shadow-md"
+          onClick={() => setShowPreview(!showPreview)}
+          aria-label="Toggle preview"
+        >
+          <FaBars className="text-xl" />
+        </button>
 
       {/* MAIN BUILDER CONTAINER */}
       <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
