@@ -80,7 +80,7 @@ function JobRecommendation() {
 
           <JobFilters />
 
-          <JobMatchScore />
+          <JobMatchScore jobs={jobs} />
 
           {loading ? (
             <div className="flex flex-col items-center justify-center p-8 bg-white rounded-[32px] border border-slate-200">

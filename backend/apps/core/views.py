@@ -1350,26 +1350,210 @@ class RoadmapView(APIView):
 class JobRecommendationsView(APIView):
     """
     GET /api/jobs/recommended
-    Returns tailored job recommendations based on user skills/profile.
+
+    Returns AI-powered job role recommendations derived from the user's
+    actual extracted resume skills.
+
+    Pipeline:
+      1. Try to source skills from the user's latest resume analysis
+         (skill_extractor output stored when the resume was analysed).
+      2. Fall back to skills stored on the user's profile document.
+      3. Run match_roles_for_skills() across the full job-role taxonomy.
+      4. Return the top-N roles with compatibility score, explanation,
+         matched skills, missing skills, domain and experience level.
+
+    Results are always recalculated from live data — cached documents are
+    invalidated whenever a newer resume analysis exists.
     """
     permission_classes = [IsAuthenticated]
 
+    # Maximum number of roles returned per request
+    _TOP_N = 6
+
     def get(self, request):
+        from apps.core.ai.job_role_taxonomy import match_roles_for_skills
+
         db = get_db()
-        rec_doc = db.job_recommendations.find_one({'user_id': ObjectId(request.user.id)})
-        
-        if not rec_doc:
-            user_skills = [s.get('name') if isinstance(s, dict) else str(s) for s in (request.user.skills or [])]
-            jobs = get_demo_job_data(user_skills)
-            
-            rec_doc = {
-                'user_id': ObjectId(request.user.id),
-                'jobs': jobs,
-                'created_at': datetime.utcnow()
-            }
-            db.job_recommendations.insert_one(rec_doc)
-            
-        return Response(rec_doc.get('jobs', []), status=status.HTTP_200_OK)
+
+        # ------------------------------------------------------------------
+        # Step 1: Resolve the candidate's skills
+        # ------------------------------------------------------------------
+        # Prefer skills extracted from the most recent resume analysis
+        # because they are normalised by the skill taxonomy extractor and
+        # more reliable than free-text profile entries.
+
+        latest_analysis = db.resume_analyses.find_one(
+            {'user_id': ObjectId(request.user.id)},
+            sort=[('created_at', -1)]
+        )
+
+        candidate_skills = []
+        source = "profile"
+
+        if latest_analysis:
+            # Primary path: resume_analysis.skills = {'skills': [...], 'categories': {...}}
+            skills_data = latest_analysis.get('resume_analysis', {}).get('skills', {})
+            if isinstance(skills_data, dict):
+                candidate_skills = skills_data.get('skills', [])
+            elif isinstance(skills_data, list):
+                candidate_skills = skills_data
+
+            # Secondary fallback: flat 'skills' key stored directly on the
+            # analysis doc (populated when analysis runs without a job description)
+            if not candidate_skills:
+                flat_skills = latest_analysis.get('skills', [])
+                if isinstance(flat_skills, list):
+                    candidate_skills = [
+                        s.get('name') if isinstance(s, dict) else str(s)
+                        for s in flat_skills if s
+                    ]
+
+            if candidate_skills:
+                source = "resume"
+
+        # Final fallback: profile skills stored on the user document
+        if not candidate_skills:
+            profile_skills = request.user.skills or []
+            candidate_skills = [
+                s.get('name') if isinstance(s, dict) else str(s)
+                for s in profile_skills
+                if s
+            ]
+
+        # ------------------------------------------------------------------
+        # Step 2: Check if a cached result is still fresh
+        # (invalidate if a newer resume analysis appeared after caching)
+        # ------------------------------------------------------------------
+        cached = db.job_recommendations.find_one(
+            {'user_id': ObjectId(request.user.id)}
+        )
+        cache_valid = False
+
+        if cached and cached.get('source') == source:
+            if source == "resume" and latest_analysis:
+                analysis_ts = latest_analysis.get('created_at')
+                cached_ts   = cached.get('created_at')
+                # Cache valid if it was built AFTER the current latest analysis
+                if cached_ts and analysis_ts and cached_ts >= analysis_ts:
+                    cache_valid = True
+            elif source == "profile":
+                cache_valid = True   # Profile changes are infrequent; use cache
+
+        if cache_valid:
+            return Response(cached.get('jobs', []), status=status.HTTP_200_OK)
+
+        # ------------------------------------------------------------------
+        # Step 3: Run taxonomy matching
+        # ------------------------------------------------------------------
+        matched_roles = match_roles_for_skills(candidate_skills)
+
+        # Keep only roles that have at least one matched required skill,
+        # unless the candidate has zero skills (then show top roles anyway).
+        if candidate_skills:
+            filtered = [r for r in matched_roles if r['required_match_pct'] > 0]
+            if not filtered:
+                filtered = matched_roles
+        else:
+            filtered = matched_roles
+
+        top_roles = filtered[:self._TOP_N]
+
+        # ------------------------------------------------------------------
+        # Step 4: Build response payload
+        # ------------------------------------------------------------------
+        COLORS = [
+            'bg-blue-600', 'bg-purple-600', 'bg-emerald-600',
+            'bg-rose-500',  'bg-orange-500', 'bg-teal-600',
+        ]
+
+        def _build_explanation(role_data, candidate_skills_set):
+            """
+            Generate a plain-language explanation for why this role was
+            recommended based on matched vs missing required skills.
+            """
+            pct      = role_data['required_match_pct']
+            matched  = role_data['matched_required']
+            missing  = role_data['missing_required']
+            bonus    = role_data['bonus_matches']
+
+            if pct >= 80:
+                strength = "Strong match"
+            elif pct >= 50:
+                strength = "Good match"
+            elif pct >= 25:
+                strength = "Partial match"
+            else:
+                strength = "Aspirational match"
+
+            parts = [f"{strength} ({pct:.0f}% of required skills)."]
+
+            if matched:
+                parts.append(
+                    f"You already have: {', '.join(matched[:5])}."
+                )
+            if missing:
+                parts.append(
+                    f"Key skills to add: {', '.join(missing[:4])}."
+                )
+            if bonus:
+                parts.append(
+                    f"Bonus: {', '.join(bonus[:3])} also align with this role."
+                )
+            if not candidate_skills_set:
+                parts = [
+                    "No resume skills detected. Upload your resume for a "
+                    "personalised score. This role suits freshers learning "
+                    f"{', '.join(role_data.get('missing_required', [])[:3])}."
+                ]
+            return " ".join(parts)
+
+        candidate_set = {s.lower().strip() for s in candidate_skills}
+
+        jobs = []
+        for idx, role_data in enumerate(top_roles):
+            role_key     = role_data['role']
+            display_name = role_key.replace('-', ' ').title()
+
+            jobs.append({
+                "id":                   f"ai-role-{idx + 1}",
+                "role":                 display_name,
+                "title":                display_name,
+                "domain":               role_data['domain'],
+                "experience_level":     role_data['experience_level'],
+                "description":          role_data['description'],
+                "compatibility_score":  role_data['required_match_pct'],
+                "matchScore":           role_data['required_match_pct'],
+                "match":                role_data['required_match_pct'],
+                "matched_skills":       role_data['matched_required'],
+                "missing_skills":       role_data['missing_required'],
+                "bonus_skills":         role_data['bonus_matches'],
+                "explanation":          _build_explanation(role_data, candidate_set),
+                "skills_source":        source,
+                # UI display helpers
+                "logo":                 display_name[0].upper(),
+                "color":                COLORS[idx % len(COLORS)],
+                "location":             "India (Hybrid / Remote)",
+                "type":                 "Full-time",
+                "link":                 "#",
+            })
+
+        # ------------------------------------------------------------------
+        # Step 5: Persist and return
+        # ------------------------------------------------------------------
+        now = datetime.utcnow()
+        db.job_recommendations.replace_one(
+            {'user_id': ObjectId(request.user.id)},
+            {
+                'user_id':    ObjectId(request.user.id),
+                'jobs':       jobs,
+                'source':     source,
+                'created_at': now,
+            },
+            upsert=True
+        )
+
+        return Response(jobs, status=status.HTTP_200_OK)
+
 
 
 class CareerInsightsView(APIView):

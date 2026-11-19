@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import careerService from "../../services/careerService";
+import jobsService from "../../services/jobsService";
 import useAuth from "../../hooks/useAuth";
 import CareerOverview from "../../components/career-insights/CareerOverview";
 import CareerReadinessScore from "../../components/career-insights/CareerReadinessScore";
@@ -16,21 +17,27 @@ import AICareerAdvisor from "../../components/career-insights/AICareerAdvisor";
 function CareerInsights() {
   const { user } = useAuth();
   const [insights, setInsights] = useState(null);
+  const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchInsights = async () => {
+    const fetchAll = async () => {
       setLoading(true);
       try {
-        const data = await careerService.getCareerInsights();
-        setInsights(data);
+        // Fetch career insights and job recommendations concurrently
+        const [insightsData, jobsData] = await Promise.allSettled([
+          careerService.getCareerInsights(),
+          jobsService.getRecommendedJobs(),
+        ]);
+        if (insightsData.status === "fulfilled") setInsights(insightsData.value);
+        if (jobsData.status === "fulfilled") setJobs(jobsData.value);
       } catch (err) {
         console.error("Failed to load career insights:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchInsights();
+    fetchAll();
   }, [user]);
 
   if (loading) {
@@ -93,7 +100,8 @@ function CareerInsights() {
 
       <CareerTimeline timeline={insights?.timeline} />
 
-      <RecommendedCareerPaths />
+      {/* Pass live jobs data to RecommendedCareerPaths */}
+      <RecommendedCareerPaths jobs={jobs} />
 
       <IndustryDemand demandTrend={insights?.demandTrend} />
 
