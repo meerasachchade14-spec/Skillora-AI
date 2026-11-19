@@ -15,7 +15,7 @@ function UploadArea({ onFileSelect }) {
   const handleFile = (selectedFile) => {
     if (!selectedFile) return;
 
-    const validExtensions = [".pdf", ".doc", ".docx"];
+    const validExtensions = [".pdf", ".docx"];
 
     const fileName = selectedFile.name.toLowerCase();
 
@@ -26,12 +26,12 @@ function UploadArea({ onFileSelect }) {
     const maxSize = 5 * 1024 * 1024;
 
     if (!isValidFile) {
-      alert("Please upload a PDF, DOC, or DOCX file.");
+      toast.error("Please upload a PDF or DOCX file.");
       return;
     }
 
     if (selectedFile.size > maxSize) {
-      alert("File size must be less than 5MB.");
+      toast.error("File size must be less than 5 MB.");
       return;
     }
 

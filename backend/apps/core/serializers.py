@@ -4,7 +4,7 @@ from rest_framework import serializers
 # File upload security constants
 # ---------------------------------------------------------------------------
 # Maximum allowed upload size: 10 MB
-MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10 MB in bytes
+MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5 MB in bytes
 
 # Magic-byte signatures used to verify the actual file type regardless of
 # the file extension the client sends.
