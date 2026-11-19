@@ -150,3 +150,28 @@ select:focus {
 .dark .resume-builder-page {
   background: #020617;
 }
+
+/* ================================
+   GLOBAL RESPONSIVE FIXES
+   ================================ */
+
+/* Ensure images and iframes never exceed container width */
+img, iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Resume preview wrapper for mobile scrolling */
+.resume-preview-wrapper {
+  overflow-x: auto;
+}
+
+/* Scale resume paper on small screens */
+@media (max-width: 640px) {
+  .resume-paper {
+    transform: scale(0.75);
+    transform-origin: top left;
+    width: 100%;
+    max-width: 100%;
+  }
+}

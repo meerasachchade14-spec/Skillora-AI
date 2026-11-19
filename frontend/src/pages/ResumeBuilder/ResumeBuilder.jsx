@@ -43,6 +43,9 @@ const steps = [
 ];
 
 export default function ResumeBuilder() {
+  // Mobile preview toggle state
+  const [showPreview, setShowPreview] = useState(true);
+
   // ── Router + auth hooks first (must precede any useState that reads location.state) ──
   const location = useLocation();
   const navigate = useNavigate();
@@ -292,7 +295,7 @@ export default function ResumeBuilder() {
       {/* MAIN BUILDER CONTAINER */}
       <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.45fr)_minmax(420px,0.85fr)] gap-6 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
 
           {/* =====================================================
               LEFT SIDE - BUILDER
@@ -459,7 +462,7 @@ export default function ResumeBuilder() {
               RIGHT SIDE - LIVE RESUME
           ====================================================== */}
 
-          <aside className="min-w-0 xl:sticky xl:top-6">
+          <aside className={`min-w-0 xl:sticky xl:top-6 ${showPreview ? "block" : "hidden"} md:block`}>
 
             {/* LIVE PREVIEW */}
 

@@ -152,7 +152,7 @@ function UploadArea({ onFileSelect }) {
             Browse Resume
           </button>
 
-          <p className="text-xs text-slate-400 mt-5">
+          <p className="text-xs text-slate-400 mt-5 text-center md:text-left">
             Supported formats: PDF, DOC, DOCX • Maximum size: 5MB
           </p>
 
