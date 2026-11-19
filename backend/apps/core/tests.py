@@ -367,3 +367,405 @@ class AdminAPITests(APITestCase):
         response = self.client.get('/api/admin/stats')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+
+# =============================================================
+# Job Role Taxonomy Unit Tests
+# =============================================================
+#
+# These tests are purely in-memory; no database or HTTP client
+# is required. They validate the taxonomy data and every public
+# API function in apps/core/ai/job_role_taxonomy.py.
+# =============================================================
+
+from django.test import TestCase
+
+from apps.core.ai.job_role_taxonomy import (
+    JOB_ROLE_TAXONOMY,
+    ROLES_BY_DOMAIN,
+    ROLES_BY_EXPERIENCE,
+    DOMAIN_SOFTWARE_DEVELOPMENT,
+    DOMAIN_PYTHON,
+    DOMAIN_WEB_DEVELOPMENT,
+    DOMAIN_DATABASES,
+    DOMAIN_AI_ML,
+    LEVEL_FRESHER,
+    LEVEL_ENTRY,
+    LEVEL_JUNIOR,
+    get_role,
+    list_roles_by_domain,
+    list_roles_by_experience,
+    get_required_skills,
+    get_preferred_skills,
+    get_all_role_keys,
+    match_roles_for_skills,
+)
+
+
+class JobRoleTaxonomyDataTests(TestCase):
+    """Structural integrity tests for JOB_ROLE_TAXONOMY."""
+
+    def test_taxonomy_is_not_empty(self):
+        """Taxonomy must define at least one role."""
+        self.assertGreater(len(JOB_ROLE_TAXONOMY), 0)
+
+    def test_all_roles_have_required_keys(self):
+        """Every role must supply the five mandatory keys."""
+        mandatory_keys = {
+            "domain",
+            "experience_level",
+            "description",
+            "required_skills",
+            "preferred_skills",
+        }
+        for role_key, role_data in JOB_ROLE_TAXONOMY.items():
+            with self.subTest(role=role_key):
+                missing = mandatory_keys - set(role_data.keys())
+                self.assertFalse(
+                    missing,
+                    msg=f"Role '{role_key}' is missing keys: {missing}",
+                )
+
+    def test_all_roles_have_non_empty_required_skills(self):
+        """required_skills must be a non-empty list for every role."""
+        for role_key, role_data in JOB_ROLE_TAXONOMY.items():
+            with self.subTest(role=role_key):
+                req = role_data.get("required_skills", [])
+                self.assertIsInstance(req, list)
+                self.assertGreater(len(req), 0)
+
+    def test_all_roles_have_non_empty_preferred_skills(self):
+        """preferred_skills must be a non-empty list for every role."""
+        for role_key, role_data in JOB_ROLE_TAXONOMY.items():
+            with self.subTest(role=role_key):
+                pref = role_data.get("preferred_skills", [])
+                self.assertIsInstance(pref, list)
+                self.assertGreater(len(pref), 0)
+
+    def test_all_roles_have_non_empty_description(self):
+        """description must be a non-empty string of reasonable length."""
+        for role_key, role_data in JOB_ROLE_TAXONOMY.items():
+            with self.subTest(role=role_key):
+                desc = role_data.get("description", "")
+                self.assertIsInstance(desc, str)
+                self.assertGreater(len(desc.strip()), 20)
+
+    def test_valid_experience_levels(self):
+        """experience_level must be one of the three defined constants."""
+        valid_levels = {LEVEL_FRESHER, LEVEL_ENTRY, LEVEL_JUNIOR}
+        for role_key, role_data in JOB_ROLE_TAXONOMY.items():
+            with self.subTest(role=role_key):
+                self.assertIn(role_data["experience_level"], valid_levels)
+
+    def test_valid_domains(self):
+        """domain must be one of the five defined domain constants."""
+        valid_domains = {
+            DOMAIN_SOFTWARE_DEVELOPMENT,
+            DOMAIN_PYTHON,
+            DOMAIN_WEB_DEVELOPMENT,
+            DOMAIN_DATABASES,
+            DOMAIN_AI_ML,
+        }
+        for role_key, role_data in JOB_ROLE_TAXONOMY.items():
+            with self.subTest(role=role_key):
+                self.assertIn(role_data["domain"], valid_domains)
+
+    def test_no_overlap_between_required_and_preferred(self):
+        """A skill must not appear in both required and preferred lists."""
+        for role_key, role_data in JOB_ROLE_TAXONOMY.items():
+            with self.subTest(role=role_key):
+                req  = set(role_data.get("required_skills", []))
+                pref = set(role_data.get("preferred_skills", []))
+                overlap = req.intersection(pref)
+                self.assertFalse(overlap)
+
+    def test_all_five_domains_are_represented(self):
+        """Each defined domain must have at least one role."""
+        domains_in_taxonomy = {
+            data["domain"] for data in JOB_ROLE_TAXONOMY.values()
+        }
+        for domain in [
+            DOMAIN_SOFTWARE_DEVELOPMENT,
+            DOMAIN_PYTHON,
+            DOMAIN_WEB_DEVELOPMENT,
+            DOMAIN_DATABASES,
+            DOMAIN_AI_ML,
+        ]:
+            self.assertIn(domain, domains_in_taxonomy)
+
+    def test_all_three_experience_levels_are_represented(self):
+        """Each experience level must have at least one role."""
+        levels_in_taxonomy = {
+            data["experience_level"] for data in JOB_ROLE_TAXONOMY.values()
+        }
+        for level in [LEVEL_FRESHER, LEVEL_ENTRY, LEVEL_JUNIOR]:
+            self.assertIn(level, levels_in_taxonomy)
+
+
+class JobRoleTaxonomyIndexTests(TestCase):
+    """Tests for pre-computed ROLES_BY_DOMAIN and ROLES_BY_EXPERIENCE."""
+
+    def test_domain_index_covers_all_roles(self):
+        """Every role key must appear in ROLES_BY_DOMAIN."""
+        all_indexed = {
+            key
+            for keys in ROLES_BY_DOMAIN.values()
+            for key in keys
+        }
+        for role_key in JOB_ROLE_TAXONOMY:
+            self.assertIn(role_key, all_indexed)
+
+    def test_experience_index_covers_all_roles(self):
+        """Every role key must appear in ROLES_BY_EXPERIENCE."""
+        all_indexed = {
+            key
+            for keys in ROLES_BY_EXPERIENCE.values()
+            for key in keys
+        }
+        for role_key in JOB_ROLE_TAXONOMY:
+            self.assertIn(role_key, all_indexed)
+
+
+class JobRoleTaxonomyAPITests(TestCase):
+    """Tests for public API functions."""
+
+    # ---- get_role --------------------------------------------------
+
+    def test_get_role_returns_correct_entry(self):
+        role = get_role("django developer")
+        self.assertEqual(role["domain"], DOMAIN_PYTHON)
+        self.assertIn("python", role["required_skills"])
+
+    def test_get_role_is_case_insensitive(self):
+        self.assertEqual(
+            get_role("django developer"),
+            get_role("Django Developer"),
+        )
+
+    def test_get_role_returns_empty_dict_for_unknown(self):
+        self.assertEqual(get_role("senior quantum engineer"), {})
+
+    # ---- list_roles_by_domain -------------------------------------
+
+    def test_list_roles_by_domain_software(self):
+        roles = list_roles_by_domain(DOMAIN_SOFTWARE_DEVELOPMENT)
+        for expected in [
+            "junior software developer",
+            "software developer intern",
+            "junior backend developer",
+            "junior frontend developer",
+            "junior full stack developer",
+        ]:
+            self.assertIn(expected, roles)
+
+    def test_list_roles_by_domain_python(self):
+        roles = list_roles_by_domain(DOMAIN_PYTHON)
+        for expected in [
+            "django developer",
+            "flask developer",
+            "junior python developer",
+            "python developer intern",
+        ]:
+            self.assertIn(expected, roles)
+
+    def test_list_roles_by_domain_web(self):
+        roles = list_roles_by_domain(DOMAIN_WEB_DEVELOPMENT)
+        for expected in [
+            "junior react developer",
+            "junior node.js developer",
+            "frontend developer intern",
+            "web developer intern",
+        ]:
+            self.assertIn(expected, roles)
+
+    def test_list_roles_by_domain_databases(self):
+        roles = list_roles_by_domain(DOMAIN_DATABASES)
+        for expected in [
+            "junior database administrator",
+            "junior data engineer",
+            "sql developer intern",
+        ]:
+            self.assertIn(expected, roles)
+
+    def test_list_roles_by_domain_ai_ml(self):
+        roles = list_roles_by_domain(DOMAIN_AI_ML)
+        for expected in [
+            "junior machine learning engineer",
+            "junior data scientist",
+            "ai/ml intern",
+            "nlp engineer intern",
+            "junior ai researcher",
+        ]:
+            self.assertIn(expected, roles)
+
+    def test_list_roles_by_domain_returns_sorted(self):
+        roles = list_roles_by_domain(DOMAIN_PYTHON)
+        self.assertEqual(roles, sorted(roles))
+
+    def test_list_roles_by_domain_unknown_returns_empty(self):
+        self.assertEqual(list_roles_by_domain("Quantum Computing"), [])
+
+    # ---- list_roles_by_experience ---------------------------------
+
+    def test_list_roles_by_experience_fresher(self):
+        roles = list_roles_by_experience(LEVEL_FRESHER)
+        for expected in [
+            "software developer intern",
+            "python developer intern",
+            "frontend developer intern",
+            "web developer intern",
+            "sql developer intern",
+            "ai/ml intern",
+            "nlp engineer intern",
+        ]:
+            self.assertIn(expected, roles)
+
+    def test_list_roles_by_experience_entry(self):
+        roles = list_roles_by_experience(LEVEL_ENTRY)
+        for expected in [
+            "django developer",
+            "flask developer",
+            "junior data engineer",
+            "junior ai researcher",
+        ]:
+            self.assertIn(expected, roles)
+
+    def test_list_roles_by_experience_junior(self):
+        roles = list_roles_by_experience(LEVEL_JUNIOR)
+        for expected in [
+            "junior software developer",
+            "junior backend developer",
+            "junior frontend developer",
+            "junior full stack developer",
+            "junior python developer",
+            "junior react developer",
+            "junior node.js developer",
+            "junior database administrator",
+            "junior machine learning engineer",
+            "junior data scientist",
+        ]:
+            self.assertIn(expected, roles)
+
+    def test_list_roles_by_experience_returns_sorted(self):
+        roles = list_roles_by_experience(LEVEL_JUNIOR)
+        self.assertEqual(roles, sorted(roles))
+
+    def test_list_roles_by_experience_unknown_returns_empty(self):
+        self.assertEqual(list_roles_by_experience("senior"), [])
+
+    # ---- get_required_skills / get_preferred_skills ---------------
+
+    def test_get_required_skills_django_developer(self):
+        skills = get_required_skills("django developer")
+        for expected in ["python", "django", "sql"]:
+            self.assertIn(expected, skills)
+
+    def test_get_preferred_skills_django_developer(self):
+        skills = get_preferred_skills("django developer")
+        for expected in ["django rest framework", "postgresql"]:
+            self.assertIn(expected, skills)
+
+    def test_get_required_skills_unknown_role_returns_empty(self):
+        self.assertEqual(get_required_skills("unknown role"), [])
+
+    def test_get_preferred_skills_unknown_role_returns_empty(self):
+        self.assertEqual(get_preferred_skills("unknown role"), [])
+
+    # ---- get_all_role_keys ----------------------------------------
+
+    def test_get_all_role_keys_returns_all_roles(self):
+        keys = get_all_role_keys()
+        self.assertEqual(len(keys), len(JOB_ROLE_TAXONOMY))
+
+    def test_get_all_role_keys_is_sorted(self):
+        keys = get_all_role_keys()
+        self.assertEqual(keys, sorted(keys))
+
+    # ---- match_roles_for_skills -----------------------------------
+
+    def test_match_roles_perfect_match_for_django_developer(self):
+        """Providing all required skills for 'django developer' yields 100 %."""
+        required = get_required_skills("django developer")
+        results  = match_roles_for_skills(required)
+        django_result = next(
+            (r for r in results if r["role"] == "django developer"), None
+        )
+        self.assertIsNotNone(django_result)
+        self.assertEqual(django_result["required_match_pct"], 100.0)
+        self.assertEqual(django_result["missing_required"], [])
+
+    def test_match_roles_zero_skills_all_zero(self):
+        """An empty skill list must score 0 for every role."""
+        for r in match_roles_for_skills([]):
+            self.assertEqual(r["required_match_pct"], 0.0)
+
+    def test_match_roles_result_sorted_descending(self):
+        """Results must be sorted by required_match_pct descending."""
+        results = match_roles_for_skills(["python", "sql", "git", "react", "html", "css"])
+        pcts = [r["required_match_pct"] for r in results]
+        self.assertEqual(pcts, sorted(pcts, reverse=True))
+
+    def test_match_roles_bonus_matches_detected(self):
+        """Preferred skills supplied by the candidate appear in bonus_matches."""
+        preferred = get_preferred_skills("flask developer")
+        results   = match_roles_for_skills(preferred)
+        flask_res = next(
+            (r for r in results if r["role"] == "flask developer"), None
+        )
+        self.assertIsNotNone(flask_res)
+        self.assertGreater(len(flask_res["bonus_matches"]), 0)
+
+    def test_match_roles_result_contains_all_roles(self):
+        """match_roles_for_skills must return a result for every role."""
+        result_keys = {r["role"] for r in match_roles_for_skills(["python"])}
+        self.assertEqual(result_keys, set(JOB_ROLE_TAXONOMY.keys()))
+
+    def test_match_roles_result_structure(self):
+        """Each result dict must contain the expected keys."""
+        expected_keys = {
+            "role", "domain", "experience_level", "description",
+            "required_match_pct", "matched_required", "missing_required",
+            "bonus_matches",
+        }
+        for r in match_roles_for_skills(["python", "git"]):
+            self.assertEqual(set(r.keys()), expected_keys)
+
+    def test_match_roles_case_insensitive_candidate_skills(self):
+        """Candidate skills should be matched case-insensitively."""
+        required_lower = get_required_skills("junior machine learning engineer")
+        required_upper = [s.upper() for s in required_lower]
+
+        def pct_for(results, role):
+            return next(
+                r["required_match_pct"]
+                for r in results if r["role"] == role
+            )
+
+        pct_lower = pct_for(
+            match_roles_for_skills(required_lower),
+            "junior machine learning engineer",
+        )
+        pct_upper = pct_for(
+            match_roles_for_skills(required_upper),
+            "junior machine learning engineer",
+        )
+        self.assertEqual(pct_lower, pct_upper)
+
+    def test_match_ai_ml_intern_perfect_score(self):
+        """A candidate with all AI/ML intern required skills scores 100 %."""
+        skills = get_required_skills("ai/ml intern")
+        results = match_roles_for_skills(skills)
+        ai_res  = next(
+            (r for r in results if r["role"] == "ai/ml intern"), None
+        )
+        self.assertIsNotNone(ai_res)
+        self.assertEqual(ai_res["required_match_pct"], 100.0)
+
+    def test_match_sql_intern_missing_skills_reported(self):
+        """A candidate with no skills has all required skills marked missing."""
+        results = match_roles_for_skills([])
+        sql_res = next(
+            (r for r in results if r["role"] == "sql developer intern"), None
+        )
+        self.assertIsNotNone(sql_res)
+        required = set(get_required_skills("sql developer intern"))
+        self.assertEqual(set(sql_res["missing_required"]), required)

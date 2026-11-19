@@ -27,6 +27,15 @@ SKILL_TAXONOMY = {
             "django rest",
             "drf",
         ],
+        "flask": ["flask"],
+        "vue.js": ["vue.js", "vuejs", "vue js", "vue"],
+        "responsive design": [
+            "responsive design",
+            "responsive web design",
+        ],
+        "bootstrap": ["bootstrap"],
+        "webpack": ["webpack"],
+        "vite": ["vite"],
     },
 
     "Databases": {
@@ -34,6 +43,24 @@ SKILL_TAXONOMY = {
         "postgresql": ["postgresql", "postgres"],
         "mongodb": ["mongodb", "mongo db", "mongo"],
         "sql": ["sql"],
+        "database management": [
+            "database management",
+            "database administration",
+            "dba",
+        ],
+        "data modeling": [
+            "data modeling",
+            "data modelling",
+            "db design",
+            "database design",
+        ],
+        "query optimization": [
+            "query optimization",
+            "query optimisation",
+            "sql optimization",
+            "sql tuning",
+        ],
+        "indexing": ["indexing", "database indexing"],
     },
 
     "AI / Machine Learning": {
@@ -98,6 +125,40 @@ SKILL_TAXONOMY = {
             "rest api",
             "restful api",
             "restful apis",
+        ],
+        "unit testing": [
+            "unit testing",
+            "unit tests",
+            "pytest",
+            "jest",
+            "unittest",
+        ],
+        "linux": ["linux", "unix"],
+        "figma": ["figma"],
+        "redux": ["redux"],
+        "transformers": [
+            "transformers",
+            "hugging face",
+            "huggingface",
+        ],
+    },
+
+    "Software Engineering": {
+        "data structures": [
+            "data structures",
+            "data structure",
+            "dsa",
+        ],
+        "algorithms": [
+            "algorithms",
+            "algorithm",
+            "algorithmic",
+        ],
+        "object-oriented programming": [
+            "object-oriented programming",
+            "object oriented programming",
+            "oop",
+            "oops",
         ],
     },
 
