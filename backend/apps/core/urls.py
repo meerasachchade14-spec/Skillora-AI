@@ -8,7 +8,8 @@ from apps.core.views import (
     RoadmapView,
     JobRecommendationsView,
     CareerInsightsView,
-    ResumeParseToBuilderView
+    ResumeParseToBuilderView,
+    BulletImproveView
 )
 from apps.core.admin_views import (
     AdminStatsView,
@@ -24,6 +25,7 @@ from apps.core.admin_views import (
 urlpatterns = [
     path('resume/upload', ResumeUploadView.as_view(), name='resume-upload'),
     path('resume/parse-to-builder', ResumeParseToBuilderView.as_view(), name='resume-parse-to-builder'),
+    path('resume/improve-bullets', BulletImproveView.as_view(), name='resume-improve-bullets'),
     path('resume', ResumeListView.as_view(), name='resume-list'),
     path('resume/<str:resume_id>', ResumeDetailView.as_view(), name='resume-detail'),
     path('analysis/<str:resume_id>', ResumeAnalysisView.as_view(), name='resume-analysis'),

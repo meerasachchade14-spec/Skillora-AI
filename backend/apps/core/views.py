@@ -20,7 +20,7 @@ from apps.core.serializers import (
 from apps.authentication.views import get_user_profile_response_dict
 from apps.core.ai.resume_parser import extract_resume_text
 from apps.core.ai.information_extractor import extract_resume_information
-from apps.core.ai.resume_quality_analyzer import generate_quality_report
+from apps.core.ai.resume_quality_analyzer import generate_quality_report, improve_single_bullet
 
 def text_from_resume_data(resume_data):
     """
@@ -1467,3 +1467,32 @@ class ResumeParseToBuilderView(APIView):
                 default_storage.delete(saved_path)
                 
         return Response({"resumeData": structured_data}, status=status.HTTP_200_OK)
+
+
+# ---------------------------------------------------------------------------
+# Bullet Improve View
+# POST /api/resume/improve-bullets
+# Body: { "bullets": ["Responsible for building the API", ...] }
+# Returns improvement suggestions for each bullet.
+# Never invents content — only rewrites using the actual text.
+# ---------------------------------------------------------------------------
+
+class BulletImproveView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
+
+    def post(self, request):
+        bullets = request.data.get("bullets", [])
+
+        if not isinstance(bullets, list):
+            return Response(
+                {"error": "'bullets' must be a list of strings."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Cap at 20 bullets to avoid abuse
+        bullets = [str(b).strip() for b in bullets if b and str(b).strip()][:20]
+
+        results = [improve_single_bullet(b) for b in bullets]
+
+        return Response({"results": results}, status=status.HTTP_200_OK)

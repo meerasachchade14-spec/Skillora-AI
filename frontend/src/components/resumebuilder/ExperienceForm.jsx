@@ -5,6 +5,7 @@ import {
   FaCalendarAlt,
   FaMapMarkerAlt,
 } from "react-icons/fa";
+import BulletSuggestionInline from "./BulletSuggestionInline";
 
 function ExperienceForm({ resumeData, setResumeData }) {
   const experience = resumeData.experience || [];
@@ -309,6 +310,12 @@ function ExperienceForm({ resumeData, setResumeData }) {
                 <p className="text-xs text-slate-400 mt-2">
                   Tip: Use action words and mention measurable achievements where possible.
                 </p>
+
+                {/* AI Bullet Improvement */}
+                <BulletSuggestionInline
+                  description={item.description || ""}
+                  onApply={(updated) => handleChange(index, "description", updated)}
+                />
 
               </div>
 

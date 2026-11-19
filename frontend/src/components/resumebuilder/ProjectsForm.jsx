@@ -6,6 +6,7 @@ import {
   FaExternalLinkAlt,
   FaCode,
 } from "react-icons/fa";
+import BulletSuggestionInline from "./BulletSuggestionInline";
 
 function ProjectsForm({ resumeData, setResumeData }) {
   const projects = resumeData.projects || [];
@@ -314,6 +315,12 @@ function ProjectsForm({ resumeData, setResumeData }) {
                     }
                     placeholder="Describe the problem you solved, your contribution, key features and the impact of the project..."
                     className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition resize-none"
+                  />
+
+                  {/* AI Bullet Improvement */}
+                  <BulletSuggestionInline
+                    description={project.description || ""}
+                    onApply={(updated) => handleChange(index, "description", updated)}
                   />
 
                 </div>

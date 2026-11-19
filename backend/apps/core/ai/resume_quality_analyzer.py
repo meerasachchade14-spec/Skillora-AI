@@ -522,3 +522,122 @@ def generate_quality_report(resume_text: str, extracted_info: dict, skills_data:
         "total_issues":     total_issues,
         "has_issues":       total_issues > 0,
     }
+
+
+# ---------------------------------------------------------------------------
+# 5. Single-Bullet On-Demand Improver
+# ---------------------------------------------------------------------------
+
+def improve_single_bullet(bullet_text: str) -> dict:
+    """
+    Analyse one bullet / description line and return action-verb rewrites.
+    Used by the /api/analysis/improve-bullet endpoint for inline builder edits.
+
+    Rules:
+    - Preserves every word after the weak starter verbatim (no invented content).
+    - If no weak starter is found, picks the most contextually fitting verb pool
+      based on keyword scanning of the bullet text itself.
+    - Returns up to 5 rewrites.
+
+    Returns:
+      {
+        "original":    str,
+        "is_weak":     bool,
+        "weak_phrase": str | None,
+        "explanation": str | None,
+        "rewrites":    list[str],   – up to 5 action-verb rewrites
+      }
+    """
+    if not bullet_text or not bullet_text.strip():
+        return {
+            "original":    bullet_text,
+            "is_weak":     False,
+            "weak_phrase": None,
+            "explanation": None,
+            "rewrites":    [],
+        }
+
+    text   = bullet_text.strip()
+    lower  = text.lower()
+
+    # ── Step 1: Check for a known weak starter ────────────────────────────
+    matched_phrase = None
+    matched_context = None
+    matched_explanation = None
+    tail = ""
+
+    for phrase, (context, explanation) in WEAK_STARTERS.items():
+        pattern = r'^[•\-–*>]?\s*' + re.escape(phrase)
+        if re.match(pattern, lower):
+            matched_phrase      = phrase
+            matched_context     = context
+            matched_explanation = explanation
+            # Strip weak starter from the original to get the meaningful tail
+            tail = re.sub(
+                r'^[•\-–*>]?\s*' + re.escape(phrase) + r'\s*',
+                '', text, flags=re.IGNORECASE
+            ).strip()
+            break
+
+    # ── Step 2: If no weak starter, infer best context from keywords ──────
+    if matched_context is None:
+        keyword_map = {
+            "development":   ["develop", "build", "code", "implement", "deploy", "architect",
+                               "program", "engineer", "create", "design", "debug", "refactor",
+                               "api", "backend", "frontend", "database", "django", "react",
+                               "python", "javascript", "script", "automat"],
+            "leadership":    ["lead", "manag", "direct", "mentor", "supervis", "coordinat",
+                               "team", "spearhead", "driv", "champion", "facilitat"],
+            "analysis":      ["analyz", "evaluat", "assess", "investigat", "research",
+                               "review", "audit", "measur", "diagnos", "benchmark", "data",
+                               "report", "metric", "kpi", "insight"],
+            "improvement":   ["improv", "enhanc", "increas", "reduc", "streamlin", "optim",
+                               "acceler", "boost", "strengthen", "upgrad", "revamp", "fix",
+                               "resolv", "solv", "bug"],
+            "creation":      ["creat", "produc", "launch", "establish", "introduc",
+                               "author", "formulat", "initiat", "publish", "generat"],
+            "collaboration": ["collaborat", "partner", "support", "assist", "contribut",
+                               "particip", "engag", "liaise", "communicat", "coordinat"],
+        }
+        scores = {ctx: 0 for ctx in keyword_map}
+        for ctx, kws in keyword_map.items():
+            for kw in kws:
+                if kw in lower:
+                    scores[ctx] += 1
+        matched_context = max(scores, key=scores.get)
+        tail = text   # keep full text as tail when no weak starter found
+
+    # ── Step 3: Build rewrites ────────────────────────────────────────────
+    verb_pool = ACTION_VERBS_BY_CONTEXT.get(matched_context, ACTION_VERBS_BY_CONTEXT["development"])
+
+    rewrites = []
+    for verb in verb_pool[:5]:
+        if matched_phrase is not None:
+            # Weak-starter path: replace weak starter with strong verb, preserve tail
+            if tail:
+                rewrites.append(f"{verb} {tail}")
+            else:
+                rewrites.append(f"{verb} [describe your specific contribution and impact]")
+        else:
+            # No weak starter: prepend a strong verb before the entire sentence
+            # Only do this if the sentence doesn't already start with one of our verbs
+            first_word = text.split()[0].rstrip(".,;:") if text.split() else ""
+            already_strong = any(
+                first_word.lower() == v.lower()
+                for pool in ACTION_VERBS_BY_CONTEXT.values()
+                for v in pool
+            )
+            if already_strong:
+                # Sentence is already strong — offer diversity swaps on the opening verb
+                rewrites.append(f"{verb} {' '.join(text.split()[1:])}" if len(text.split()) > 1 else f"{verb} {text}")
+            else:
+                rewrites.append(f"{verb} {text}")
+
+    return {
+        "original":    text,
+        "is_weak":     matched_phrase is not None,
+        "weak_phrase": matched_phrase.title() if matched_phrase else None,
+        "explanation": matched_explanation,
+        "rewrites":    rewrites,
+    }
+
