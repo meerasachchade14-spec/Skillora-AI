@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   FaComments,
   FaChevronDown,
   FaChevronUp,
+  FaChevronLeft,
+  FaChevronRight,
   FaBolt,
   FaLightbulb,
   FaCode,
@@ -13,6 +15,10 @@ import {
   FaHeart,
   FaListOl,
   FaUser,
+  FaPlay,
+  FaThList,
+  FaEye,
+  FaEyeSlash,
 } from "react-icons/fa";
 import careerService from "../../services/careerService";
 
@@ -27,6 +33,7 @@ const LEVELS = [
     tab: "bg-emerald-500 text-white",
     tabIdle: "text-emerald-600 hover:bg-emerald-50 border-emerald-200",
     ring: "ring-emerald-300",
+    progressBar: "bg-emerald-500",
     icon: FaCode,
     description: "Conceptual & definitional questions on your existing skills",
   },
@@ -39,6 +46,7 @@ const LEVELS = [
     tab: "bg-amber-500 text-white",
     tabIdle: "text-amber-600 hover:bg-amber-50 border-amber-200",
     ring: "ring-amber-300",
+    progressBar: "bg-amber-500",
     icon: FaBrain,
     description: "Applied problem-solving using your matched skills",
   },
@@ -51,12 +59,13 @@ const LEVELS = [
     tab: "bg-rose-500 text-white",
     tabIdle: "text-rose-600 hover:bg-rose-50 border-rose-200",
     ring: "ring-rose-300",
+    progressBar: "bg-rose-500",
     icon: FaRocket,
     description: "Architecture & design — targets your skill gaps",
   },
 ];
 
-// HR tab config (synthetic — not in LEVELS array, handled separately)
+// HR tab config
 const HR_TAB = {
   key: "hr_behavioral",
   label: "HR & Behavioral",
@@ -65,11 +74,257 @@ const HR_TAB = {
   tab: "bg-violet-600 text-white",
   tabIdle: "text-violet-600 hover:bg-violet-50 border-violet-200",
   ring: "ring-violet-300",
+  progressBar: "bg-violet-500",
   description:
     "Personalised behavioral questions drawn from your real resume — projects, education, and experience",
 };
 
-// ─── Technical Question Card ───────────────────────────────────────────────
+// ─── Difficulty label helper ──────────────────────────────────────────────
+function DifficultyBadge({ tabKey }) {
+  const cfg = {
+    beginner:     { label: "Easy",   cls: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+    intermediate: { label: "Medium", cls: "bg-amber-100 text-amber-700 border-amber-200" },
+    advanced:     { label: "Hard",   cls: "bg-rose-100 text-rose-700 border-rose-200" },
+    hr_behavioral:{ label: "HR",     cls: "bg-violet-100 text-violet-700 border-violet-200" },
+  }[tabKey] || { label: "—", cls: "bg-slate-100 text-slate-500 border-slate-200" };
+  return (
+    <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${cfg.cls}`}>
+      {cfg.label}
+    </span>
+  );
+}
+
+// ─── Practice Mode — single question card ────────────────────────────────
+function PracticeCard({ questions, tabKey, tabCfg, onExit }) {
+  const [idx, setIdx]           = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  // Track which indices have been viewed at least once
+  const [seen, setSeen]         = useState(() => new Set([0]));
+
+  const total = questions.length;
+  const item  = questions[idx];
+  const isFirst = idx === 0;
+  const isLast  = idx === total - 1;
+
+  const goTo = useCallback((next) => {
+    setIdx(next);
+    setRevealed(false);
+    setSeen((s) => { const ns = new Set(s); ns.add(next); return ns; });
+  }, []);
+
+  const handlePrev = () => { if (!isFirst) goTo(idx - 1); };
+  const handleNext = () => { if (!isLast)  goTo(idx + 1); };
+
+  const seenCount  = seen.size;
+  const pct        = Math.round((seenCount / total) * 100);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "ArrowLeft")  handlePrev();
+      if (e.key === "ArrowRight") handleNext();
+      if (e.key === " ") { e.preventDefault(); setRevealed((r) => !r); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
+  // Determine ring / progress bar colour from tabCfg
+  const ring     = tabCfg?.ring     || "ring-blue-300";
+  const bar      = tabCfg?.progressBar || "bg-blue-500";
+  const badgeCls = tabCfg?.badge    || "bg-blue-100 text-blue-700 border-blue-200";
+
+  return (
+    <div className="space-y-5">
+
+      {/* ── Progress bar + counter ── */}
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-xs font-bold text-slate-500">
+            Question {idx + 1} of {total}
+          </span>
+          <span className="text-xs font-bold text-slate-400">
+            {seenCount} / {total} seen &nbsp;·&nbsp; {pct}%
+          </span>
+        </div>
+        <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${bar}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        {/* Dot trail */}
+        <div className="flex gap-1 mt-2 flex-wrap">
+          {questions.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goTo(i)}
+              title={`Question ${i + 1}`}
+              className={`w-3 h-3 rounded-full border transition-all ${
+                i === idx
+                  ? `${bar} border-transparent scale-125`
+                  : seen.has(i)
+                  ? "bg-slate-300 border-slate-300 hover:bg-slate-400"
+                  : "bg-slate-100 border-slate-200 hover:bg-slate-200"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* ── Question card ── */}
+      <div className={`rounded-2xl border bg-white shadow-sm ring-2 ${ring} transition-all duration-200`}>
+
+        {/* Header strip */}
+        <div className="px-5 pt-4 pb-3 border-b border-slate-100 flex items-center gap-3 flex-wrap">
+          <span className={`flex-shrink-0 w-7 h-7 rounded-full text-xs font-black flex items-center justify-center border ${badgeCls}`}>
+            {idx + 1}
+          </span>
+          <DifficultyBadge tabKey={tabKey} />
+
+          {/* Skill chip (technical) or category chip (HR) */}
+          {item.skill && (
+            <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${badgeCls}`}>
+              {item.skill}
+            </span>
+          )}
+          {item.category && (
+            <span className={`inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${badgeCls}`}>
+              <span>{item.category_emoji}</span>
+              {item.category}
+            </span>
+          )}
+
+          {/* Framework chip (HR) */}
+          {item.answer_framework?.name && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border bg-sky-50 text-sky-700 border-sky-200">
+              <FaListOl size={9} />
+              {item.answer_framework.name}
+            </span>
+          )}
+        </div>
+
+        {/* Question text */}
+        <div className="px-5 py-5">
+          <p className="text-base font-semibold text-slate-800 leading-relaxed">
+            {item.question}
+          </p>
+        </div>
+
+        {/* Reveal answer toggle */}
+        <div className="px-5 pb-5 space-y-3">
+          <button
+            id={`practice-reveal-${idx}`}
+            onClick={() => setRevealed((r) => !r)}
+            className={`w-full py-2.5 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 border transition-all ${
+              revealed
+                ? "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
+                : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+            }`}
+          >
+            {revealed ? <FaEyeSlash size={13} /> : <FaEye size={13} />}
+            {revealed ? "Hide Answer Structure" : "Reveal Suggested Answer Structure"}
+          </button>
+
+          {/* Answer / hint panel */}
+          {revealed && (
+            <div className="rounded-xl bg-amber-50 border border-amber-100 px-4 py-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <FaLightbulb className="text-amber-500 flex-shrink-0" size={13} />
+                <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  {item.answer_framework?.name
+                    ? `${item.answer_framework.name} — Suggested Structure`
+                    : "Answering Tip"}
+                </p>
+              </div>
+
+              {/* Framework steps (HR questions) */}
+              {item.answer_framework?.steps?.length > 0 && (
+                <ol className="space-y-2">
+                  {item.answer_framework.steps.map((step, si) => {
+                    const dashIdx = step.indexOf(" — ");
+                    const label = dashIdx !== -1 ? step.slice(0, dashIdx) : null;
+                    const body  = dashIdx !== -1 ? step.slice(dashIdx + 3) : step;
+                    return (
+                      <li
+                        key={si}
+                        className="flex items-start gap-3 bg-white border border-amber-100 rounded-xl px-3 py-2.5"
+                      >
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-200 text-amber-800 text-[10px] font-black flex items-center justify-center mt-0.5">
+                          {si + 1}
+                        </span>
+                        <p className="text-xs text-slate-700 leading-relaxed">
+                          {label && <span className="font-bold text-amber-800">{label}</span>}
+                          {label && " — "}
+                          {body}
+                        </p>
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+
+              {/* Plain hint (technical questions) */}
+              {!item.answer_framework?.steps?.length && item.hint && (
+                <p className="text-xs text-slate-600 leading-relaxed">{item.hint}</p>
+              )}
+
+              {/* Resume context footnote */}
+              {item.context_used && (
+                <p className="text-[10px] text-slate-400 font-medium italic pt-1">
+                  📌 Personalised from your resume: {item.context_used}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Navigation ── */}
+      <div className="flex items-center gap-3">
+        <button
+          id="practice-prev"
+          onClick={handlePrev}
+          disabled={isFirst}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border transition-all ${
+            isFirst
+              ? "bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50 hover:shadow-sm"
+          }`}
+        >
+          <FaChevronLeft size={11} />
+          Previous
+        </button>
+
+        {/* Jump-to counter */}
+        <span className="flex-1 text-center text-xs font-bold text-slate-400">
+          {idx + 1} / {total}
+        </span>
+
+        <button
+          id="practice-next"
+          onClick={handleNext}
+          disabled={isLast}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border transition-all ${
+            isLast
+              ? "bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50 hover:shadow-sm"
+          }`}
+        >
+          Next
+          <FaChevronRight size={11} />
+        </button>
+      </div>
+
+      {/* Keyboard hint */}
+      <p className="text-center text-[10px] text-slate-400">
+        ← → arrow keys to navigate &nbsp;·&nbsp; Space to reveal / hide
+      </p>
+    </div>
+  );
+}
+
+// ─── Technical Question Card (list view) ──────────────────────────────────
 function QuestionCard({ item, index, levelCfg }) {
   const [open, setOpen] = useState(false);
 
@@ -79,38 +334,24 @@ function QuestionCard({ item, index, levelCfg }) {
         open ? `ring-2 ${levelCfg.ring}` : "border-slate-200"
       }`}
     >
-      {/* Question row */}
       <button
         className="w-full text-left px-5 py-4 flex items-start gap-4 group"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
       >
-        {/* Number badge */}
-        <span
-          className={`flex-shrink-0 w-7 h-7 rounded-full text-xs font-black flex items-center justify-center border ${levelCfg.badge}`}
-        >
+        <span className={`flex-shrink-0 w-7 h-7 rounded-full text-xs font-black flex items-center justify-center border ${levelCfg.badge}`}>
           {index + 1}
         </span>
-
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-slate-800 leading-snug">
-            {item.question}
-          </p>
-          {/* Skill chip */}
-          <span
-            className={`inline-block mt-2 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${levelCfg.badge}`}
-          >
+          <p className="text-sm font-semibold text-slate-800 leading-snug">{item.question}</p>
+          <span className={`inline-block mt-2 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${levelCfg.badge}`}>
             {item.skill}
           </span>
         </div>
-
-        {/* Expand icon */}
         <span className="flex-shrink-0 text-slate-400 group-hover:text-slate-600 mt-0.5 transition-colors">
           {open ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
         </span>
       </button>
-
-      {/* Hint panel */}
       {open && (
         <div className="px-5 pb-4 pt-0 border-t border-slate-100">
           <div className="flex items-start gap-2 mt-3">
@@ -126,7 +367,7 @@ function QuestionCard({ item, index, levelCfg }) {
   );
 }
 
-// ─── HR Question Card ──────────────────────────────────────────────────────
+// ─── HR Question Card (list view) ─────────────────────────────────────────
 function HRQuestionCard({ item, index }) {
   const [open, setOpen] = useState(false);
   const framework = item.answer_framework;
@@ -137,31 +378,22 @@ function HRQuestionCard({ item, index }) {
         open ? "ring-2 ring-violet-300" : "border-slate-200"
       }`}
     >
-      {/* Question row */}
       <button
         className="w-full text-left px-5 py-4 flex items-start gap-4 group"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         id={`hr-question-${index}`}
       >
-        {/* Number badge */}
         <span className="flex-shrink-0 w-7 h-7 rounded-full text-xs font-black flex items-center justify-center border bg-violet-100 text-violet-700 border-violet-200">
           {index + 1}
         </span>
-
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-slate-800 leading-snug">
-            {item.question}
-          </p>
-
+          <p className="text-sm font-semibold text-slate-800 leading-snug">{item.question}</p>
           <div className="flex flex-wrap gap-2 mt-2">
-            {/* Category chip */}
             <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border bg-violet-100 text-violet-700 border-violet-200">
               <span>{item.category_emoji}</span>
               {item.category}
             </span>
-
-            {/* Framework name chip */}
             {framework?.name && (
               <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border bg-sky-50 text-sky-700 border-sky-200">
                 <FaListOl size={9} />
@@ -170,14 +402,10 @@ function HRQuestionCard({ item, index }) {
             )}
           </div>
         </div>
-
-        {/* Expand icon */}
         <span className="flex-shrink-0 text-slate-400 group-hover:text-slate-600 mt-0.5 transition-colors">
           {open ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
         </span>
       </button>
-
-      {/* Answer framework panel */}
       {open && (
         <div className="px-5 pb-5 pt-0 border-t border-slate-100">
           {framework?.steps?.length > 0 && (
@@ -188,28 +416,18 @@ function HRQuestionCard({ item, index }) {
                   Suggested Answer Structure
                 </p>
               </div>
-
               <ol className="space-y-2">
                 {framework.steps.map((step, si) => {
-                  // Split "Label — description" for bold label
                   const dashIdx = step.indexOf(" — ");
                   const label = dashIdx !== -1 ? step.slice(0, dashIdx) : null;
-                  const body = dashIdx !== -1 ? step.slice(dashIdx + 3) : step;
-
+                  const body  = dashIdx !== -1 ? step.slice(dashIdx + 3) : step;
                   return (
-                    <li
-                      key={si}
-                      className="flex items-start gap-3 bg-violet-50 border border-violet-100 rounded-xl px-4 py-2.5"
-                    >
+                    <li key={si} className="flex items-start gap-3 bg-violet-50 border border-violet-100 rounded-xl px-4 py-2.5">
                       <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-200 text-violet-800 text-[10px] font-black flex items-center justify-center mt-0.5">
                         {si + 1}
                       </span>
                       <p className="text-xs text-slate-700 leading-relaxed">
-                        {label && (
-                          <span className="font-bold text-violet-800">
-                            {label}
-                          </span>
-                        )}
+                        {label && <span className="font-bold text-violet-800">{label}</span>}
                         {label && " — "}
                         {body}
                       </p>
@@ -219,8 +437,6 @@ function HRQuestionCard({ item, index }) {
               </ol>
             </div>
           )}
-
-          {/* Context used note */}
           {item.context_used && (
             <p className="mt-3 text-[10px] text-slate-400 font-medium italic">
               📌 Personalised from your resume: {item.context_used}
@@ -236,14 +452,12 @@ function HRQuestionCard({ item, index }) {
 function ResumeContextBanner({ ctx }) {
   if (!ctx) return null;
   const chips = [
-    ctx.name && { label: "Candidate", value: ctx.name, emoji: "👤" },
-    ctx.top_project && { label: "Project", value: ctx.top_project, emoji: "🛠️" },
-    ctx.education && { label: "Education", value: ctx.education, emoji: "🎓" },
-    ctx.top_skill && { label: "Top Skill", value: ctx.top_skill, emoji: "⚡" },
+    ctx.name        && { label: "Candidate", value: ctx.name,        emoji: "👤" },
+    ctx.top_project && { label: "Project",   value: ctx.top_project, emoji: "🛠️" },
+    ctx.education   && { label: "Education", value: ctx.education,   emoji: "🎓" },
+    ctx.top_skill   && { label: "Top Skill", value: ctx.top_skill,   emoji: "⚡" },
   ].filter(Boolean);
-
   if (chips.length === 0) return null;
-
   return (
     <div className="bg-gradient-to-r from-violet-50 to-sky-50 border border-violet-100 rounded-2xl px-5 py-3.5 mb-5">
       <p className="text-[10px] font-extrabold uppercase tracking-wider text-violet-600 mb-2 flex items-center gap-1.5">
@@ -251,10 +465,7 @@ function ResumeContextBanner({ ctx }) {
       </p>
       <div className="flex flex-wrap gap-2">
         {chips.map((c) => (
-          <span
-            key={c.label}
-            className="inline-flex items-center gap-1 text-[11px] font-semibold bg-white border border-violet-200 text-slate-700 px-3 py-1 rounded-full shadow-sm"
-          >
+          <span key={c.label} className="inline-flex items-center gap-1 text-[11px] font-semibold bg-white border border-violet-200 text-slate-700 px-3 py-1 rounded-full shadow-sm">
             <span>{c.emoji}</span>
             <span className="text-violet-600 font-bold">{c.label}:</span>
             {c.value}
@@ -268,15 +479,15 @@ function ResumeContextBanner({ ctx }) {
 // ─── Main Component ─────────────────────────────────────────────────────────
 function InterviewQuestions() {
   const [availableRoles, setAvailableRoles] = useState([]);
-  const [selectedRole, setSelectedRole] = useState("");
-  const [customJD, setCustomJD] = useState("");
-  const [useCustomJD, setUseCustomJD] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [activeTab, setActiveTab] = useState("beginner");
-  const [error, setError] = useState("");
+  const [selectedRole,   setSelectedRole]   = useState("");
+  const [customJD,       setCustomJD]       = useState("");
+  const [useCustomJD,    setUseCustomJD]    = useState(false);
+  const [loading,        setLoading]        = useState(false);
+  const [result,         setResult]         = useState(null);
+  const [activeTab,      setActiveTab]      = useState("beginner");
+  const [practiceMode,   setPracticeMode]   = useState(false);
+  const [error,          setError]          = useState("");
 
-  // Fetch role list once on mount
   useEffect(() => {
     careerService
       .getAvailableRoles()
@@ -293,35 +504,41 @@ function InterviewQuestions() {
     setLoading(true);
     setError("");
     setResult(null);
+    setPracticeMode(false);
 
     try {
       const payload = useCustomJD
         ? { job_description: customJD.trim() }
         : { job_role: selectedRole };
-
       const data = await careerService.generateInterviewQuestions(payload);
       setResult(data);
       setActiveTab("beginner");
     } catch (err) {
-      setError(
-        err?.response?.data?.error ||
-          "Failed to generate questions. Please try again."
-      );
+      setError(err?.response?.data?.error || "Failed to generate questions. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Switch tab → exit practice mode so index resets cleanly
+  const handleTabChange = (key) => {
+    setActiveTab(key);
+    setPracticeMode(false);
+  };
+
   const activeLevelCfg = LEVELS.find((l) => l.key === activeTab) || LEVELS[0];
-  const isHRTab = activeTab === "hr_behavioral";
+  const isHRTab        = activeTab === "hr_behavioral";
   const activeQuestions = isHRTab
     ? result?.hr_behavioral || []
-    : result?.[activeTab] || [];
-
+    : result?.[activeTab]  || [];
   const hrCount = result?.hr_behavioral?.length || 0;
+
+  // Current tab config for practice mode colours
+  const activeTabCfg = isHRTab ? HR_TAB : activeLevelCfg;
 
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
+
       {/* ── Header ── */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -348,7 +565,6 @@ function InterviewQuestions() {
 
       {/* ── Role / JD Selector ── */}
       <div className="bg-slate-50 rounded-2xl p-5 mb-6 border border-slate-200">
-        {/* Toggle */}
         <div className="flex gap-2 mb-4">
           <button
             onClick={() => setUseCustomJD(false)}
@@ -374,7 +590,6 @@ function InterviewQuestions() {
           </button>
         </div>
 
-        {/* Role Dropdown */}
         {!useCustomJD && (
           <select
             value={selectedRole}
@@ -383,14 +598,11 @@ function InterviewQuestions() {
           >
             <option value="">— Choose a target job role —</option>
             {availableRoles.map((r) => (
-              <option key={r.key} value={r.key}>
-                {r.label}
-              </option>
+              <option key={r.key} value={r.key}>{r.label}</option>
             ))}
           </select>
         )}
 
-        {/* Custom JD textarea */}
         {useCustomJD && (
           <textarea
             value={customJD}
@@ -401,7 +613,6 @@ function InterviewQuestions() {
           />
         )}
 
-        {/* Generate button */}
         <button
           onClick={handleGenerate}
           disabled={!canGenerate || loading}
@@ -413,24 +624,9 @@ function InterviewQuestions() {
         >
           {loading ? (
             <>
-              <svg
-                className="animate-spin h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"
-                />
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
               </svg>
               Generating questions…
             </>
@@ -443,132 +639,140 @@ function InterviewQuestions() {
         </button>
 
         {error && (
-          <p className="mt-3 text-sm text-rose-600 font-semibold text-center">
-            ⚠️ {error}
-          </p>
+          <p className="mt-3 text-sm text-rose-600 font-semibold text-center">⚠️ {error}</p>
         )}
       </div>
 
       {/* ── Results ── */}
       {result && (
         <div className="fade-in">
+
           {/* Skills used banner */}
           {result.resume_skills_used?.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-5 items-center">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">
-                Skills used:
-              </span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Skills used:</span>
               {result.resume_skills_used.map((s) => (
-                <span
-                  key={s}
-                  className="text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full"
-                >
+                <span key={s} className="text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full">
                   {s}
                 </span>
               ))}
             </div>
           )}
 
-          {/* ── Tab bar: Technical levels + HR tab ── */}
-          <div className="flex gap-2 mb-5 flex-wrap">
-            {/* Technical level tabs */}
+          {/* ── Tab bar ── */}
+          <div className="flex gap-2 mb-4 flex-wrap">
             {LEVELS.map((lvl) => {
               const isActive = activeTab === lvl.key;
-              const count = result[lvl.key]?.length || 0;
+              const count    = result[lvl.key]?.length || 0;
               return (
                 <button
                   key={lvl.key}
-                  onClick={() => setActiveTab(lvl.key)}
+                  onClick={() => handleTabChange(lvl.key)}
                   className={`flex-1 min-w-[100px] py-2.5 rounded-xl text-sm font-extrabold border flex items-center justify-center gap-1.5 transition-all ${
                     isActive ? lvl.tab : lvl.tabIdle + " bg-white border"
                   }`}
                 >
                   <span>{lvl.emoji}</span>
                   {lvl.label}
-                  <span
-                    className={`ml-1 text-[10px] font-black px-1.5 py-0.5 rounded-full ${
-                      isActive ? "bg-white/30" : "bg-slate-100 text-slate-500"
-                    }`}
-                  >
+                  <span className={`ml-1 text-[10px] font-black px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/30" : "bg-slate-100 text-slate-500"}`}>
                     {count}
                   </span>
                 </button>
               );
             })}
 
-            {/* HR & Behavioral tab — only shown when HR questions were returned */}
             {hrCount > 0 && (
               <button
-                onClick={() => setActiveTab("hr_behavioral")}
+                onClick={() => handleTabChange("hr_behavioral")}
                 className={`flex-1 min-w-[130px] py-2.5 rounded-xl text-sm font-extrabold border flex items-center justify-center gap-1.5 transition-all ${
-                  isHRTab
-                    ? HR_TAB.tab
-                    : HR_TAB.tabIdle + " bg-white border"
+                  isHRTab ? HR_TAB.tab : HR_TAB.tabIdle + " bg-white border"
                 }`}
               >
                 <FaHeart size={12} />
                 HR &amp; Behavioral
-                <span
-                  className={`ml-1 text-[10px] font-black px-1.5 py-0.5 rounded-full ${
-                    isHRTab ? "bg-white/30" : "bg-slate-100 text-slate-500"
-                  }`}
-                >
+                <span className={`ml-1 text-[10px] font-black px-1.5 py-0.5 rounded-full ${isHRTab ? "bg-white/30" : "bg-slate-100 text-slate-500"}`}>
                   {hrCount}
                 </span>
               </button>
             )}
           </div>
 
-          {/* Tab description */}
-          <p className="text-xs text-slate-500 font-medium mb-4 italic">
-            {isHRTab ? HR_TAB.description : activeLevelCfg.description}
-          </p>
+          {/* ── Tab description + Practice Mode toggle ── */}
+          <div className="flex items-center justify-between mb-5">
+            <p className="text-xs text-slate-500 font-medium italic">
+              {isHRTab ? HR_TAB.description : activeLevelCfg.description}
+            </p>
 
-          {/* ── HR tab content ── */}
-          {isHRTab && (
-            <>
-              <ResumeContextBanner ctx={result.resume_context} />
-              {activeQuestions.length > 0 ? (
-                <div className="space-y-3">
-                  {activeQuestions.map((q, i) => (
-                    <HRQuestionCard key={i} item={q} index={i} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-10 text-slate-400">
-                  <FaHeart className="mx-auto mb-3 opacity-30" size={32} />
-                  <p className="text-sm font-semibold">No HR questions generated.</p>
-                </div>
-              )}
-            </>
+            {activeQuestions.length > 0 && (
+              <button
+                id="practice-mode-toggle"
+                onClick={() => setPracticeMode((v) => !v)}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-extrabold border transition-all ${
+                  practiceMode
+                    ? "bg-blue-600 text-white border-blue-600 shadow"
+                    : "bg-white text-blue-600 border-blue-300 hover:bg-blue-50"
+                }`}
+              >
+                {practiceMode ? <FaThList size={11} /> : <FaPlay size={10} />}
+                {practiceMode ? "List View" : "Practice Mode"}
+              </button>
+            )}
+          </div>
+
+          {/* ── Practice Mode ── */}
+          {practiceMode && activeQuestions.length > 0 && (
+            <PracticeCard
+              key={activeTab}            /* remount cleanly on tab switch */
+              questions={activeQuestions}
+              tabKey={activeTab}
+              tabCfg={activeTabCfg}
+              onExit={() => setPracticeMode(false)}
+            />
           )}
 
-          {/* ── Technical tab content ── */}
-          {!isHRTab && (
+          {/* ── List view ── */}
+          {!practiceMode && (
             <>
-              {activeQuestions.length > 0 ? (
-                <div className="space-y-3">
-                  {activeQuestions.map((q, i) => (
-                    <QuestionCard
-                      key={i}
-                      item={q}
-                      index={i}
-                      levelCfg={activeLevelCfg}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-10 text-slate-400">
-                  <FaComments className="mx-auto mb-3 opacity-30" size={32} />
-                  <p className="text-sm font-semibold">No questions generated for this level.</p>
-                </div>
+              {/* HR tab */}
+              {isHRTab && (
+                <>
+                  <ResumeContextBanner ctx={result.resume_context} />
+                  {activeQuestions.length > 0 ? (
+                    <div className="space-y-3">
+                      {activeQuestions.map((q, i) => <HRQuestionCard key={i} item={q} index={i} />)}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10 text-slate-400">
+                      <FaHeart className="mx-auto mb-3 opacity-30" size={32} />
+                      <p className="text-sm font-semibold">No HR questions generated.</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Technical tabs */}
+              {!isHRTab && (
+                <>
+                  {activeQuestions.length > 0 ? (
+                    <div className="space-y-3">
+                      {activeQuestions.map((q, i) => (
+                        <QuestionCard key={i} item={q} index={i} levelCfg={activeLevelCfg} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10 text-slate-400">
+                      <FaComments className="mx-auto mb-3 opacity-30" size={32} />
+                      <p className="text-sm font-semibold">No questions generated for this level.</p>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}
         </div>
       )}
 
-      {/* Empty state before generation */}
+      {/* Empty state */}
       {!result && !loading && (
         <div className="text-center py-10 text-slate-400">
           <FaComments className="mx-auto mb-3 opacity-20" size={40} />
