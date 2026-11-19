@@ -13,13 +13,16 @@ from config.db import get_db
 class IsAdminUser(BasePermission):
     """
     Allows access only to the specific admin user.
+    The admin email is configured via the ADMIN_EMAIL environment variable.
     """
     def has_permission(self, request, view):
+        admin_email = getattr(settings, 'ADMIN_EMAIL', '')
         return bool(
             request.user and 
             request.user.is_authenticated and 
             getattr(request.user, 'role', '').lower() == 'admin' and
-            request.user.email == 'meera.ldrp.7@gmail.com'
+            admin_email and
+            request.user.email == admin_email
         )
 
 # --- Seeding Helpers ---

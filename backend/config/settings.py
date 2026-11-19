@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -11,11 +12,22 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/stable/howto/deployment/checklist/
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-skillora-ai-secret-key-1234567890')
+_secret_key = os.getenv('SECRET_KEY', '')
+if not _secret_key:
+    raise ImproperlyConfigured(
+        "The SECRET_KEY environment variable is not set. "
+        "Add it to your .env file before starting the server."
+    )
+SECRET_KEY = _secret_key
 
-DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']
+# Comma-separated list of allowed hosts, e.g. "localhost,127.0.0.1,myapp.com"
+_allowed_hosts_env = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_env.split(',') if h.strip()]
+
+# Admin email used for bug reports and admin-panel access guard
+ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', '')
 
 # Application definition
 INSTALLED_APPS = [
@@ -122,6 +134,16 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'apps.authentication.services.JWTAuthentication',
     ),
+    # Global throttle — applies to all API views unless overridden.
+    # Burst: 60 requests/minute; Sustained: 500 requests/day per user/IP.
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '60/minute',
+        'user': '500/day',
+    },
 }
 
 # MongoDB Configuration
@@ -145,4 +167,12 @@ GITHUB_CLIENT_SECRET = os.getenv('GITHUB_CLIENT_SECRET', '')
 # Media Files Settings
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Security response headers
+# Prevent browsers from MIME-sniffing a response away from the declared content-type.
+SECURE_CONTENT_TYPE_NOSNIFF = True
+# Activate the X-XSS-Protection header (legacy browsers).
+SECURE_BROWSER_XSS_FILTER = True
+# Deny embedding this site in iframes by default.
+X_FRAME_OPTIONS = 'DENY'
 

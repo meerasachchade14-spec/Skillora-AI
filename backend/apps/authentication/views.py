@@ -668,7 +668,8 @@ class ProfileView(APIView):
             update_fields['bio'] = data['bio']
         if 'role' in data:
             new_role = data['role']
-            if str(new_role).strip().lower() == 'admin' and user_data.get('email', '').lower().strip() != 'meera.ldrp.7@gmail.com':
+            admin_email = getattr(settings, 'ADMIN_EMAIL', '')
+            if str(new_role).strip().lower() == 'admin' and user_data.get('email', '').lower().strip() != admin_email.lower().strip():
                 return Response({"error": "Cannot assign Admin role."}, status=status.HTTP_400_BAD_REQUEST)
             update_fields['role'] = new_role
         if 'profile_picture' in data:
@@ -795,7 +796,7 @@ class ReportBugView(APIView):
                 subject=email_subject,
                 message=email_body,
                 from_email=settings.EMAIL_HOST_USER,
-                recipient_list=["meera.ldrp.7@gmail.com"],
+                recipient_list=[settings.ADMIN_EMAIL] if settings.ADMIN_EMAIL else [settings.EMAIL_HOST_USER],
                 fail_silently=False,
             )
             return Response({"message": "Bug report submitted successfully."}, status=status.HTTP_200_OK)

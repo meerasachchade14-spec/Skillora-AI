@@ -1,6 +1,7 @@
 import os
 import random
 from datetime import datetime
+from pathlib import Path
 from bson import ObjectId
 from django.conf import settings
 from django.core.files.storage import default_storage
@@ -24,6 +25,27 @@ from apps.core.ai.resume_quality_analyzer import generate_quality_report, improv
 from apps.core.ai.interview_question_engine import generate_interview_questions
 from apps.core.ai.hr_question_engine import generate_hr_questions
 from apps.core.ai.job_role_taxonomy import JOB_ROLE_TAXONOMY
+
+
+def safe_media_path(relative_path):
+    """
+    Resolves a relative file path stored in the database into an absolute
+    filesystem path that is guaranteed to be inside MEDIA_ROOT.
+
+    This prevents path-traversal attacks where a malicious or corrupted
+    ``file_path`` value (e.g. ``../../etc/passwd``) could escape MEDIA_ROOT.
+
+    Returns the resolved absolute path string if safe.
+    Raises PermissionError if the resolved path escapes MEDIA_ROOT.
+    """
+    media_root = Path(settings.MEDIA_ROOT).resolve()
+    candidate = (media_root / relative_path).resolve()
+    # Path.is_relative_to() was added in Python 3.9; use string prefix for 3.8 compat
+    if not str(candidate).startswith(str(media_root)):
+        raise PermissionError(
+            f"Unsafe file path detected: '{relative_path}' resolves outside MEDIA_ROOT."
+        )
+    return str(candidate)
 
 def text_from_resume_data(resume_data):
     """
@@ -452,7 +474,11 @@ class ResumeUploadView(APIView):
         file_path = os.path.join('resumes', file_name)
         
         saved_path = default_storage.save(file_path, ContentFile(file_obj.read()))
-        full_disk_path = os.path.join(settings.MEDIA_ROOT, saved_path)
+        try:
+            full_disk_path = safe_media_path(saved_path)
+        except PermissionError:
+            default_storage.delete(saved_path)
+            return Response({"error": "Invalid file path."}, status=status.HTTP_400_BAD_REQUEST)
         full_url = request.build_absolute_uri(settings.MEDIA_URL + saved_path)
 
         # Clean old file if updating
@@ -629,8 +655,12 @@ class ResumeDetailView(APIView):
         # If resumeData doesn't exist, try to parse it from the saved PDF
         if not resume_data and resume.get('file_path'):
             file_path = resume.get('file_path')
-            full_disk_path = os.path.join(settings.MEDIA_ROOT, file_path)
-            if os.path.exists(full_disk_path):
+            try:
+                full_disk_path = safe_media_path(file_path)
+            except PermissionError as e:
+                print(f"Path traversal blocked in ResumeDetailView.get: {e}")
+                full_disk_path = None
+            if full_disk_path and os.path.exists(full_disk_path):
                 try:
                     raw_text = extract_resume_text(full_disk_path)
                     resume_data = extract_resume_information(raw_text)
@@ -690,6 +720,11 @@ class ResumeDetailView(APIView):
             os.makedirs(os.path.join(settings.MEDIA_ROOT, 'resumes'), exist_ok=True)
             file_path = os.path.join('resumes', file_name)
             saved_path = default_storage.save(file_path, ContentFile(file_obj.read()))
+            try:
+                safe_media_path(saved_path)  # Validate new path is inside MEDIA_ROOT
+            except PermissionError:
+                default_storage.delete(saved_path)
+                return Response({"error": "Invalid file path."}, status=status.HTTP_400_BAD_REQUEST)
             full_url = request.build_absolute_uri(settings.MEDIA_URL + saved_path)
             
             update_fields['file_path'] = saved_path
@@ -706,8 +741,12 @@ class ResumeDetailView(APIView):
         if not raw_text.strip():
             target_path = update_fields.get('file_path') or resume.get('file_path')
             if target_path:
-                full_disk = os.path.join(settings.MEDIA_ROOT, target_path)
-                if os.path.exists(full_disk):
+                try:
+                    full_disk = safe_media_path(target_path)
+                except PermissionError as e:
+                    print(f"Path traversal blocked in ResumeDetailView.put: {e}")
+                    full_disk = None
+                if full_disk and os.path.exists(full_disk):
                     try:
                         raw_text = extract_resume_text(full_disk)
                     except Exception:
@@ -839,8 +878,12 @@ class ResumeAnalysisView(APIView):
         disk_text = ""
         full_disk_path = None
         if resume.get('file_path'):
-            full_disk_path = os.path.join(settings.MEDIA_ROOT, resume.get('file_path'))
-            if os.path.exists(full_disk_path):
+            try:
+                full_disk_path = safe_media_path(resume.get('file_path'))
+            except PermissionError as e:
+                print(f"Path traversal blocked in _generate_analysis: {e}")
+                full_disk_path = None
+            if full_disk_path and os.path.exists(full_disk_path):
                 try:
                     disk_text = extract_resume_text(full_disk_path)
                 except Exception as e:
@@ -1639,9 +1682,13 @@ class ResumeParseToBuilderView(APIView):
         file_name = f"temp_{timestamp}_{file_obj.name}"
         file_path = os.path.join('temp_resumes', file_name)
         saved_path = default_storage.save(file_path, ContentFile(file_obj.read()))
-        
-        full_disk_path = os.path.join(settings.MEDIA_ROOT, saved_path)
-        
+
+        try:
+            full_disk_path = safe_media_path(saved_path)
+        except PermissionError:
+            default_storage.delete(saved_path)
+            return Response({"error": "Invalid file path."}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             raw_text = extract_resume_text(full_disk_path)
             structured_data = extract_resume_information(raw_text)
@@ -1649,10 +1696,10 @@ class ResumeParseToBuilderView(APIView):
             structured_data = {}
             print(f"Extraction error: {e}")
         finally:
-            # Clean up
+            # Always clean up the temp file
             if default_storage.exists(saved_path):
                 default_storage.delete(saved_path)
-                
+
         return Response({"resumeData": structured_data}, status=status.HTTP_200_OK)
 
 
