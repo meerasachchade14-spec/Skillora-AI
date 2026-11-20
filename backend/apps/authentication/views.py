@@ -3,7 +3,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from datetime import datetime
+from datetime import datetime, timedelta
+import jwt
 
 from config.db import get_db
 from apps.authentication.otp_utils import create_otp, verify_otp_code, can_request_otp
@@ -44,36 +45,9 @@ def get_user_profile_response_dict(user_doc):
         "certifications": user_doc.get('certifications', [])
     }
 
-class RefreshTokenView(APIView):
-    """
-    POST /api/auth/refresh-token/
-    Accepts a valid refresh JWT and returns a new access token (and optionally a new refresh token).
-    """
-    permission_classes = [AllowAny]
 
-    def post(self, request):
-        refresh_token = request.data.get('refresh')
-        if not refresh_token:
-            return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=['HS256'])
-            if payload.get('type') != 'refresh':
-                raise jwt.InvalidTokenError('Not a refresh token')
-        except jwt.ExpiredSignatureError:
-            return Response({"error": "Refresh token has expired. Please log in again."}, status=status.HTTP_401_UNAUTHORIZED)
-        except jwt.InvalidTokenError:
-            return Response({"error": "Invalid refresh token."}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Generate new access token (keep same user info)
-        email = payload.get('email')
-        user_id = payload.get('user_id')
-        token_pair = generate_jwt_token(email, user_id)
-        access = token_pair['access']
-        refresh = token_pair['refresh']
-        return Response({
-            "access_token": access,
-            "refresh_token": refresh,
-        }, status=status.HTTP_200_OK)
+class RegisterView(APIView):
+# Duplicate RegisterView block removed
 
     """
     POST /api/auth/register/
@@ -146,6 +120,34 @@ class RefreshTokenView(APIView):
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class RefreshTokenView(APIView):
+    """
+    POST /api/auth/refresh-token/
+    Accepts a valid refresh JWT and returns a new access token (and a new refresh token).
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        refresh_token = request.data.get('refresh')
+        if not refresh_token:
+            return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=['HS256'])
+            if payload.get('type') != 'refresh':
+                raise jwt.InvalidTokenError('Not a refresh token')
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Refresh token has expired. Please log in again."}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Invalid refresh token."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Generate new access (and optionally new refresh) token
+        email = payload.get('email')
+        user_id = payload.get('user_id')
+        token_pair = generate_jwt_token(email, user_id)
+        access = token_pair['access']
+        refresh = token_pair['refresh']
+        return Response({"access_token": access, "refresh_token": refresh}, status=status.HTTP_200_OK)
+
 
 class VerifyOtpView(APIView):
     """
@@ -193,6 +195,34 @@ class VerifyOtpView(APIView):
             return Response({"error": "Invalid or expired OTP."}, status=status.HTTP_400_BAD_REQUEST)
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class RefreshTokenView(APIView):
+    """
+    POST /api/auth/refresh-token/
+    Accepts a valid refresh JWT and returns a new access token (and a new refresh token).
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        refresh_token = request.data.get('refresh')
+        if not refresh_token:
+            return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=['HS256'])
+            if payload.get('type') != 'refresh':
+                raise jwt.InvalidTokenError('Not a refresh token')
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Refresh token has expired. Please log in again."}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Invalid refresh token."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Generate new access (and optionally new refresh) token
+        email = payload.get('email')
+        user_id = payload.get('user_id')
+        token_pair = generate_jwt_token(email, user_id)
+        access = token_pair['access']
+        refresh = token_pair['refresh']
+        return Response({"access_token": access, "refresh_token": refresh}, status=status.HTTP_200_OK)
 
 
 class LoginView(APIView):
@@ -253,6 +283,34 @@ class LoginView(APIView):
             }, status=status.HTTP_200_OK)
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class RefreshTokenView(APIView):
+    """
+    POST /api/auth/refresh-token/
+    Accepts a valid refresh JWT and returns a new access token (and a new refresh token).
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        refresh_token = request.data.get('refresh')
+        if not refresh_token:
+            return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=['HS256'])
+            if payload.get('type') != 'refresh':
+                raise jwt.InvalidTokenError('Not a refresh token')
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Refresh token has expired. Please log in again."}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Invalid refresh token."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Generate new access (and optionally new refresh) token
+        email = payload.get('email')
+        user_id = payload.get('user_id')
+        token_pair = generate_jwt_token(email, user_id)
+        access = token_pair['access']
+        refresh = token_pair['refresh']
+        return Response({"access_token": access, "refresh_token": refresh}, status=status.HTTP_200_OK)
 
 
 class SendOtpView(APIView):
@@ -541,6 +599,34 @@ class GoogleAuthView(APIView):
                 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class RefreshTokenView(APIView):
+    """
+    POST /api/auth/refresh-token/
+    Accepts a valid refresh JWT and returns a new access token (and a new refresh token).
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        refresh_token = request.data.get('refresh')
+        if not refresh_token:
+            return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=['HS256'])
+            if payload.get('type') != 'refresh':
+                raise jwt.InvalidTokenError('Not a refresh token')
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Refresh token has expired. Please log in again."}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Invalid refresh token."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Generate new access (and optionally new refresh) token
+        email = payload.get('email')
+        user_id = payload.get('user_id')
+        token_pair = generate_jwt_token(email, user_id)
+        access = token_pair['access']
+        refresh = token_pair['refresh']
+        return Response({"access_token": access, "refresh_token": refresh}, status=status.HTTP_200_OK)
+
 
 class GithubAuthView(APIView):
     """
@@ -669,6 +755,34 @@ class GithubAuthView(APIView):
                 }, status=status.HTTP_201_CREATED)
                 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class RefreshTokenView(APIView):
+    """
+    POST /api/auth/refresh-token/
+    Accepts a valid refresh JWT and returns a new access token (and a new refresh token).
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        refresh_token = request.data.get('refresh')
+        if not refresh_token:
+            return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=['HS256'])
+            if payload.get('type') != 'refresh':
+                raise jwt.InvalidTokenError('Not a refresh token')
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Refresh token has expired. Please log in again."}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Invalid refresh token."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Generate new access (and optionally new refresh) token
+        email = payload.get('email')
+        user_id = payload.get('user_id')
+        token_pair = generate_jwt_token(email, user_id)
+        access = token_pair['access']
+        refresh = token_pair['refresh']
+        return Response({"access_token": access, "refresh_token": refresh}, status=status.HTTP_200_OK)
 
 
 class ProfileView(APIView):

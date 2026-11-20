@@ -1,5 +1,6 @@
 from django.urls import path
 from apps.authentication.views import (
+    RefreshTokenView,
     RegisterView,
     VerifyOtpView,
     LoginView,
@@ -29,5 +30,6 @@ urlpatterns = [
     path('delete-account/', DeleteAccountView.as_view(), name='delete-account'),
     path('report-bug/', ReportBugView.as_view(), name='report-bug'),
     path('logout/', LogoutView.as_view(), name='logout'),
+    path('refresh-token/', RefreshTokenView.as_view(), name='refresh-token'),
 ]
 
