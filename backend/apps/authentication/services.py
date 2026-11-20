@@ -8,18 +8,42 @@ from bson import ObjectId
 from config.db import get_db
 from apps.authentication.models import MongoUser
 
-def generate_jwt_token(email, user_id):
+def generate_access_token(email, user_id):
     """
-    Generates a login JWT token containing the user's ID and email,
-    expiring in 24 hours.
+    Generates an access JWT token containing the user's ID and email,
+    expiring in 15 minutes (short-lived for security).
     """
     payload = {
         'user_id': str(user_id),
         'email': email,
-        'exp': datetime.utcnow() + timedelta(days=1),
+        'exp': datetime.utcnow() + timedelta(minutes=15),
         'iat': datetime.utcnow()
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+
+
+def generate_refresh_token(email, user_id):
+    """
+    Generates a refresh JWT token with longer expiry (7 days).
+    Used to obtain new access tokens without re‑authenticating.
+    """
+    payload = {
+        'user_id': str(user_id),
+        'email': email,
+        'type': 'refresh',
+        'exp': datetime.utcnow() + timedelta(days=7),
+        'iat': datetime.utcnow()
+    }
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+
+# Preserve backward compatibility – older code may call generate_jwt_token.
+# It now returns both access and refresh tokens as a dict.
+def generate_jwt_token(email, user_id):
+    """Legacy wrapper returning a dict with 'access' and 'refresh' tokens."""
+    return {
+        'access': generate_access_token(email, user_id),
+        'refresh': generate_refresh_token(email, user_id)
+    }
 
 def generate_password_reset_token(email):
     """

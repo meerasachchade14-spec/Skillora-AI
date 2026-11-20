@@ -44,7 +44,37 @@ def get_user_profile_response_dict(user_doc):
         "certifications": user_doc.get('certifications', [])
     }
 
-class RegisterView(APIView):
+class RefreshTokenView(APIView):
+    """
+    POST /api/auth/refresh-token/
+    Accepts a valid refresh JWT and returns a new access token (and optionally a new refresh token).
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        refresh_token = request.data.get('refresh')
+        if not refresh_token:
+            return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=['HS256'])
+            if payload.get('type') != 'refresh':
+                raise jwt.InvalidTokenError('Not a refresh token')
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Refresh token has expired. Please log in again."}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Invalid refresh token."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Generate new access token (keep same user info)
+        email = payload.get('email')
+        user_id = payload.get('user_id')
+        token_pair = generate_jwt_token(email, user_id)
+        access = token_pair['access']
+        refresh = token_pair['refresh']
+        return Response({
+            "access_token": access,
+            "refresh_token": refresh,
+        }, status=status.HTTP_200_OK)
+
     """
     POST /api/auth/register/
     Registers a new user, hashes the password, stores in MongoDB,
@@ -149,11 +179,14 @@ class VerifyOtpView(APIView):
                     user['is_verified'] = True
                 
                 # Generate auth JWT token
-                token = generate_jwt_token(email, str(user['_id']))
+                token_pair = generate_jwt_token(email, str(user['_id']))
+                access = token_pair['access']
+                refresh = token_pair['refresh']
                 
                 return Response({
                     "message": "OTP verified successfully.",
-                    "token": token,
+                    "access_token": access,
+                    "refresh_token": refresh,
                     "user": get_user_profile_response_dict(user)
                 }, status=status.HTTP_200_OK)
                 
@@ -206,12 +239,16 @@ class LoginView(APIView):
                     "message": "A verification OTP has been sent to your email. Please verify it before logging in."
                 }, status=status.HTTP_403_FORBIDDEN)
                 
-            # Generate token
-            token = generate_jwt_token(email, str(user['_id']))
+            # Generate access and refresh tokens
+            token_pair = generate_jwt_token(email, str(user['_id']))
+            access = token_pair['access']
+            refresh = token_pair['refresh']
             
             return Response({
                 "message": "Login successful.",
-                "token": token,
+                "access_token": access,
+                "refresh_token": refresh,
+                "token": access,  # backward compatibility
                 "user": get_user_profile_response_dict(user)
             }, status=status.HTTP_200_OK)
             
