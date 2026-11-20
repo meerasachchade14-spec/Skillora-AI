@@ -1,28 +1,26 @@
-# Skillora AI
-
-> **An AI‑powered career assistant that helps users create, analyse, and improve their resumes, discover job roles, plan learning pathways, and prepare for interviews.**
-
+# Skillora AI - AI-Powered Resume Intelligence & Career Guidance Platform
 ---
 
-## Table of Contents
+## Project Information
 
-- [Project Overview](#project-overview)
-- [Features](#features)
-- [Technology Stack](#technology-stack)
-- [AI/ML Workflow](#aiml-workflow)
-- [System Architecture](#system-architecture)
-- [Folder Structure](#folder-structure)
-- [Installation & Setup](#installation--setup)
-- [Environment Variables](#environment-variables)
-- [API Overview](#api-overview)
-- [Screenshots](#screenshots)
-- [Future Scope](#future-scope)
-
+| Detail | Description |
+|---|---|
+| Project Name | Skillora AI |
+| Project Type | AI-Based Web Application |
+| Academic Level | 7th Semester |
+| Course | B.E. Computer Engineering |
+| Institute | LDRP Institute of Technology and Research |
+| University | Kadi Sarva Vishwavidyalaya (KSV) |
+| Academic Project | 7th Semester Group Project |
 ---
 
 ## Project Overview
 
-Skillora AI is a full‑stack web application that guides job‑seekers through the entire hiring preparation process.  Users can register with email‑based OTP verification, upload and edit resumes, run AI‑driven analyses (skill extraction, ATS scoring, quality suggestions), receive personalised job‑role recommendations, view a learning roadmap, and practise interview questions.  All data is persisted per‑user in MongoDB, and the backend exposes a clean REST API built with Django REST Framework.
+Skillora AI is an AI-powered web application designed to help students, fresh graduates, and job seekers analyze their resumes, evaluate their skills, identify skill gaps, and make informed career decisions.
+
+The platform combines modern web technologies with Natural Language Processing (NLP), Machine Learning, and semantic similarity techniques to provide meaningful resume insights and career guidance.
+
+Instead of simply displaying a resume score, Skillora AI focuses on understanding resume content, identifying relevant skills, evaluating job compatibility, and suggesting areas for improvement.
 
 ---
 
@@ -46,18 +44,25 @@ Skillora AI is a full‑stack web application that guides job‑seekers through 
 | Database | MongoDB (accessed via `pymongo` in `config/db.py`)
 | AI/ML | `sentence‑transformers`, `spaCy`, `torch`, `scikit‑learn`
 | Dev tools | VS Code, PowerShell, Cypress (E2E), PyTest (`APITestCase`)
-
+| Other tools | Git ,Github ,Antigravity 
 ---
 
 ## AI/ML Workflow
 
-1. **Resume parsing** – uploaded file is converted to plain text using `pdfminer` / `python-docx`.
-2. **Embedding generation** – the text is fed to a `sentence‑transformers` model to obtain a dense vector representation.
-3. **Skill extraction** – spaCy NER and custom keyword matching identify hard/soft skills.
-4. **ATS scoring** – similarity between resume embedding and a curated set of job‑description embeddings yields a match percentage.
-5. **Quality suggestions** – heuristics (length, section order, action‑verb usage) produce actionable feedback.
-6. **Recommendations** – the skill vector is compared against a database of job titles to suggest relevant roles.
-7. **Learning roadmap & interview prep** – based on the identified gaps, content modules and typical interview questions are selected.
+step 1. **Resume parsing** – uploaded file is converted to plain text using `pdfminer` / `python-docx`.
+
+step 2. **Embedding generation** – the text is fed to a `sentence‑transformers` model to obtain a dense vector representation.
+
+step 3. **Skill extraction** – spaCy NER and custom keyword matching identify hard/soft skills.
+
+step 4. **ATS scoring** – similarity between resume embedding and a curated set of job‑description embeddings yields a match percentage.
+
+step 5. **Quality suggestions** – heuristics (length, section order, action‑verb usage) produce actionable feedback.
+
+step 6. **Recommendations** – the skill vector is compared against a database of job titles to suggest relevant roles.
+
+step 7. **Learning roadmap & interview prep** – based on the identified gaps, content modules and typical interview questions are selected.
+
 
 All models are lazy‑loaded on first use and cached for subsequent requests, preventing repeated heavy initialisation.
 
@@ -144,74 +149,6 @@ cd frontend && npm run dev
 The application will be reachable at `http://localhost:5173` (Vite) and the API at `http://localhost:8000/api/`.
 
 ---
-
-## Environment Variables
-
-Create a `.env` file in the **backend** directory (do **not** commit it). Example values:
-
-```
-# Django core
-SECRET_KEY=replace‑with‑a‑strong‑random‑string
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-
-# MongoDB
-MONGO_URI=mongodb://localhost:27017/
-MONGO_DB_NAME=skillora_ai
-
-# Email (SMTP) – used for OTP and bug‑report
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USE_TLS=True
-EMAIL_HOST_USER=your_email@gmail.com
-EMAIL_HOST_PASSWORD=your_16_digit_app_password
-
-# Admin contact (bug reports)
-ADMIN_EMAIL=admin@example.com
-```
-
----
-
-## API Overview
-
-All endpoints are prefixed with **/api/**.
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/auth/register/` | Register a new user (triggers OTP) |
-| `POST` | `/auth/verify-otp/` | Verify OTP and receive JWT |
-| `POST` | `/auth/login/` | Login with email/password |
-| `POST` | `/auth/logout/` | Invalidate JWT (client‑side) |
-| `POST` | `/auth/forgot-password/` | Request password‑reset OTP |
-| `POST` | `/auth/verify-reset-otp/` | Verify reset OTP, get short‑lived token |
-| `POST` | `/auth/reset-password/` | Set new password |
-| `POST` | `/auth/report-bug/` | Send a bug report (emails admin) |
-| `POST` | `/resume/upload/` | Upload PDF/DOCX, store metadata |
-| `GET`  | `/resume/{id}/` | Retrieve parsed resume content |
-| `PUT`  | `/resume/{id}/` | Save edited resume content |
-| `GET`  | `/resume/download/{id}/` | Download PDF version |
-| `GET`  | `/resume/history/` | List user's past resumes |
-| `POST` | `/analysis/run/` | Trigger AI analysis for a resume |
-| `GET`  | `/analysis/result/{resume_id}/` | Poll for analysis result |
-| `GET`  | `/jobs/recommendations/` | Get role recommendations based on analysis |
-| `GET`  | `/resume/quality/` | Retrieve quality‑suggestion report |
-| `GET`  | `/learning/roadmap/` | Get personalised learning pathway |
-| `GET`  | `/interview/prep/` | Fetch interview‑question set |
-
-Authentication is required for all endpoints except `/auth/register/`, `/auth/verify-otp/`, `/auth/login/`, and password‑reset flows.  Include the JWT token in the `Authorization: Bearer <token>` header.
-
----
-
-## Screenshots
-
-![Login page](file:///C:/Users/meera/.gemini/antigravity/brain/bedf7a87-4986-4c53-8cbb-9d0a96a9e870/login_page_1795122789503.jpg)
-
-*Login screen – dark mode with glassmorphism form.*
-
-*(Add additional screenshots for dashboard, resume builder, analysis results, etc., in the same way.)*
-
----
-
 ## Future Scope
 
 - **Model versioning** – integrate a model‑registry to seamlessly upgrade AI components.
@@ -222,4 +159,8 @@ Authentication is required for all endpoints except `/auth/register/`, `/auth/ve
 
 ---
 
-*This README reflects the current state of the repository. Features are described exactly as implemented; no placeholder or speculative functionality is listed.*
+## Developed By
+
+Meera Sachchade - Computer Enineering Student (2023-2027)
+
+
